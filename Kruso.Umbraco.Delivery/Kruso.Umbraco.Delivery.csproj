@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Company>Kruso</Company>
+    <RepositoryUrl>https://github.com/Kruso/umbraco-headless</RepositoryUrl>
+    <AssemblyVersion>10.0.0.11</AssemblyVersion>
+    <FileVersion>10.0.0.11</FileVersion>
+    <Version>10.0.11</Version>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <PackageId>Kruso.Umbraco.Delivery</PackageId>
+    <Authors>Kruso</Authors>
+    <Description>A library to convert an Umbraco instance into a CMS capable of returning content in either JSON or HTML</Description>
+    <Copyright>Kruso Sverige AB</Copyright>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <NoWarn>1701;1702;1591</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <NoWarn>1701;1702;1591</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="CN=RSKSampleIdentityServer.pfx" />
+    <None Remove="Controllers\Resources\previewTemplate.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="CN=RSKSampleIdentityServer.pfx" />
+    <EmbeddedResource Include="Controllers\Resources\previewTemplate.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="IdentityModel" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="6.0.1" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.15.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.15.1" />
+    <PackageReference Include="Umbraco.Cms.Web.Website" Version="[10,11)" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,85 @@
+{
+  "name": "",
+  "isOrdered": true,
+  "folders": {
+    "bin": {
+      "name": "bin",
+      "isOrdered": true,
+      "folders": {},
+      "files": {}
+    },
+    "Controllers": {
+      "name": "Controllers",
+      "isOrdered": true,
+      "folders": {},
+      "files": {}
+    },
+    "Extensions": {
+      "name": "Extensions",
+      "isOrdered": true,
+      "folders": {},
+      "files": {}
+    },
+    "Helper": {
+      "name": "Helper",
+      "isOrdered": true,
+      "folders": {},
+      "files": {}
+    },
+    "ModelConversion": {
+      "name": "ModelConversion",
+      "isOrdered": true,
+      "folders": {},
+      "files": {}
+    },
+    "ModelGeneration": {
+      "name": "ModelGeneration",
+      "isOrdered": true,
+      "folders": {},
+      "files": {}
+    },
+    "Models": {
+      "name": "Models",
+      "isOrdered": true,
+      "folders": {},
+      "files": {}
+    },
+    "obj": {
+      "name": "obj",
+      "isOrdered": true,
+      "folders": {},
+      "files": {}
+    },
+    "Routing": {
+      "name": "Routing",
+      "isOrdered": true,
+      "folders": {},
+      "files": {}
+    },
+    "Search": {
+      "name": "Search",
+      "isOrdered": true,
+      "folders": {},
+      "files": {}
+    },
+    "Security": {
+      "name": "Security",
+      "isOrdered": true,
+      "folders": {},
+      "files": {}
+    },
+    "Services": {
+      "name": "Services",
+      "isOrdered": true,
+      "folders": {},
+      "files": {}
+    },
+    "Wrappers": {
+      "name": "Wrappers",
+      "isOrdered": true,
+      "folders": {},
+      "files": {}
+    }
+  },
+  "files": {}
+}

@@ -1,0 +1,47 @@
+name: v10 Kruso Umbraco Delivery
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'Kruso.Umbraco.Delivery/**'
+
+  workflow_dispatch:
+
+jobs:
+  # build:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-dotnet@v1
+  #       with:
+  #         dotnet-version: 5.0.x
+  #     - run: dotnet restore
+  #     - run: dotnet build --no-restore      
+
+  publish-gpr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v2
+        with:
+          ref: versions/v10
+          dotnet-version: 6.0.x
+          source-url: https://nuget.pkg.github.com/kruso/index.json
+        env:
+          NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      - name: Update file version
+        shell: pwsh
+        run: |
+          .\Update-Version.ps1 -proj "./Kruso.Umbraco.Delivery/Kruso.Umbraco.Delivery.csproj"
+      - run: dotnet pack ./Kruso.Umbraco.Delivery/Kruso.Umbraco.Delivery.csproj --configuration Release -o out
+      - run: dotnet nuget push "./out/*.nupkg" --api-key ${{github.token}} --skip-duplicate --no-symbols
+      - name: Update changes in GitHub repository
+        run:  |
+          git config --global user.name 'Gitub Actions' 
+          git config --global user.email 'noreply@kruso.se'
+          git add -A
+          git commit -m '[build] Updated file versions'
+          git push

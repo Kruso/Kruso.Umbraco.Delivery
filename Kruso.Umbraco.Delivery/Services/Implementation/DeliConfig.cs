@@ -1,27 +1,29 @@
 ﻿using Kruso.Umbraco.Delivery.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Kruso.Umbraco.Delivery.Services.Implementation
 {
     public class DeliConfig : IDeliConfig
     {
-        private readonly IDeliRequestAccessor _deliRequestAccessor;
+        private readonly IServiceProvider _serviceProvider;
         private readonly DeliveryConfig _deliveryConfig;
 
-        public DeliConfig(IDeliRequestAccessor deliRequestAccessor, DeliveryConfig deliveryConfig)
+        public DeliConfig(IServiceProvider serviceProvider, DeliveryConfig deliveryConfig)
         {
-            _deliRequestAccessor = deliRequestAccessor;
+            _serviceProvider = serviceProvider;
             _deliveryConfig = deliveryConfig;
         }
 
         public DeliveryConfigValues Get(string authority = null)
         {
-            authority ??= _deliRequestAccessor.Current?.CallingUri?.Authority;
-            return _deliveryConfig.GetConfigValues(authority);
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                var deliRequestAccessor = scope.ServiceProvider.GetService<IDeliRequestAccessor>();
+                authority ??= deliRequestAccessor.Current?.CallingUri?.Authority;
+                
+                return _deliveryConfig.GetConfigValues(authority);
+            }
         }
     }
 }

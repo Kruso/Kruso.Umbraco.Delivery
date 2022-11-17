@@ -25,8 +25,6 @@ namespace Kruso.Umbraco.Delivery.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(SearchResult), 200)]
-        [ProducesResponseType(typeof(ErrorResponse), 400)]
         [Route("api/{culture}/search/{queryName}")]
         public IActionResult Search(string culture, string queryName)
         {

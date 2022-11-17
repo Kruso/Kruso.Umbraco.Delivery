@@ -50,9 +50,6 @@ namespace Kruso.Umbraco.Delivery.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(typeof(ErrorResponse), 404)]
-        [ProducesResponseType(typeof(ErrorResponse), 400)]
         [Route("api/{culture}/content/{pageId}")]
         public IActionResult Content(string culture, Guid pageId)
         {
@@ -65,9 +62,6 @@ namespace Kruso.Umbraco.Delivery.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(typeof(ErrorResponse), 404)]
-        [ProducesResponseType(typeof(ErrorResponse), 400)]
         [Route("api/{culture}/content/{pageId}/{blockId}")]
         public IActionResult Content(string culture, Guid pageId, Guid blockId)
         {
@@ -80,9 +74,6 @@ namespace Kruso.Umbraco.Delivery.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(typeof(ErrorResponse), 404)]
-        [ProducesResponseType(typeof(ErrorResponse), 400)]
         [Route("api/{culture}/content/{id}/children")]
         public IActionResult Children(string culture, Guid id, string type = null, int? skip = null, int? page = null, int? pageSize = null)
         {
@@ -95,9 +86,6 @@ namespace Kruso.Umbraco.Delivery.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(typeof(ErrorResponse), 404)]
-        [ProducesResponseType(typeof(ErrorResponse), 400)]
         [Route("api/content")]
         public new IActionResult Content(string path)
         {
@@ -113,9 +101,6 @@ namespace Kruso.Umbraco.Delivery.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(typeof(ErrorResponse), 404)]
-        [ProducesResponseType(typeof(ErrorResponse), 400)]
         [Route("api/manifest/")]
         public IActionResult Manifest(string features = null)
         {
@@ -128,9 +113,6 @@ namespace Kruso.Umbraco.Delivery.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(typeof(ErrorResponse), 404)]
-        [ProducesResponseType(typeof(ErrorResponse), 400)]
         [Route("api/{culture}/manifest/")]
         public IActionResult Manifest(string culture, string features = null)
         {

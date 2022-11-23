@@ -56,6 +56,9 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
         {
             path = path?.Trim() ?? string.Empty;
 
+            if (path == "#")
+                return string.Empty;
+
             if (path.EndsWith("#"))
                 path = path.TrimEnd("#");
 
@@ -81,11 +84,12 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
 
         private string InternalAbsoluteDeliveryUrl(string path, string culture)
         {
+            if (string.IsNullOrEmpty(path))
+                return string.Empty;
+
             var req = _deliRequestAccessor.Current?.CallingUri;
             if (req == null)
-            {
                 return path;
-            }
 
             return $"{req.Scheme}://{req.Authority}{path}";
         }

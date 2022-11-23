@@ -20,16 +20,16 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
         {
             IEnumerable<JsonNode> blocks = null;
 
-            var val = _deliProperties.Value(property, context.Culture) as IEnumerable<IPublishedElement>;
-            if (val is IEnumerable<IPublishedElement> items)
-            {
-                blocks = context.ModelFactory.CreateBlocks(items);
-            }
-            else if (val is IPublishedElement item)
+            var val = _deliProperties.Value(property, context.Culture);
+            if (val is IPublishedElement item)
             {
                 var block = context.ModelFactory.CreateBlock(item);
                 if (block != null)
                     blocks = new List<JsonNode>() { block };
+            }
+            else if (val is IEnumerable<IPublishedElement> items)
+            {
+                blocks = context.ModelFactory.CreateBlocks(items).ToList();
             }
 
             return blocks ?? Enumerable.Empty<JsonNode>();

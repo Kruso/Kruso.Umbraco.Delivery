@@ -39,9 +39,14 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.Templates
 
         private JsonNode CreateUrls(IModelFactoryContext context, IPublishedContent content)
         {
+            var url = _deliUrl.GetDeliveryUrl(content, context.Culture);
+            var slug = content.Parent != null
+                ? content.UrlSegment(context.Culture)
+                : url.Trim('/');
+
             var node = new JsonNode()
-                .AddProp("slug", content.UrlSegment(context.Culture))
-                .AddProp("url", _deliUrl.GetDeliveryUrl(content, context.Culture))
+                .AddProp("slug", slug)
+                .AddProp("url", url)
                 .AddProp("canonicalUrl", _deliUrl.GetAbsoluteDeliveryUrl(content, context.Culture));
 
             var startPage = _deliPages.StartPage(content, context.Culture);
@@ -57,12 +62,16 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.Templates
                     ? content
                     : startPage;
 
-                var url = _deliUrl.GetDeliveryUrl(selectedContent, altCulture);
-                if (!string.IsNullOrEmpty(url))
+                var altUrl = _deliUrl.GetDeliveryUrl(selectedContent, altCulture);
+                if (!string.IsNullOrEmpty(altUrl))
                 {
+                    var altSlug = selectedContent.Parent != null
+                        ? selectedContent.UrlSegment(altCulture)
+                        : altUrl.Trim('/');
+
                     alts.Add(new JsonNode(altCulture)
-                        .AddProp("slug", selectedContent.UrlSegment(altCulture))
-                        .AddProp("url", url)
+                        .AddProp("slug", altSlug)
+                        .AddProp("url", altUrl)
                         .AddProp("canonicalUrl", _deliUrl.GetAbsoluteDeliveryUrl(selectedContent, altCulture))
                         .AddProp("exists", selectedContent == content));
                 }

@@ -45,7 +45,7 @@ namespace Kruso.Umbraco.Delivery.Models
 
         public IPublishedContentType ContentType => new DeliContentType(_media.ContentType, Properties.Select(x => x.PropertyType).ToList());
 
-        public Guid Key => throw new NotImplementedException();
+        public Guid Key => _media.Key;
 
         public IEnumerable<IPublishedProperty> Properties => _media.Properties.Select(x => new DeliProperty(x));
 

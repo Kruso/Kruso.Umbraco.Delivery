@@ -1,5 +1,4 @@
-﻿using Kruso.Umbraco.Delivery.Extensions;
-using Kruso.Umbraco.Delivery.Routing;
+﻿using Kruso.Umbraco.Delivery.Models;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -12,23 +11,23 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
 {
     public class DeliContent : IDeliContent
     {
-        private readonly DeliveryConfig _deliveryConfig;
+        private readonly IDeliConfig _deliConfig;
+        private readonly IDeliContentTypes _deliContentTypes;
         private readonly IDeliCulture _deliCulture;
         private readonly ILogger<DeliContent> _log;
         private readonly IUmbracoContextAccessor _umbracoContextAccessor;
-        private readonly IDeliRequestAccessor _deliRequestAccessor;
 
         public DeliContent(
-            DeliveryConfig deliveryConfig,
+            IDeliConfig deliConfig,
+            IDeliContentTypes deliContentTypes,
             IDeliCulture deliCulture,
             IUmbracoContextAccessor umbracoContextAccessor,
-            IDeliRequestAccessor deliRequestAccessor,
             ILogger<DeliContent> log)
         {
-            _deliveryConfig = deliveryConfig;
+            _deliConfig = deliConfig;
+            _deliContentTypes = deliContentTypes;
             _deliCulture = deliCulture;
             _umbracoContextAccessor = umbracoContextAccessor;
-            _deliRequestAccessor = deliRequestAccessor;
             _log = log;
         }
 
@@ -74,13 +73,13 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
 
         public bool IsNotFoundType(IPublishedContent content)
         {
-            var config = _deliveryConfig.GetConfigValues(_deliRequestAccessor.Current?.CallingUri.Authority);
+            var config = _deliConfig.Get();
             return content != null && config.NotFoundType == content.ContentType.Alias;
         }
 
         public bool IsSettingsType(IPublishedContent content)
         {
-            var config = _deliveryConfig.GetConfigValues(_deliRequestAccessor.Current?.CallingUri.Authority);
+            var config = _deliConfig.Get();
             return content != null && content.ContentType.Alias == config.SettingsType;
         }
 
@@ -140,6 +139,16 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             }
 
             return null;
+        }
+
+        public IPublishedContent PublishedContentWithJsonTemplate(int id)
+        {
+            var content = PublishedContent(id);
+            var template = _deliContentTypes.JsonTemplate();
+
+            return template != null && content.GetTemplateAlias() != template.Alias
+                ? new DeliPublishedContent(content, template.Id)
+                : content;
         }
 
         public IPublishedContent PublishedContent(string path, string culture)

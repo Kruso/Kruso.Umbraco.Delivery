@@ -21,6 +21,7 @@ namespace Kruso.Umbraco.Delivery.Services
         IEnumerable<IPublishedContent> RootPublishedContent();
         IPublishedContent PublishedContent(Guid id);
         IPublishedContent PublishedContent(int id);
+        IPublishedContent PublishedContentWithJsonTemplate(int id);
         IPublishedContent PublishedContent(string path, string culture);
         IEnumerable<IPublishedContent> PublishedChildren(int id);
         IPublishedContent UnpublishedContent(int id);

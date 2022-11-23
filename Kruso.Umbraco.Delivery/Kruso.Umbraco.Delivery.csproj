@@ -6,9 +6,9 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Company>Kruso</Company>
     <RepositoryUrl>https://github.com/Kruso/umbraco-headless</RepositoryUrl>
-    <AssemblyVersion>10.0.0.14</AssemblyVersion>
-    <FileVersion>10.0.0.14</FileVersion>
-    <Version>10.0.14</Version>
+    <AssemblyVersion>10.0.0.15</AssemblyVersion>
+    <FileVersion>10.0.0.15</FileVersion>
+    <Version>10.0.15</Version>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <PackageId>Kruso.Umbraco.Delivery</PackageId>
     <Authors>Kruso</Authors>

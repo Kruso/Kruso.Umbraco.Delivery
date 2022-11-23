@@ -1,44 +1,21 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Kruso.Umbraco.Delivery.Services;
 using Umbraco.Cms.Core.Composing;
-using Umbraco.Cms.Core.Services;
 
 namespace Kruso.Umbraco.Delivery.Json
 {
     public class JsonTemplateComponent : IComponent
     {
-        private readonly IFileService _fileService;
-        private readonly ILogger<JsonTemplateComposer> _log;
+        private readonly IDeliTemplates _deliTemplates;
 
-        public JsonTemplateComponent(IFileService fileService, ILogger<JsonTemplateComposer> log)
+        public JsonTemplateComponent(IDeliTemplates deliTemplates)
         {
-            _fileService = fileService;
-            _log = log;
+            _deliTemplates = deliTemplates;
         }
 
         public void Initialize()
         {
-            var template = _fileService.GetTemplate(DeliConstants.JsonTemplateAlias);
-            if (template != null)
-                _log.LogInformation("Json template found. Not creating.");
-
-            if (template == null)
-            {
-                template = _fileService.CreateTemplateWithIdentity(DeliConstants.JsonTemplateName, DeliConstants.JsonTemplateAlias, string.Empty);
-                if (template != null)
-                {
-                    _log.LogInformation("Json template not found. Created.");
-                }
-                else
-                {
-                    _log.LogError("Json template not found. Faile to create.");
-                }
-                //_fileService.SaveTemplate(template);
-            }
+            //Ensures that the Json template is created on startup if it doesn't already exist
+            var template = _deliTemplates.JsonTemplate();
         }
 
         public void Terminate()

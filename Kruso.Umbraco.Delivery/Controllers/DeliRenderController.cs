@@ -15,7 +15,7 @@ namespace Kruso.Umbraco.Delivery.Controllers
     {
         private readonly PageRenderer _pageRenderer;
         private readonly IDeliRequestAccessor _deliRequestAccessor;
-        private readonly IDeliContent _deliContent;
+        private readonly IDeliTemplates _deliTemplates;
 
         public DeliRenderController(
             ILogger<RenderController> logger, 
@@ -23,19 +23,19 @@ namespace Kruso.Umbraco.Delivery.Controllers
             IUmbracoContextAccessor umbracoContextAccessor, 
             PageRenderer pageRenderer,
             IDeliRequestAccessor deliRequestAccessor,
-            IDeliContent deliContent
+            IDeliTemplates deliTemplates
             )
             : base(logger, compositeViewEngine, umbracoContextAccessor)
         {
             _pageRenderer = pageRenderer;
             _deliRequestAccessor = deliRequestAccessor;
-            _deliContent = deliContent;
+            _deliTemplates = deliTemplates;
         }
 
         public override IActionResult Index()
         {
             var deliRequest = _deliRequestAccessor.Current;
-            if (_deliContent.IsJsonTemplate(deliRequest?.Content))
+            if (_deliTemplates.IsJsonTemplate(deliRequest?.Content))
             {
                 var renderModel = _pageRenderer.Render();
 

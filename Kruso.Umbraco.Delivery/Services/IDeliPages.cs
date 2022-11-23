@@ -11,6 +11,7 @@ namespace Kruso.Umbraco.Delivery.Services
         IPublishedContent SettingsPage(string culture);
         IPublishedContent StartPage(DomainAndUri domain);
         IPublishedContent StartPage(string culture);
+        IPublishedContent StartPage(IPublishedContent page, string culture);
         Dictionary<string, IPublishedContent> StartPages();
     }
 }

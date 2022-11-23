@@ -11,7 +11,6 @@ namespace Kruso.Umbraco.Delivery.Services
         bool IsNotFoundType(IPublishedContent content);
         bool IsRenderablePage(IPublishedContent content);
         bool IsPage(IPublishedContent content);
-        bool IsJsonTemplate(IPublishedContent content);
         bool IsSettingsType(IPublishedContent content);
         string NameByCulture(IPublishedContent content, string culture);
 

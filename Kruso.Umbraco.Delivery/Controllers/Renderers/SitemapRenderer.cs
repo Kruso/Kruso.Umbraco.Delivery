@@ -40,7 +40,6 @@ namespace Kruso.Umbraco.Delivery.Controllers.Renderers
         {
             var sitemap = new Sitemap();
             culture ??= _deliRequest.Culture ?? _deliCulture.DefaultCulture;
-            var page = _deliPages.StartPage(culture);
             _deliCulture.WithCultureContext(culture, () =>
             {
                 var startPage = _deliPages.StartPage(culture);

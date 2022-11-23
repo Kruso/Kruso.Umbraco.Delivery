@@ -1,10 +1,10 @@
-﻿using Kruso.Umbraco.Delivery.Extensions;
-using Kruso.Umbraco.Delivery.Routing;
+﻿using Kruso.Umbraco.Delivery.Routing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.Routing;
+using Umbraco.Extensions;
 
 namespace Kruso.Umbraco.Delivery.Services.Implementation
 {
@@ -37,6 +37,14 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
         {
             var domain = _deliDomain.GetDomainByRequest(culture);
             return StartPage(domain);
+        }
+
+        public IPublishedContent StartPage(IPublishedContent page, string culture)
+        {
+            var startPage = page?.Root();
+            return _deliCulture.IsPublishedInCulture(startPage, culture)
+                ? startPage 
+                : null;
         }
 
         public IEnumerable<IPublishedContent> StartPages(string culture)

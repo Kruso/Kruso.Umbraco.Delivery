@@ -12,13 +12,15 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.Templates
     {
         private readonly IDeliCulture _deliCulture;
         private readonly IDeliContent _deliContent;
+        private readonly IDeliTemplates _deliTemplates;
         private readonly IDeliUrl _deliUrl;
 
-        public RouteModelTemplate(IDeliCulture deliCulture, IDeliContent deliContent, IDeliUrl deliUrl)
+        public RouteModelTemplate(IDeliCulture deliCulture, IDeliContent deliContent, IDeliUrl deliUrl, IDeliTemplates deliTemplates)
         {
             _deliCulture = deliCulture;
             _deliContent = deliContent;
             _deliUrl = deliUrl;
+            _deliTemplates = deliTemplates;
         }
 
         public virtual JsonNode Create(IModelFactoryContext context, JsonNode props, IPublishedContent content)
@@ -34,7 +36,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.Templates
                 .AddProp("name", content.Name)
                 .AddProp("isRoot", content.Root().Key == content.Key)
                 .AddProp("route", _deliUrl.GetDeliveryUrl(content, context.Culture))
-                .AddProp("mimeType", _deliContent.IsJsonTemplate(content) ? "application/json" : "text/html")
+                .AddProp("mimeType", _deliTemplates.IsJsonTemplate(content) ? "application/json" : "text/html")
                 .AddProp("visible", content.IsVisible())
                 .AddProp("children", content.Children
                     .Where(x => _deliContent.IsPage(x) !&& _deliCulture.IsPublishedInCulture(x, context.Culture))

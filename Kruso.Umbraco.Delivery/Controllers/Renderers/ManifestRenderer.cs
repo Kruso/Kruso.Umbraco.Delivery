@@ -67,7 +67,7 @@ namespace Kruso.Umbraco.Delivery.Controllers.Renderers
                 {
                     var domainCulture = clonedDomain
                         .Node("domain")
-                            .Node("cultureInfo").Val<string>("culture");
+                            .Node("cultureInfo").Culture;
 
                     if (!domainCulture.Equals(culture, StringComparison.InvariantCultureIgnoreCase))
                         continue;
@@ -105,7 +105,7 @@ namespace Kruso.Umbraco.Delivery.Controllers.Renderers
             {
                 var domainCulture = domain
                     .Node("domain")
-                        .Node("cultureInfo").Val<string>("culture");
+                        .Node("cultureInfo").Culture;
 
                 var settingsContent = _deliPages.SettingsPage(domainCulture);
                 if (settingsContent != null)
@@ -199,7 +199,7 @@ namespace Kruso.Umbraco.Delivery.Controllers.Renderers
             foreach (var item in items)
             {
                 var translation = new JsonNode()
-                    .AddProp("id", item.Id)
+                    .AddProp("id", item.Key)
                     .AddProp("key", item.ItemKey);
 
                 if (!string.IsNullOrEmpty(culture))

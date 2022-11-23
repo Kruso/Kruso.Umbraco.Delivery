@@ -105,9 +105,9 @@ namespace Kruso.Umbraco.Delivery.Search
                                             });
                                         }
 
-                                        var updatedValues = args.ValueSet.Values.ToDictionary(x => x.Key, x => x.Value.ToList());
-                                        indexer.Index(args.Index, modelNodesByCulture, updatedValues);
-                                        args.SetValues(updatedValues.ToDictionary(x => x.Key, x => (IEnumerable<object>)x.Value));
+                                        var valueSet = new SearchIndexerValueSet(args.ValueSet.Values, content);
+                                        indexer.Index(args.Index, modelNodesByCulture, valueSet);
+                                        args.SetValues(valueSet.Values());
                                     }
                                     catch (Exception e)
                                     {

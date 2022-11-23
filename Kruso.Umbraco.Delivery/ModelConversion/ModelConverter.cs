@@ -70,7 +70,7 @@ namespace Kruso.Umbraco.Delivery.ModelConversion
                 return source;
 
             JsonNode target = null;
-            var nodeType = source.Val<string>("type");
+            var nodeType = source.Type;
             var contentType = converterType == TemplateType.Route
                 ? ""
                 : converterKey ?? nodeType;
@@ -89,7 +89,7 @@ namespace Kruso.Umbraco.Delivery.ModelConversion
                 }
                 catch (Exception ex)
                 {
-                    _log.LogError(ex, $"{converter.GetType().Name ?? "[No Converter]"} threw an error for {converterType} {source.Val<string>("id")}:{nodeType}");
+                    _log.LogError(ex, $"{converter.GetType().Name ?? "[No Converter]"} threw an error for {converterType} {source.Id}:{nodeType}");
                     throw;
                 }
             }

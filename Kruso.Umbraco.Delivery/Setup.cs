@@ -58,6 +58,8 @@ namespace Kruso.Umbraco.Delivery
                 .AddSingleton<IDeliSecurity, DeliSecurity>()
                 .AddSingleton<IDeliCulture, DeliCulture>()
                 .AddSingleton<IDeliContent, DeliContent>()
+                .AddSingleton<IDeliContentTypes, DeliContentTypes>()
+                .AddSingleton<IDeliTemplates, DeliTemplates>()
                 .AddSingleton<IDeliDomain, DeliDomain>()
                 .AddSingleton<IDeliPages, DeliPages>()
                 .AddSingleton<IDeliDataTypes, DeliDataTypes>()

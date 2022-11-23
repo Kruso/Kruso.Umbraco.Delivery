@@ -11,7 +11,6 @@ namespace Kruso.Umbraco.Delivery.Services
         bool IsNotFoundType(IPublishedContent content);
         bool IsRenderablePage(IPublishedContent content);
         bool IsPage(IPublishedContent content);
-        bool IsJsonTemplate(IPublishedContent content);
         bool IsSettingsType(IPublishedContent content);
         string NameByCulture(IPublishedContent content, string culture);
 
@@ -21,7 +20,6 @@ namespace Kruso.Umbraco.Delivery.Services
         IEnumerable<IPublishedContent> RootPublishedContent();
         IPublishedContent PublishedContent(Guid id);
         IPublishedContent PublishedContent(int id);
-        IPublishedContent PublishedContentWithJsonTemplate(int id);
         IPublishedContent PublishedContent(string path, string culture);
         IEnumerable<IPublishedContent> PublishedChildren(int id);
         IPublishedContent UnpublishedContent(int id);

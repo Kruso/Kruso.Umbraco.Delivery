@@ -1,5 +1,4 @@
-﻿using Kruso.Umbraco.Delivery.Models;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -63,12 +62,6 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
         {
             return IsRenderablePage(content) 
                 && !IsSettingsType(content);
-        }
-
-        public bool IsJsonTemplate(IPublishedContent content)
-        {
-            var templateAlias = content?.GetTemplateAlias();
-            return string.IsNullOrEmpty(templateAlias) || templateAlias.Equals(DeliConstants.JsonTemplateAlias, StringComparison.InvariantCultureIgnoreCase);
         }
 
         public bool IsNotFoundType(IPublishedContent content)
@@ -141,15 +134,6 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             return null;
         }
 
-        public IPublishedContent PublishedContentWithJsonTemplate(int id)
-        {
-            var content = PublishedContent(id);
-            var template = _deliContentTypes.JsonTemplate();
-
-            return template != null && content.GetTemplateAlias() != template.Alias
-                ? new DeliPublishedContent(content, template.Id)
-                : content;
-        }
 
         public IPublishedContent PublishedContent(string path, string culture)
         {

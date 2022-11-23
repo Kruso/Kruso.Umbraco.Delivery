@@ -31,6 +31,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.Templates
             page
                 .AddProp("name", content.Name)
                 .AddProp("urls", CreateUrls(context, content))
+                .AddProp("sortOrder", content.SortOrder)
                 .CopyAllProps(props);
 
             return page;
@@ -43,7 +44,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.Templates
                 .AddProp("url", _deliUrl.GetDeliveryUrl(content, context.Culture))
                 .AddProp("canonicalUrl", _deliUrl.GetAbsoluteDeliveryUrl(content, context.Culture));
 
-            var startPage = _deliPages.StartPage(context.Culture);
+            var startPage = _deliPages.StartPage(content, context.Culture);
             var alts = new List<JsonNode>();
 
             var altCultures = _deliCulture.GetCultures(startPage)

@@ -1,28 +1,21 @@
 ﻿using Kruso.Umbraco.Delivery.Services;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Umbraco.Cms.Core.Composing;
-using Umbraco.Cms.Core.Services;
 
 namespace Kruso.Umbraco.Delivery.Json
 {
     public class JsonTemplateComponent : IComponent
     {
-        private readonly IDeliContentTypes _deliContentTypes;
+        private readonly IDeliTemplates _deliTemplates;
 
-        public JsonTemplateComponent(IDeliContentTypes deliContentTypes)
+        public JsonTemplateComponent(IDeliTemplates deliTemplates)
         {
-            _deliContentTypes = deliContentTypes;
+            _deliTemplates = deliTemplates;
         }
 
         public void Initialize()
         {
             //Ensures that the Json template is created on startup if it doesn't already exist
-            var template = _deliContentTypes.JsonTemplate();
+            var template = _deliTemplates.JsonTemplate();
         }
 
         public void Terminate()

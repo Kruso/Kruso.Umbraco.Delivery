@@ -5,7 +5,7 @@ using Umbraco.Cms.Core.Models.PublishedContent;
 
 namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
 {
-    [PropertyValueFactory(new[] { "Umbraco.DropDown.Flexible", "Umbraco.DropDown" })]
+    [ModelPropertyValueFactory(new[] { "Umbraco.DropDown.Flexible", "Umbraco.DropDown" })]
     public class DropDownPropertyValueFactory : IModelPropertyValueFactory
     {
         private readonly IDeliDataTypes _deliDataTypes;

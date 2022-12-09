@@ -36,7 +36,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
 
             _deliContent = deliContent;
             _modelTemplates = modelTemplates.ToFilteredDictionary<IModelTemplate, ModelTemplateAttribute>();
-            _propertyValueFactories = modelPropertyValueFactories.ToFilteredDictionary<IModelPropertyValueFactory, PropertyValueFactoryAttribute>();
+            _propertyValueFactories = modelPropertyValueFactories.ToFilteredDictionary<IModelPropertyValueFactory, ModelPropertyValueFactoryAttribute>();
 
             _log = log;
         }

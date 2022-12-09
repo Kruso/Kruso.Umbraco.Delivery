@@ -5,7 +5,7 @@ using Umbraco.Cms.Core.Models.PublishedContent;
 
 namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
 {
-    [PropertyValueFactory("Umbraco.ColorPicker")]
+    [ModelPropertyValueFactory("Umbraco.ColorPicker")]
     public class ColorPickerPropertyValueFactory : IModelPropertyValueFactory
     {
         private readonly IDeliProperties _deliProperties;

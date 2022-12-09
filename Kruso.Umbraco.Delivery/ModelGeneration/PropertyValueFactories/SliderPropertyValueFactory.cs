@@ -3,7 +3,7 @@ using Umbraco.Cms.Core.Models.PublishedContent;
 
 namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
 {
-    [PropertyValueFactory("Umbraco.Slider")]
+    [ModelPropertyValueFactory("Umbraco.Slider")]
     public class SliderPropertyValueFactory : IModelPropertyValueFactory
     {
         private readonly IDeliProperties _deliProperties;

@@ -3,7 +3,7 @@ using Umbraco.Cms.Core.Models.PublishedContent;
 
 namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
 {
-    [PropertyValueFactory("Umbraco.RelatedLinks")]
+    [ModelPropertyValueFactory("Umbraco.RelatedLinks")]
     public class RelatedLinksPropertyValueFactory : IModelPropertyValueFactory
     {
         private readonly IDeliProperties _deliProperties;

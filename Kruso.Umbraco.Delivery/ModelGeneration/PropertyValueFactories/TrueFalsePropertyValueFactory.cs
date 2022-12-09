@@ -3,7 +3,7 @@ using Umbraco.Cms.Core.Models.PublishedContent;
 
 namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
 {
-    [PropertyValueFactory("Umbraco.TrueFalse")]
+    [ModelPropertyValueFactory("Umbraco.TrueFalse")]
     public class TrueFalsePropertyValueFactory : IModelPropertyValueFactory
     {
         private readonly IDeliProperties _deliProperties;

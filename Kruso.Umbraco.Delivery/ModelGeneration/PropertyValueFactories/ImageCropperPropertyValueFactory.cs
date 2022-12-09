@@ -7,7 +7,7 @@ using Umbraco.Cms.Core.PropertyEditors.ValueConverters;
 
 namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
 {
-    [PropertyValueFactory("Umbraco.ImageCropper")]
+    [ModelPropertyValueFactory("Umbraco.ImageCropper")]
     public class ImageCropperPropertyValueFactory : IModelPropertyValueFactory
     {
         private readonly IDeliProperties _deliProperties;

@@ -6,7 +6,7 @@ using Umbraco.Cms.Core.PropertyEditors;
 
 namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
 {
-    [PropertyValueFactory("Umbraco.MultiNodeTreePicker")]
+    [ModelPropertyValueFactory("Umbraco.MultiNodeTreePicker")]
     public class MultiNodeTreePickerPropertyValueFactory : IModelPropertyValueFactory
     {
         private readonly IDeliContent _deliContent;

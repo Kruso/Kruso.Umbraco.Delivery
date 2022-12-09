@@ -58,15 +58,12 @@ namespace Kruso.Umbraco.Delivery.Routing
                     });
                 }
 
-                if (notFoundPage != null)
-                {
-                    _deliRequestAccessor.FinalizeDeliRequest(notFoundPage, culture);
+                _deliRequestAccessor.FinalizeDeliRequest(notFoundPage, culture);
 
-                    request.SetDomain(domain);
-                    request.SetPublishedContent(notFoundPage);
-                    request.SetCulture(culture);
-                    request.SetIs404();
-                }
+                request.SetDomain(domain);
+                request.SetPublishedContent(notFoundPage);
+                request.SetCulture(culture);
+                request.SetIs404();
 
                 res = notFoundPage != null;
             }

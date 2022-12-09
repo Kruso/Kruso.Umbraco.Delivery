@@ -96,7 +96,8 @@ namespace Kruso.Umbraco.Delivery
                 .AddScoped<IModelPropertyValueFactory, RelatedLinksPropertyValueFactory>()
                 .AddScoped<IModelPropertyValueFactory, TinyMCEPropertyValueFactory>()
                 .AddScoped<IModelPropertyValueFactory, TrueFalsePropertyValueFactory>()
-                .AddScoped<IModelPropertyValueFactory, BlockListPropertyValueFactory>();
+                .AddScoped<IModelPropertyValueFactory, BlockListPropertyValueFactory>()
+                .AddScoped<IModelPropertyValueFactory, BlockGridPropertyValueFactory>();
 
             services
                 .AddScoped<IModelTemplate, PageModelTemplate>()

@@ -1,4 +1,4 @@
-name: v10 Kruso Umbraco Delivery
+name: v11 Kruso Umbraco Delivery
 
 on:
   push:
@@ -27,7 +27,7 @@ jobs:
       - name: Setup dotnet
         uses: actions/setup-dotnet@v2
         with:
-          ref: versions/v10
+          ref: main
           dotnet-version: 7.0.x
           source-url: https://nuget.pkg.github.com/kruso/index.json
         env:

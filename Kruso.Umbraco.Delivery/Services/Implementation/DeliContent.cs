@@ -146,6 +146,11 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             return null;
         }
 
+        public IEnumerable<IPublishedContent> PublishedChildren(Guid id)
+        {
+            return PublishedContent(id)?.Children ?? Enumerable.Empty<IPublishedContent>();
+        }
+
         public IEnumerable<IPublishedContent> PublishedChildren(int id)
         {
             return PublishedContent(id)?.Children ?? Enumerable.Empty<IPublishedContent>();

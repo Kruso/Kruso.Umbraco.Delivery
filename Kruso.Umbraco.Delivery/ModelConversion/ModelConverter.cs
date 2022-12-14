@@ -1,5 +1,7 @@
 ﻿using Kruso.Umbraco.Delivery.Extensions;
 using Kruso.Umbraco.Delivery.Json;
+using Kruso.Umbraco.Delivery.Security;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -9,17 +11,23 @@ namespace Kruso.Umbraco.Delivery.ModelConversion
 {
     public class ModelConverter : IModelConverter
     {
+        private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<ModelConverter> _log;
 
-        private readonly Dictionary<string, IModelNodeConverter> _modelNodeConverters = null;
-        private readonly Dictionary<string, IModelNodeListConverter> _modelNodeListConverters = null;
-
-        public ModelConverter(IEnumerable<IModelNodeConverter> modelNodeConverters, IEnumerable<IModelNodeListConverter> modelNodeListConverters, ILogger<ModelConverter> log)
+        private static readonly string[] ExcludeTypes =
         {
-            _modelNodeConverters = modelNodeConverters.ToFilteredDictionary<IModelNodeConverter, ModelNodeConverterAttribute>();
-            _modelNodeListConverters = modelNodeListConverters.ToFilteredDictionary<IModelNodeListConverter, ModelNodeListConverterAttribute>();
+            "Image"
+        };
 
+        public ModelConverter(IServiceProvider serviceProvider, ILogger<ModelConverter> log)
+        {
+            _serviceProvider = serviceProvider;
             _log = log;
+        }
+
+        public IEnumerable<JsonNode> Convert(IEnumerable<JsonNode> source, TemplateType converterType, string converterKey = null)
+        {
+            return source.Select(x => Convert(x, converterType, converterKey));
         }
 
         public JsonNode Convert(JsonNode source, TemplateType converterType, string converterKey = null)
@@ -75,7 +83,7 @@ namespace Kruso.Umbraco.Delivery.ModelConversion
                 ? ""
                 : converterKey ?? nodeType;
 
-            var converter = GetConverter(converterType, contentType);
+            var converter = GetModelConverterSource().GetConverter(converterType, contentType);
             if (converter == null)
             {
                 target = source;
@@ -97,7 +105,7 @@ namespace Kruso.Umbraco.Delivery.ModelConversion
             var nodeListProps = target.AllPropsOf<IEnumerable<JsonNode>>();
             foreach (var kvp in nodeListProps.Where(x => x.Value.All(n => IsValidForListConverter(n))))
             {
-                var listConverter = GetListConverter(nodeType, kvp.Key);
+                var listConverter = GetModelConverterSource().GetListConverter(nodeType, kvp.Key);
                 if (listConverter != null)
                 {
                     var res = new List<JsonNode>();
@@ -109,11 +117,6 @@ namespace Kruso.Umbraco.Delivery.ModelConversion
             return target;
         }
 
-        private static readonly string[] ExcludeTypes =
-        {
-            "Image"
-        };
-
         private bool IsValidForListConverter(JsonNode node)
         {
             return node.Id != Guid.Empty 
@@ -121,46 +124,12 @@ namespace Kruso.Umbraco.Delivery.ModelConversion
                 && !ExcludeTypes.Contains(node.Type);
         }
 
-        private IModelNodeListConverter GetListConverter(string documentAlias, string propertyName = null)
+        private IModelConverterComponentSource GetModelConverterSource()
         {
-            if (!string.IsNullOrEmpty(documentAlias))
+            using (var scope = _serviceProvider.CreateScope())
             {
-                if (!string.IsNullOrEmpty(propertyName))
-                {
-                    var key = $"{documentAlias}.{propertyName}".ToLower();
-                    if (_modelNodeListConverters.ContainsKey(key))
-                        return _modelNodeListConverters[key];
-                }
-
-                if (_modelNodeListConverters.ContainsKey(documentAlias))
-                    return _modelNodeListConverters[documentAlias];
+                return scope.ServiceProvider.GetService<IModelConverterComponentSource>();
             }
-
-            if (_modelNodeListConverters.ContainsKey("."))
-            {
-                return _modelNodeListConverters["."];
-            }
-
-            return null;
         }
-
-        private IModelNodeConverter GetConverter(TemplateType templateType, string type)
-        {
-            var key = templateType.MakeKey(type);
-
-            if (_modelNodeConverters.ContainsKey(key))
-            {
-                return _modelNodeConverters[key];
-            }
-
-            var defaultKey = templateType.MakeKey();
-            if (_modelNodeConverters.ContainsKey(defaultKey))
-            {
-                return _modelNodeConverters[defaultKey];
-            }
-
-            return null;
-        }
-
     }
 }

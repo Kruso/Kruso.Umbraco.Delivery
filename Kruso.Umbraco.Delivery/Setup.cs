@@ -81,32 +81,34 @@ namespace Kruso.Umbraco.Delivery
                 .AddScoped<RobotsRenderer>();
 
             services
-                .AddScoped<IModelPropertyValueFactory, SliderPropertyValueFactory>()
-                .AddScoped<IModelPropertyValueFactory, CheckboxListPropertyValueFactory>()
-                .AddScoped<IModelPropertyValueFactory, ColorPickerPropertyValueFactory>()
-                .AddScoped<IModelPropertyValueFactory, ContentPickerPropertyValueFactory>()
-                .AddScoped<IModelPropertyValueFactory, DefaultPropertyValueFactory>()
-                .AddScoped<IModelPropertyValueFactory, DropDownPropertyValueFactory>()
-                .AddScoped<IModelPropertyValueFactory, ImageCropperPropertyValueFactory>()
-                .AddScoped<IModelPropertyValueFactory, MediaPickerPropertyValueFactory>()
-                .AddScoped<IModelPropertyValueFactory, MultiNodeTreePickerPropertyValueFactory>()
-                .AddScoped<IModelPropertyValueFactory, MultipleTextstringPropertyValueFactory>()
-                .AddScoped<IModelPropertyValueFactory, MultiUrlPickerPropertyValueFactory>()
-                .AddScoped<IModelPropertyValueFactory, NestedContentPropertyValueFactory>()
-                .AddScoped<IModelPropertyValueFactory, RelatedLinksPropertyValueFactory>()
-                .AddScoped<IModelPropertyValueFactory, TinyMCEPropertyValueFactory>()
-                .AddScoped<IModelPropertyValueFactory, TrueFalsePropertyValueFactory>()
-                .AddScoped<IModelPropertyValueFactory, BlockListPropertyValueFactory>()
-                .AddScoped<IModelPropertyValueFactory, BlockGridPropertyValueFactory>();
+                .AddSingleton<IModelPropertyValueFactory, SliderPropertyValueFactory>()
+                .AddSingleton<IModelPropertyValueFactory, CheckboxListPropertyValueFactory>()
+                .AddSingleton<IModelPropertyValueFactory, ColorPickerPropertyValueFactory>()
+                .AddSingleton<IModelPropertyValueFactory, ContentPickerPropertyValueFactory>()
+                .AddSingleton<IModelPropertyValueFactory, DefaultPropertyValueFactory>()
+                .AddSingleton<IModelPropertyValueFactory, DropDownPropertyValueFactory>()
+                .AddSingleton<IModelPropertyValueFactory, ImageCropperPropertyValueFactory>()
+                .AddSingleton<IModelPropertyValueFactory, MediaPickerPropertyValueFactory>()
+                .AddSingleton<IModelPropertyValueFactory, MultiNodeTreePickerPropertyValueFactory>()
+                .AddSingleton<IModelPropertyValueFactory, MultipleTextstringPropertyValueFactory>()
+                .AddSingleton<IModelPropertyValueFactory, MultiUrlPickerPropertyValueFactory>()
+                .AddSingleton<IModelPropertyValueFactory, NestedContentPropertyValueFactory>()
+                .AddSingleton<IModelPropertyValueFactory, RelatedLinksPropertyValueFactory>()
+                .AddSingleton<IModelPropertyValueFactory, TinyMCEPropertyValueFactory>()
+                .AddSingleton<IModelPropertyValueFactory, TrueFalsePropertyValueFactory>()
+                .AddSingleton<IModelPropertyValueFactory, BlockListPropertyValueFactory>()
+                .AddSingleton<IModelPropertyValueFactory, BlockGridPropertyValueFactory>();
 
             services
-                .AddScoped<IModelTemplate, PageModelTemplate>()
-                .AddScoped<IModelTemplate, BlockModelTemplate>()
-                .AddScoped<IModelTemplate, RouteModelTemplate>()
-                .AddScoped<IModelTemplate, RefModelTemplate>();
+                .AddSingleton<IModelTemplate, PageModelTemplate>()
+                .AddSingleton<IModelTemplate, BlockModelTemplate>()
+                .AddSingleton<IModelTemplate, RouteModelTemplate>()
+                .AddSingleton<IModelTemplate, RefModelTemplate>()
+                .AddSingleton<IPropertyModelTemplate, PropertyModelTemplate>();
 
             services
-                .AddScoped<IModelConverter, ModelConverter>()
+                .AddSingleton<IModelConverterComponentSource, ModelConverterComponentSource>()
+                .AddSingleton<IModelConverter, ModelConverter>()
                 .AddScoped<ISearchQueryExecutor, SearchQueryExecutor>()
                 .AddScoped<IModelFactoryContext, ModelFactoryContext>()
                 .AddTransient<IModelFactory, ModelFactory>();

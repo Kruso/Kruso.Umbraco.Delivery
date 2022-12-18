@@ -160,8 +160,7 @@ This endpoint is responsible for providing Site configuration data, providing a 
 * Start Page Information
 * All page Routes per site
 
-You can optionally select parts of the entire manifest by using a features query string. For example, `/api/manifest?features=startpage` would return only startpage information. `/api/manifest?features=startpage,routes,cultureinfo` returns everything as seen below. Leaving out the features param returns everything too.
-[TODO link to example]
+You can optionally select parts of the entire manifest by using a features query string. For example, `/api/manifest?features=startpage` would return only startpage information. `/api/manifest?features=startpage,routes,cultureinfo`, or leaving out the features param returns all info.
 
 ### Sitemap
 

@@ -11,17 +11,19 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
     {
         private readonly IDeliDataTypes _deliDataTypes;
         private readonly IDeliProperties _deliProperties;
+        private readonly IModelFactory _modelFactory;
 
-        public CheckboxListPropertyValueFactory(IDeliDataTypes deliDataTypes, IDeliProperties deliProperties)
+        public CheckboxListPropertyValueFactory(IDeliDataTypes deliDataTypes, IDeliProperties deliProperties, IModelFactory modelFactory)
         {
             _deliDataTypes = deliDataTypes;
             _deliProperties = deliProperties;
+            _modelFactory = modelFactory;
         }
 
-        public virtual object Create(IModelFactoryContext context, IPublishedProperty property)
+        public virtual object Create(IPublishedProperty property)
         {
             var preValues = _deliDataTypes.PreValues(property.PropertyType.DataType.Id);
-            var val = _deliProperties.Value(property, context.Culture);
+            var val = _deliProperties.Value(property, _modelFactory.Context.Culture);
             string[] selected = null;
             if (val is string[])
             {

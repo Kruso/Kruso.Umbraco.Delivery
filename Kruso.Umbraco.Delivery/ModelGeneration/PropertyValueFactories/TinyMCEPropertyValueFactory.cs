@@ -9,15 +9,17 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
     public class TinyMCEPropertyValueFactory : IModelPropertyValueFactory
     {
         private readonly IDeliProperties _deliProperties;
+        private readonly IModelFactory _modelFactory;
 
-        public TinyMCEPropertyValueFactory(IDeliProperties deliProperties)
+        public TinyMCEPropertyValueFactory(IDeliProperties deliProperties, IModelFactory modelFactory)
         {
             _deliProperties = deliProperties;
+            _modelFactory = modelFactory;
         }
 
-        public virtual object Create(IModelFactoryContext context, IPublishedProperty property)
+        public virtual object Create(IPublishedProperty property)
         {
-            var val = _deliProperties.Value(property, context.Culture);
+            var val = _deliProperties.Value(property, _modelFactory.Context.Culture);
             var value = (val is IHtmlEncodedString)
                 ? (IHtmlEncodedString)val
                 : new HtmlEncodedString(val?.ToString());

@@ -53,9 +53,8 @@ namespace Kruso.Umbraco.Delivery.Search
                     if (take > 0)
                         pages = pages.Take(take);
 
-                    _modelFactory.Init(pages, searchRequest.Culture);
                     var pageModels = _modelFactory
-                        .CreatePages()
+                        .CreatePages(pages, searchRequest.Culture)
                         .ToList();
 
                     res.totalCount = searchResults.TotalItemCount;

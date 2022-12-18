@@ -1,10 +1,6 @@
 ﻿using Kruso.Umbraco.Delivery.Extensions;
 using Kruso.Umbraco.Delivery.ModelGeneration.Templates;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Umbraco.Cms.Core.Models.PublishedContent;
 
 namespace Kruso.Umbraco.Delivery.ModelGeneration
@@ -15,7 +11,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
         private Dictionary<string, IModelPropertyValueFactory> _propertyValueFactories = null;
         private readonly IPropertyModelTemplate _propertyModelTemplate;
 
-        internal ModelFactoryComponentSource(
+        public ModelFactoryComponentSource(
             IEnumerable<IModelTemplate> modelTemplates,
             IEnumerable<IModelPropertyValueFactory> modelPropertyValueFactories,
             IPropertyModelTemplate propertyModelTemplate)
@@ -53,7 +49,6 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
                 ?? GetPropertyResolverIfExists(property.PropertyType.EditorAlias)
                 ?? GetPropertyResolverIfExists("");
         }
-
 
         public IPropertyModelTemplate GetPropertyModelTemplate()
         {

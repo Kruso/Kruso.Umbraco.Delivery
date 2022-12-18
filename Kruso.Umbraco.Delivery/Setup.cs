@@ -14,12 +14,9 @@ using Kruso.Umbraco.Delivery.Services.Implementation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.DependencyInjection;
 using Umbraco.Cms.Core.Routing;
-using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Web.Website.Controllers;
 using Umbraco.Extensions;
 
@@ -97,7 +94,8 @@ namespace Kruso.Umbraco.Delivery
                 .AddSingleton<IModelPropertyValueFactory, TinyMCEPropertyValueFactory>()
                 .AddSingleton<IModelPropertyValueFactory, TrueFalsePropertyValueFactory>()
                 .AddSingleton<IModelPropertyValueFactory, BlockListPropertyValueFactory>()
-                .AddSingleton<IModelPropertyValueFactory, BlockGridPropertyValueFactory>();
+                .AddSingleton<IModelPropertyValueFactory, BlockGridPropertyValueFactory>()
+                .AddSingleton<IModelFactoryComponentSource, ModelFactoryComponentSource>();
 
             services
                 .AddSingleton<IModelTemplate, PageModelTemplate>()
@@ -110,8 +108,9 @@ namespace Kruso.Umbraco.Delivery
                 .AddSingleton<IModelConverterComponentSource, ModelConverterComponentSource>()
                 .AddSingleton<IModelConverter, ModelConverter>()
                 .AddScoped<ISearchQueryExecutor, SearchQueryExecutor>()
-                .AddScoped<IModelFactoryContext, ModelFactoryContext>()
-                .AddTransient<IModelFactory, ModelFactory>();
+                .AddSingleton<IModelFactoryComponentSource, ModelFactoryComponentSource>()
+                .AddTransient<IModelFactoryContext2, ModelFactoryContext2>()
+                .AddSingleton<IModelFactory, ModelFactory>();
 
             services.Configure<UmbracoRenderingDefaultsOptions>(c =>
             {

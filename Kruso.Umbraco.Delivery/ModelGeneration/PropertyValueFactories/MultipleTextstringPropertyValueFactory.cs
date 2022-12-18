@@ -7,15 +7,17 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
     public class MultipleTextstringPropertyValueFactory : IModelPropertyValueFactory
     {
         private readonly IDeliProperties _deliProperties;
+        private readonly IModelFactory _modelFactory;
 
-        public MultipleTextstringPropertyValueFactory(IDeliProperties deliProperties)
+        public MultipleTextstringPropertyValueFactory(IDeliProperties deliProperties, IModelFactory modelFactory)
         {
             _deliProperties = deliProperties;
+            _modelFactory = modelFactory;
         }
 
-        public virtual object Create(IModelFactoryContext context, IPublishedProperty property)
+        public virtual object Create(IPublishedProperty property)
         {
-            return _deliProperties.Value(property, context.Culture) as string[];
+            return _deliProperties.Value(property, _modelFactory.Context.Culture) as string[];
         }
     }
 }

@@ -16,18 +16,21 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
         private readonly IDeliProperties _deliProperties;
         private readonly IDeliMedia _deliMedia;
         private readonly IDeliConfig _deliConfig;
+        private readonly IModelFactory _modelFactory;
 
-        public MediaPickerPropertyValueFactory(IDeliDataTypes deliDataTypes, IDeliProperties deliProperties, IDeliMedia deliMedia, IDeliConfig deliConfig)
+        public MediaPickerPropertyValueFactory(IDeliDataTypes deliDataTypes, IDeliProperties deliProperties, IDeliMedia deliMedia, IDeliConfig deliConfig, IModelFactory modelFactory)
         {
             _deliDataTypes = deliDataTypes;
             _deliProperties = deliProperties;
             _deliMedia = deliMedia;
             _deliConfig = deliConfig;
+            _modelFactory = modelFactory;
         }
 
-        public virtual object Create(IModelFactoryContext context, IPublishedProperty property)
-        
+        public virtual object Create(IPublishedProperty property)
         {
+            var context = _modelFactory.Context;
+
             IEnumerable<JsonNode> res = null;
             var value = _deliProperties.Value(property, context.Culture);
             if (value is string)
@@ -47,7 +50,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
                 : res.FirstOrDefault();
         }
 
-        private IEnumerable<JsonNode> CreateFromUnpublishedReferences(IModelFactoryContext context, string val)
+        private IEnumerable<JsonNode> CreateFromUnpublishedReferences(IModelFactoryContext2 context, string val)
         {
             var mediaItems = new List<JsonNode>();
 
@@ -57,7 +60,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
                 foreach (var r in refs)
                 {
                     var media = _deliMedia.GetMedia(r);
-                    var block = ConvertBlock(context.ModelFactory.CreateBlock(media));
+                    var block = ConvertBlock(_modelFactory.CreateBlock(media));
                     if (block != null)
                     {
                         mediaItems.Add(block);
@@ -68,13 +71,13 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
             return mediaItems;
         }
 
-        private IEnumerable<JsonNode> CreateFromPublishedContent(IModelFactoryContext context, object value)
+        private IEnumerable<JsonNode> CreateFromPublishedContent(IModelFactoryContext2 context, object value)
         {
             var mediaItems = new List<JsonNode>();
 
             foreach (var content in GetValueAsList<IPublishedContent>(value))
             {
-                var block = ConvertBlock(context.ModelFactory.CreateBlock(content));
+                var block = ConvertBlock(_modelFactory.CreateBlock(content));
                 if (block != null)
                 {
                     mediaItems.Add(block);
@@ -86,13 +89,13 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
                 : null;
         }
 
-        private IEnumerable<JsonNode> CreateFromMedia(IModelFactoryContext context, object value)
+        private IEnumerable<JsonNode> CreateFromMedia(IModelFactoryContext2 context, object value)
         {
             var mediaItems = new List<JsonNode>();
 
             foreach (var media in GetValueAsList<IMedia>(value))
             {
-                var block = ConvertBlock(context.ModelFactory.CreateBlock(media));
+                var block = ConvertBlock(_modelFactory.CreateBlock(media));
                 if (block != null)
                 {
                     mediaItems.Add(block);

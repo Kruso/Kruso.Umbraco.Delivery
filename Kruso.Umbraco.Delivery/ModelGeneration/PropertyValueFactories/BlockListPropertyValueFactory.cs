@@ -9,16 +9,18 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
     public class BlockListPropertyValueFactory : IModelPropertyValueFactory
     {
         private readonly IDeliProperties _deliProperties;
+        private readonly IModelFactory _modelFactory;
 
-        public BlockListPropertyValueFactory(IDeliProperties deliProperties)
+        public BlockListPropertyValueFactory(IDeliProperties deliProperties, IModelFactory modelFactory)
         {
             _deliProperties = deliProperties;
+            _modelFactory = modelFactory;
         }
 
-        public virtual object Create(IModelFactoryContext context, IPublishedProperty property)
+        public virtual object Create(IPublishedProperty property)
         {
-            var value = _deliProperties.Value(property, context.Culture) as BlockListModel;
-            return context.ModelFactory.CreateBlocks(value?.Select(x => x.Content));
+            var value = _deliProperties.Value(property, _modelFactory.Context.Culture) as BlockListModel;
+            return _modelFactory.CreateBlocks(value?.Select(x => x.Content));
         }
     }
 }

@@ -95,8 +95,8 @@ namespace Kruso.Umbraco.Delivery.Controllers.Renderers
 
             try
             {
-                _modelFactory.Init(_deliRequest.Content, _deliRequest.Culture, _deliRequest.ModelFactoryOptions);
-                return _modelConverter.Convert(_modelFactory.CreatePage(), TemplateType.Page);
+                var page = _modelFactory.CreatePage(_deliRequest.Content, _deliRequest.Culture, _deliRequest.ModelFactoryOptions);
+                return _modelConverter.Convert(page, TemplateType.Page);
             }
             catch (Exception ex)
             {

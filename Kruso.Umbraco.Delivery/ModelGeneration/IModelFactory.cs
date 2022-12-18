@@ -1,5 +1,6 @@
 ﻿using Kruso.Umbraco.Delivery.Json;
 using Kruso.Umbraco.Delivery.Models;
+using System;
 using System.Collections.Generic;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.PublishedContent;
@@ -8,19 +9,16 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
 {
     public interface IModelFactory
     {
-        string Culture { get; }
+        IModelFactoryContext2 Context { get; }
 
-        void Init(IPublishedContent page);
-        void Init(IPublishedContent page, string culture, ModelFactoryOptions options = null);
-        void Init(IEnumerable<IPublishedContent> pages, string culture, ModelFactoryOptions options = null);
-
-        IEnumerable<JsonNode> CreateBlocks(IEnumerable<IPublishedContent> items);
-        JsonNode CreateBlock();
-        JsonNode CreateBlock(IMedia media);
-        JsonNode CreateBlock(IPublishedContent content);
-        JsonNode CreateBlock(IPublishedElement element);
-        IEnumerable<JsonNode> CreateRoutes();
-        JsonNode CreatePage();
-        IEnumerable<JsonNode> CreatePages();
+        JsonNode CreateBlock(IMedia media, string culture = null, ModelFactoryOptions options = null);
+        JsonNode CreateBlock(IPublishedContent block, string culture = null, ModelFactoryOptions options = null);
+        JsonNode CreateBlock(IPublishedElement element, string culture = null, ModelFactoryOptions options = null);
+        IEnumerable<JsonNode> CreateBlocks(IEnumerable<IPublishedContent> blocks, string culture = null, ModelFactoryOptions options = null);
+        IEnumerable<JsonNode> CreateBlocks(IEnumerable<IPublishedElement> items);
+        JsonNode CreateCustomBlock(Guid id, string type, Action<JsonNode> fillBlockAction);
+        JsonNode CreatePage(IPublishedContent page, string culture = null, ModelFactoryOptions options = null);
+        IEnumerable<JsonNode> CreatePages(IEnumerable<IPublishedContent> pages, string culture = null, ModelFactoryOptions options = null);
+        IEnumerable<JsonNode> CreateRoutes(IEnumerable<IPublishedContent> items, string culture);
     }
 }

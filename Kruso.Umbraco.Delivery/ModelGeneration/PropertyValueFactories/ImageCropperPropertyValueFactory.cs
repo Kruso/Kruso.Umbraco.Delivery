@@ -11,18 +11,17 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
     public class ImageCropperPropertyValueFactory : IModelPropertyValueFactory
     {
         private readonly IDeliProperties _deliProperties;
+        private readonly IModelFactory _modelFactory;
 
-        public ImageCropperPropertyValueFactory(IDeliProperties deliProperties)
+        public ImageCropperPropertyValueFactory(IDeliProperties deliProperties, IModelFactory modelFactory)
         {
             _deliProperties = deliProperties;
+            _modelFactory = modelFactory;
         }
 
-        public virtual object Create(IModelFactoryContext context, IPublishedProperty property)
+        public virtual object Create(IPublishedProperty property)
         {
-            var imageCropper = context.LoadPreview 
-                ? JsonConvert.DeserializeObject<ImageCropperValue>(_deliProperties.Value(property, context.Culture).ToString())
-                : _deliProperties.Value(property, context.Culture) as ImageCropperValue;
-
+            var imageCropper = _deliProperties.Value(property, _modelFactory.Context.Culture) as ImageCropperValue;
             if (imageCropper != null)
             {
                 return new JsonNode()

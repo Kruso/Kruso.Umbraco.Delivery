@@ -7,15 +7,17 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
     public class DefaultPropertyValueFactory : IModelPropertyValueFactory
     {
         private readonly IDeliProperties _deliProperties;
+        private readonly IModelFactory _modelFactory;
 
-        public DefaultPropertyValueFactory(IDeliProperties deliProperties)
+        public DefaultPropertyValueFactory(IDeliProperties deliProperties, IModelFactory modelFactory)
         {
             _deliProperties = deliProperties;
+            _modelFactory = modelFactory;
         }
 
-        public virtual object Create(IModelFactoryContext context, IPublishedProperty property)
+        public virtual object Create(IPublishedProperty property)
         {
-            var value = _deliProperties.Value(property, context.Culture);
+            var value = _deliProperties.Value(property, _modelFactory.Context.Culture);
             return value;
         }
     }

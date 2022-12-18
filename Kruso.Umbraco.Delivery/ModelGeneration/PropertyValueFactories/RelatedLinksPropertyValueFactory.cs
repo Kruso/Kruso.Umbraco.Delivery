@@ -7,15 +7,17 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
     public class RelatedLinksPropertyValueFactory : IModelPropertyValueFactory
     {
         private readonly IDeliProperties _deliProperties;
+        private readonly IModelFactory _modelFactory;
 
-        public RelatedLinksPropertyValueFactory(IDeliProperties deliProperties)
+        public RelatedLinksPropertyValueFactory(IDeliProperties deliProperties, IModelFactory modelFactory)
         {
             _deliProperties = deliProperties;
+            _modelFactory = modelFactory;
         }
 
-        public virtual object Create(IModelFactoryContext context, IPublishedProperty property)
+        public virtual object Create(IPublishedProperty property)
         {
-            return _deliProperties.Value(property, context.Culture);
+            return _deliProperties.Value(property, _modelFactory.Context.Culture);
         }
     }
 }

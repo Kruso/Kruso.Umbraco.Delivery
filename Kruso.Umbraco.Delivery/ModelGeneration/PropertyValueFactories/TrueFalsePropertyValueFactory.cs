@@ -7,15 +7,17 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
     public class TrueFalsePropertyValueFactory : IModelPropertyValueFactory
     {
         private readonly IDeliProperties _deliProperties;
+        private readonly IModelFactory _modelFactory;
 
-        public TrueFalsePropertyValueFactory(IDeliProperties deliProperties)
+        public TrueFalsePropertyValueFactory(IDeliProperties deliProperties, IModelFactory modelFactory)
         {
             _deliProperties = deliProperties;
+            _modelFactory = modelFactory;
         }
 
-        public virtual object Create(IModelFactoryContext context, IPublishedProperty property)
+        public virtual object Create(IPublishedProperty property)
         {
-            var val = _deliProperties.Value(property, context.Culture);
+            var val = _deliProperties.Value(property, _modelFactory.Context.Culture);
 
             bool value = false;
             if (val is string)

@@ -3,7 +3,7 @@ using Umbraco.Cms.Core.Models.PublishedContent;
 
 namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
 {
-    [PropertyValueFactory("Umbraco.MultipleTextstring")]
+    [ModelPropertyValueFactory("Umbraco.MultipleTextstring")]
     public class MultipleTextstringPropertyValueFactory : IModelPropertyValueFactory
     {
         private readonly IDeliProperties _deliProperties;

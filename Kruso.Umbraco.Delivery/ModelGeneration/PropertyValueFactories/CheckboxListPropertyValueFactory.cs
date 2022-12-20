@@ -6,7 +6,7 @@ using Umbraco.Cms.Core.Models.PublishedContent;
 
 namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
 {
-    [PropertyValueFactory("Umbraco.CheckBoxList")]
+    [ModelPropertyValueFactory("Umbraco.CheckBoxList")]
     public class CheckboxListPropertyValueFactory : IModelPropertyValueFactory
     {
         private readonly IDeliDataTypes _deliDataTypes;

@@ -4,29 +4,29 @@
     /// Mark your class as a ModelPropertyValueFactory (with the IPropertyModelValueFactory interface) to replace
     /// the default property value factory for a given property's editorAlias. 
     /// </summary>
-    public class PropertyValueFactoryAttribute : IdentifiableAttribute
+    public class ModelPropertyValueFactoryAttribute : IdentifiableAttribute
     {
-        public PropertyValueFactoryAttribute()
+        public ModelPropertyValueFactoryAttribute()
             : base("")
         {
         }
 
-        public PropertyValueFactoryAttribute(string editorAlias)
+        public ModelPropertyValueFactoryAttribute(string editorAlias)
             : base(editorAlias)
         {
         }
 
-        public PropertyValueFactoryAttribute(string editorAlias, string documentType, string propertyName)
+        public ModelPropertyValueFactoryAttribute(string editorAlias, string documentType, string propertyName)
             : base($"{editorAlias}+{documentType}+{propertyName}")
         {
         }
 
-        public PropertyValueFactoryAttribute(string editorAlias, string alias)
+        public ModelPropertyValueFactoryAttribute(string editorAlias, string alias)
             : base($"{editorAlias}+{alias}")
         {
         }
 
-        public PropertyValueFactoryAttribute(string[] editorAliases)
+        public ModelPropertyValueFactoryAttribute(string[] editorAliases)
             : base(editorAliases)
         {
         }

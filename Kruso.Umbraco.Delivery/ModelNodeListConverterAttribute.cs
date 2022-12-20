@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Kruso.Umbraco.Delivery.ModelConversion
+namespace Kruso.Umbraco.Delivery
 {
     public class ModelNodeListConverterAttribute : IdentifiableAttribute
     {

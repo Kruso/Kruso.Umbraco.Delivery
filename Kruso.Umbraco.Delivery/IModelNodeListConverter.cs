@@ -1,7 +1,7 @@
 ﻿using Kruso.Umbraco.Delivery.Json;
 using System.Collections.Generic;
 
-namespace Kruso.Umbraco.Delivery.ModelConversion
+namespace Kruso.Umbraco.Delivery
 {
     public interface IModelNodeListConverter
     {

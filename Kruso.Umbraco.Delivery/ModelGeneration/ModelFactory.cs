@@ -3,14 +3,13 @@ using Kruso.Umbraco.Delivery.Json;
 using Kruso.Umbraco.Delivery.Models;
 using Kruso.Umbraco.Delivery.Services;
 using Microsoft.Extensions.Logging;
-using Polly;
+using NPoco.Expressions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Extensions;
-using static Umbraco.Cms.Core.Constants.Conventions;
 
 namespace Kruso.Umbraco.Delivery.ModelGeneration
 {
@@ -37,7 +36,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
 
             _deliContent = deliContent;
             _modelTemplates = modelTemplates.ToFilteredDictionary<IModelTemplate, ModelTemplateAttribute>();
-            _propertyValueFactories = modelPropertyValueFactories.ToFilteredDictionary<IModelPropertyValueFactory, PropertyValueFactoryAttribute>();
+            _propertyValueFactories = modelPropertyValueFactories.ToFilteredDictionary<IModelPropertyValueFactory, ModelPropertyValueFactoryAttribute>();
 
             _log = log;
         }
@@ -128,12 +127,18 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
 
         public JsonNode CreateBlock(IPublishedElement element)
         {
+            if (element == null)
+                return null;
+
             var publishedElement = new DeliPublishedElement(_context.Page, element);
             return CreateBlock(publishedElement);
         }
 
         public JsonNode CreateBlock(IMedia media)
         {
+            if (media == null) 
+                return null;
+
             var publishedMedia = new DeliPublishedMedia(media);
             return CreateBlock(publishedMedia);
         }

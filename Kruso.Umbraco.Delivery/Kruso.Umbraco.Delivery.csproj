@@ -1,14 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
   </PropertyGroup>
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Company>Kruso</Company>
     <RepositoryUrl>https://github.com/Kruso/umbraco-headless</RepositoryUrl>
-    <AssemblyVersion>10.0.0.16</AssemblyVersion>
-    <FileVersion>10.0.0.16</FileVersion>
-    <Version>10.0.16</Version>
+    <AssemblyVersion>11.0.0.2</AssemblyVersion>
+    <FileVersion>11.0.0.2</FileVersion>
+    <Version>11.0.2</Version>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <PackageId>Kruso.Umbraco.Delivery</PackageId>
     <Authors>Kruso</Authors>
@@ -31,10 +31,10 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="IdentityModel" Version="6.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="6.0.1" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.15.1" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.15.1" />
-    <PackageReference Include="Umbraco.Cms.Web.Website" Version="[10,11)" />
+    <PackageReference Include="Umbraco.Cms.Web.Website" Version="[11,12)" />
   </ItemGroup>
 </Project>

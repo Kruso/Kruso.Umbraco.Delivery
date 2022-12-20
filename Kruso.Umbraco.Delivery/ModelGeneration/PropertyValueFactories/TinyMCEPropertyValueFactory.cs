@@ -5,7 +5,7 @@ using Umbraco.Cms.Core.Strings;
 
 namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
 {
-    [PropertyValueFactory("Umbraco.TinyMCE")]
+    [ModelPropertyValueFactory("Umbraco.TinyMCE")]
     public class TinyMCEPropertyValueFactory : IModelPropertyValueFactory
     {
         private readonly IDeliProperties _deliProperties;

@@ -9,7 +9,7 @@ using Umbraco.Cms.Core.PropertyEditors;
 
 namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
 {
-    [PropertyValueFactory("Umbraco.MediaPicker3")]
+    [ModelPropertyValueFactory("Umbraco.MediaPicker3")]
     public class MediaPickerPropertyValueFactory : IModelPropertyValueFactory
     {
         private readonly IDeliDataTypes _deliDataTypes;

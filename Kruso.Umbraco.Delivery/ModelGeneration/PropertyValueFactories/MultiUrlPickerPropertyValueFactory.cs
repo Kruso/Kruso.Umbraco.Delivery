@@ -9,7 +9,7 @@ using Umbraco.Cms.Core.PropertyEditors;
 
 namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
 {
-    [PropertyValueFactory("Umbraco.MultiUrlPicker")]
+    [ModelPropertyValueFactory("Umbraco.MultiUrlPicker")]
     public class MultiUrlPickerPropertyValueFactory : IModelPropertyValueFactory
     {
         private readonly IDeliContent _deliContent;

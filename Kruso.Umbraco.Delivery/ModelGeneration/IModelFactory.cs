@@ -9,7 +9,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
 {
     public interface IModelFactory
     {
-        IModelFactoryContext2 Context { get; }
+        IModelFactoryContext Context { get; }
 
         JsonNode CreateBlock(IMedia media, string culture = null, ModelFactoryOptions options = null);
         JsonNode CreateBlock(IPublishedContent block, string culture = null, ModelFactoryOptions options = null);

@@ -50,7 +50,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
                 : res.FirstOrDefault();
         }
 
-        private IEnumerable<JsonNode> CreateFromUnpublishedReferences(IModelFactoryContext2 context, string val)
+        private IEnumerable<JsonNode> CreateFromUnpublishedReferences(IModelFactoryContext context, string val)
         {
             var mediaItems = new List<JsonNode>();
 
@@ -71,7 +71,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
             return mediaItems;
         }
 
-        private IEnumerable<JsonNode> CreateFromPublishedContent(IModelFactoryContext2 context, object value)
+        private IEnumerable<JsonNode> CreateFromPublishedContent(IModelFactoryContext context, object value)
         {
             var mediaItems = new List<JsonNode>();
 
@@ -89,7 +89,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
                 : null;
         }
 
-        private IEnumerable<JsonNode> CreateFromMedia(IModelFactoryContext2 context, object value)
+        private IEnumerable<JsonNode> CreateFromMedia(IModelFactoryContext context, object value)
         {
             var mediaItems = new List<JsonNode>();
 

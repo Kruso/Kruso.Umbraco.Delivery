@@ -6,6 +6,6 @@ namespace Kruso.Umbraco.Delivery
 {
     public interface IModelTemplate
     {
-        JsonNode Create(IModelFactoryContext2 context, JsonNode props, IPublishedContent content);
+        JsonNode Create(IModelFactoryContext context, JsonNode props, IPublishedContent content);
     }
 }

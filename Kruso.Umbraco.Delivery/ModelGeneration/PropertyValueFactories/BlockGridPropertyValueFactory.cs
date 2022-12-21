@@ -37,10 +37,11 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
             return res;
         }
 
-        private JsonNode CreateBlockGridArea(ref int idx, IModelFactoryContext2 context, BlockGridItem blockGridItem)
+        private JsonNode CreateBlockGridArea(ref int idx, IModelFactoryContext context, BlockGridItem blockGridItem)
         {
             var uuid = UuidFromPartial(idx++);
             var subIdx = idx;
+
             var gridArea = _modelFactory.CreateCustomBlock(uuid, nameof(BlockGridArea), (block) =>
             {
                 var gridItem = CreateBlockGridItem(ref subIdx, context, blockGridItem);
@@ -57,71 +58,71 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
             return gridArea;
         }
 
-        private JsonNode CreateBlockGridArea(ref int idx, IModelFactoryContext2 context, BlockGridArea blockGridArea)
+        private JsonNode CreateBlockGridArea(ref int idx, IModelFactoryContext context, BlockGridArea blockGridArea)
         {
             var uuid = UuidFromPartial(idx++);
+            var subIdx = idx;
 
-            if (context.ReachedMaxDepth)
+            var gridArea = _modelFactory.CreateCustomBlock(uuid, nameof(BlockGridArea), (block) =>
             {
-                return CreateBlockGridAreaRef(uuid, context.Page.Key, context.Culture);
-            }
-            else
-            {
-                if (context.IncrementDepth(uuid))
+                var gridItems = new List<JsonNode>();
+                var gridItemIdx = subIdx;
+                foreach (var area in blockGridArea)
                 {
-                    try
+                    var gridItem = CreateBlockGridItem(ref gridItemIdx, context, area);
+                    if (gridItem != null)
                     {
-                        var gridItems = new List<JsonNode>();
-                        foreach (var area in blockGridArea)
-                        {
-                            var gridItem = CreateBlockGridItem(ref idx, context, area);
-                            if (gridItem != null)
-                                gridItems.Add(gridItem);
-                        }
-
-                        var gridArea = new JsonNode(uuid, context.Page.Key, context.Culture, nameof(BlockGridArea))
-                            .AddProp("alias", blockGridArea.Alias)
-                            .AddProp("columnSpan", blockGridArea.ColumnSpan)
-                            .AddProp("rowSpan", blockGridArea.RowSpan)
-                            .AddProp("gridItems", gridItems);
-                    }
-                    finally
-                    {
-                        context.DecrementDepth();
+                        gridItems.Add(gridItem);
+                        gridItemIdx++;
                     }
                 }
-            }
-                
 
+                block
+                    .AddProp("alias", blockGridArea.Alias)
+                    .AddProp("columnSpan", blockGridArea.ColumnSpan)
+                    .AddProp("rowSpan", blockGridArea.RowSpan)
+                    .AddProp("gridItems", gridItems);
 
+                subIdx = gridItemIdx;
+            });
+
+            idx = subIdx;
 
             return gridArea;
         }
 
-        private JsonNode CreateBlockGridItem(ref int idx, IModelFactoryContext2 context, BlockGridItem blockGridItem)
+        private JsonNode CreateBlockGridItem(ref int idx, IModelFactoryContext context, BlockGridItem blockGridItem)
         {
-            var block = _modelFactory.CreateBlock(blockGridItem.Content);
-            if (block.Type == "Ref")
-                return block;
-
-            var settings = _modelFactory.CreateBlock(blockGridItem.Settings);
-            var areas = new List<JsonNode>();
-            foreach (var area in blockGridItem.Areas ?? new BlockGridArea[0])
-            {
-                var grid = CreateBlockGridArea(ref idx, context, area);
-                if (grid != null)
-                    areas.Add(grid);
-            }
-
             var uuid = UuidFromPartial(idx++);
-            var gridItem = new JsonNode(uuid, context.Page.Key, context.Culture, nameof(BlockGridItem))
-                .AddProp("columnSpan", blockGridItem.ColumnSpan)
-                .AddProp("rowSpan", blockGridItem.RowSpan)
-                .AddProp("gridColumns", blockGridItem.GridColumns)
-                .AddProp("areaGridColumns", blockGridItem.AreaGridColumns)
-                .AddProp("settings", settings)
-                .AddProp("block", block)
-                .AddProp("areas", areas);
+            var subIdx = idx;
+
+            var gridItem = _modelFactory.CreateCustomBlock(uuid, nameof(BlockGridItem), (block) =>
+            {
+                var areas = new List<JsonNode>();
+                var gridAreaIdx = subIdx;
+                foreach (var area in blockGridItem.Areas ?? new BlockGridArea[0])
+                {
+                    var grid = CreateBlockGridArea(ref gridAreaIdx, context, area);
+                    if (grid != null)
+                    {
+                        areas.Add(grid);
+                        gridAreaIdx++;
+                    }
+                }
+
+                subIdx = gridAreaIdx;
+
+                block
+                    .AddProp("columnSpan", blockGridItem.ColumnSpan)
+                    .AddProp("rowSpan", blockGridItem.RowSpan)
+                    .AddProp("gridColumns", blockGridItem.GridColumns)
+                    .AddProp("areaGridColumns", blockGridItem.AreaGridColumns)
+                    .AddProp("settings", _modelFactory.CreateBlock(blockGridItem.Settings))
+                    .AddProp("block", block)
+                    .AddProp("areas", areas);
+            });
+
+            idx = subIdx;
 
             return gridItem;
         }
@@ -135,12 +136,6 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
                 : $"{id}-0000-1000-8000-00805f9b34fb";
 
             return Guid.ParseExact(uuid, "d");
-        }
-
-        private JsonNode CreateBlockGridAreaRef(Guid id, Guid pageId, string culture)
-        {
-            return new JsonNode(id, pageId, culture, "Ref")
-                .AddProp("refType", nameof(BlockGridArea));
         }
     }
 }

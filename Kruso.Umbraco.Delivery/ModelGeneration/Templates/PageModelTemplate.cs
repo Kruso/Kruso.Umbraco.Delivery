@@ -21,7 +21,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.Templates
             _deliUrl = deliUrl;
         }
 
-        public virtual JsonNode Create(IModelFactoryContext2 context, JsonNode props, IPublishedContent content)
+        public virtual JsonNode Create(IModelFactoryContext context, JsonNode props, IPublishedContent content)
         {
             var page = new JsonNode(content.Key, context.Culture, content.ContentType.Alias)
             {
@@ -38,7 +38,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.Templates
             return page;
         }
 
-        private JsonNode CreateUrls(IModelFactoryContext2 context, IPublishedContent content)
+        private JsonNode CreateUrls(IModelFactoryContext context, IPublishedContent content)
         {
             var url = _deliUrl.GetDeliveryUrl(content, context.Culture);
             var slug = content.Parent != null

@@ -109,7 +109,7 @@ namespace Kruso.Umbraco.Delivery
                 .AddSingleton<IModelConverter, ModelConverter>()
                 .AddScoped<ISearchQueryExecutor, SearchQueryExecutor>()
                 .AddSingleton<IModelFactoryComponentSource, ModelFactoryComponentSource>()
-                .AddTransient<IModelFactoryContext2, ModelFactoryContext2>()
+                .AddTransient<IModelFactoryContext, ModelFactoryContext>()
                 .AddSingleton<IModelFactory, ModelFactory>();
 
             services.Configure<UmbracoRenderingDefaultsOptions>(c =>

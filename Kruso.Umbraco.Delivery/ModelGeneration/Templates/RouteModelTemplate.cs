@@ -23,7 +23,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.Templates
             _deliTemplates = deliTemplates;
         }
 
-        public virtual JsonNode Create(IModelFactoryContext2 context, JsonNode props, IPublishedContent content)
+        public virtual JsonNode Create(IModelFactoryContext context, JsonNode props, IPublishedContent content)
         {
             var node = new JsonNode(content.Key, context.Culture, content.ContentType.Alias)
             {

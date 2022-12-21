@@ -20,7 +20,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
         private readonly IDeliCache _deliCache;
         private readonly ILogger<ModelFactory> _log;
 
-        public IModelFactoryContext2 Context => GetContext();
+        public IModelFactoryContext Context => GetContext();
 
         public ModelFactory(
             IServiceProvider serviceProvider,
@@ -244,7 +244,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
             return res;
         }
 
-        private bool CanRender(IPublishedContent content, IModelFactoryContext2 context)
+        private bool CanRender(IPublishedContent content, IModelFactoryContext context)
         {
             if (_deliContent.IsPage(content))
             {
@@ -255,9 +255,9 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
             return true;
         }
 
-        private IModelFactoryContext2 GetContext()
+        private IModelFactoryContext GetContext()
         {
-            return _deliCache.GetFromRequest("deli_ModelFactory_Context", _serviceProvider.GetService<IModelFactoryContext2>());
+            return _deliCache.GetFromRequest("deli_ModelFactory_Context", _serviceProvider.GetService<IModelFactoryContext>());
         }
 
         private IModelFactoryComponentSource GetModelFactoryComponentSource()

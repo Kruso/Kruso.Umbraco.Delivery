@@ -9,9 +9,9 @@ namespace Kruso.Umbraco.Delivery.Security
 {
     public interface IAuthTokenHandler
     {
-        ValidateTokenResponse ValidateSingleUseJwtToken(string jwtToken, string issuer, string audience = null, string certificateThumbprint = null);
-        ValidateTokenResponse ValidateJwtToken(string jwtToken, string issuer, string audience = null, string certificateThumbprint = null);
-        string CreateSingleUseJwtToken(string issuer, string audience, int expires, Claim[] claims, string certificateThumbprint = null);
-        string CreateJwtToken(string issuer, string audience, int expires, Claim[] claims, string certificateThumbprint = null);
+        ValidateTokenResponse ValidateSingleUseJwtToken(string jwtToken, string issuer, string audience = null);
+        ValidateTokenResponse ValidateJwtToken(string jwtToken, string issuer, string audience = null);
+        string CreateSingleUseJwtToken(string issuer, string audience, int expires, Claim[] claims);
+        string CreateJwtToken(string issuer, string audience, int expires, Claim[] claims);
     }
 }

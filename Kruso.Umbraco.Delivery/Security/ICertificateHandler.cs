@@ -9,6 +9,6 @@ namespace Kruso.Umbraco.Delivery.Security
 {
     public interface ICertificateHandler
     {
-        X509Certificate2 GetCertificate(string thumbprint = null);
+        X509Certificate2 GetCertificate();
     }
 }

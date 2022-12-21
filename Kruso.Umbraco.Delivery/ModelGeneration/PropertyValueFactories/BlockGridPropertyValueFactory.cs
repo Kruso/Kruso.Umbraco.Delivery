@@ -23,108 +23,75 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
         public virtual object Create(IPublishedProperty property)
         {
             var context = _modelFactory.Context;
-
-            var blocks = new List<JsonNode>();
             var blockGridItems = _deliProperties.Value(property, context.Culture) as IEnumerable<BlockGridItem>;
-
             var idx = context.Page.Id * 10000;
 
             var res = blockGridItems?
-                .Select((x, i) => CreateBlockGridArea(ref idx, context, x))
+                .Select((x, i) => CreateBlockGridArea(ref idx, x))
                 .ToList() 
                 ?? new List<JsonNode>();
 
             return res;
         }
 
-        private JsonNode CreateBlockGridArea(ref int idx, IModelFactoryContext context, BlockGridItem blockGridItem)
+        private JsonNode CreateBlockGridArea(ref int idx, BlockGridItem blockGridItem)
         {
-            var uuid = UuidFromPartial(idx++);
-            var subIdx = idx;
-
-            var gridArea = _modelFactory.CreateCustomBlock(uuid, nameof(BlockGridArea), (block) =>
-            {
-                var gridItem = CreateBlockGridItem(ref subIdx, context, blockGridItem);
-
-                block
-                    .AddProp("alias", "root")
-                    .AddProp("columnSpan", blockGridItem.ColumnSpan)
-                    .AddProp("rowSpan", blockGridItem.RowSpan)
-                    .AddProp("gridItems", new List<JsonNode> { gridItem });
-            });
-
-            idx = subIdx;
-
-            return gridArea;
+            var blockGridArea = new BlockGridArea(new List<BlockGridItem> { blockGridItem }, "root", blockGridItem.RowSpan, blockGridItem.ColumnSpan);
+            return CreateBlockGridArea(ref idx, blockGridArea);
         }
 
-        private JsonNode CreateBlockGridArea(ref int idx, IModelFactoryContext context, BlockGridArea blockGridArea)
+
+        private JsonNode CreateBlockGridArea(ref int idx, BlockGridArea blockGridArea)
         {
+            if (blockGridArea == null)
+                return null;
+
             var uuid = UuidFromPartial(idx++);
-            var subIdx = idx;
+
+            var gridItemBlocks = new List<JsonNode>();
+
+            foreach (var gridItem in blockGridArea)
+            {
+                var subIdx = idx;
+                var gridItemUuid = UuidFromPartial(idx++);
+                var gridItemBlock = _modelFactory.CreateCustomBlock(gridItemUuid, nameof(BlockGridItem), (block) =>
+                {
+                    var settings = _modelFactory.CreateBlock(gridItem.Settings);
+                    var areas = new List<JsonNode>();
+
+                    foreach (var area in (gridItem.Areas ?? new BlockGridArea[0]))
+                    {
+                        var grid = CreateBlockGridArea(ref subIdx, area);
+                        if (grid != null)
+                        {
+                            areas.Add(grid);
+                            subIdx++;
+                        }
+                    }
+
+                    block
+                        .AddProp("columnSpan", gridItem.ColumnSpan)
+                        .AddProp("rowSpan", gridItem.RowSpan)
+                        .AddProp("gridColumns", gridItem.GridColumns)
+                        .AddProp("areaGridColumns", gridItem.AreaGridColumns)
+                        .AddProp("settings", settings)
+                        .AddProp("block", block)
+                        .AddProp("areas", areas);
+                });
+
+                idx = subIdx;
+            }
 
             var gridArea = _modelFactory.CreateCustomBlock(uuid, nameof(BlockGridArea), (block) =>
             {
-                var gridItems = new List<JsonNode>();
-                var gridItemIdx = subIdx;
-                foreach (var area in blockGridArea)
-                {
-                    var gridItem = CreateBlockGridItem(ref gridItemIdx, context, area);
-                    if (gridItem != null)
-                    {
-                        gridItems.Add(gridItem);
-                        gridItemIdx++;
-                    }
-                }
-
                 block
                     .AddProp("alias", blockGridArea.Alias)
                     .AddProp("columnSpan", blockGridArea.ColumnSpan)
                     .AddProp("rowSpan", blockGridArea.RowSpan)
-                    .AddProp("gridItems", gridItems);
-
-                subIdx = gridItemIdx;
+                    .AddProp("gridItems", gridItemBlocks);
             });
-
-            idx = subIdx;
 
             return gridArea;
-        }
-
-        private JsonNode CreateBlockGridItem(ref int idx, IModelFactoryContext context, BlockGridItem blockGridItem)
-        {
-            var uuid = UuidFromPartial(idx++);
-            var subIdx = idx;
-
-            var gridItem = _modelFactory.CreateCustomBlock(uuid, nameof(BlockGridItem), (block) =>
-            {
-                var areas = new List<JsonNode>();
-                var gridAreaIdx = subIdx;
-                foreach (var area in blockGridItem.Areas ?? new BlockGridArea[0])
-                {
-                    var grid = CreateBlockGridArea(ref gridAreaIdx, context, area);
-                    if (grid != null)
-                    {
-                        areas.Add(grid);
-                        gridAreaIdx++;
-                    }
-                }
-
-                subIdx = gridAreaIdx;
-
-                block
-                    .AddProp("columnSpan", blockGridItem.ColumnSpan)
-                    .AddProp("rowSpan", blockGridItem.RowSpan)
-                    .AddProp("gridColumns", blockGridItem.GridColumns)
-                    .AddProp("areaGridColumns", blockGridItem.AreaGridColumns)
-                    .AddProp("settings", _modelFactory.CreateBlock(blockGridItem.Settings))
-                    .AddProp("block", block)
-                    .AddProp("areas", areas);
-            });
-
-            idx = subIdx;
-
-            return gridItem;
         }
 
         private Guid UuidFromPartial(Int32 partial)

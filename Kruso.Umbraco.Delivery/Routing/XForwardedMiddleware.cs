@@ -40,7 +40,7 @@ namespace Kruso.Umbraco.Delivery.Routing
 
             if (ShouldHandleRequest(context.Request))
             {
-                var callingAuthority = GetCallingAuthorityFromHeader(context);
+                var callingAuthority = GetCallingAuthority(context);
                 if (callingAuthority != null)
                 {
                     context.Request.Host = new HostString(callingAuthority.Authority);
@@ -65,10 +65,12 @@ namespace Kruso.Umbraco.Delivery.Routing
             return !ExcludeRoutes.Any(r => requestPath.StartsWith(r));
         }
 
-        private Uri GetCallingAuthorityFromHeader(HttpContext context)
+        private Uri GetCallingAuthority(HttpContext context)
         {
+            var config = _deliConfig.Get();
+
             var callingAuthority = 
-                GetCallingAuthorityFromHeader(context, _deliConfig.Get().ForwardedHeader)
+                GetCallingAuthorityFromHeader(context, config.ForwardedHeader)
                 ?? GetCallingAuthorityFromHeader(context, DefaultForwardedHeader);
 
             if (string.IsNullOrEmpty(callingAuthority))
@@ -79,6 +81,11 @@ namespace Kruso.Umbraco.Delivery.Routing
                 { 
                    callingAuthority = $"{scheme.Last().Trim(' ')}://{host.Last().Trim(' ')}/{path.Last().Trim('/').Trim(' ')}".ToLower();
                 }
+            }
+
+            if (string.IsNullOrEmpty(callingAuthority) && !_deliConfig.IsMultiSite())
+            {
+                callingAuthority = config.FrontendHost;
             }
 
             Uri.TryCreate(callingAuthority, UriKind.Absolute, out var baseUri);

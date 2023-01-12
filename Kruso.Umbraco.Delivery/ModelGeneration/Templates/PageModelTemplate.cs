@@ -27,8 +27,9 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.Templates
             {
                 ParentPageId = content.Parent?.Key
             };
-
+            
             page
+                .AddProp("compositionTypes", content.ContentType.CompositionAliases?.ToArray() ?? new string[0])
                 .AddProp("name", content.Name)
                 .AddProp("urls", CreateUrls(context, content))
                 .AddProp("sortOrder", content.SortOrder)

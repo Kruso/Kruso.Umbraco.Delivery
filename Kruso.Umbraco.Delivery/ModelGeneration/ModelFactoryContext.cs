@@ -1,102 +1,83 @@
 ﻿using Kruso.Umbraco.Delivery.Models;
-using Kruso.Umbraco.Delivery.Security;
+using Kruso.Umbraco.Delivery.Routing;
 using Kruso.Umbraco.Delivery.Services;
-using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Umbraco.Cms.Core.Models.PublishedContent;
-using Umbraco.Extensions;
 
 namespace Kruso.Umbraco.Delivery.ModelGeneration
 {
-    internal class ModelFactoryContext : IModelFactoryContext
+    public class ModelFactoryContext : IModelFactoryContext
     {
-        private readonly IDeliContent _deliContent;
-
-        private readonly Stack<Guid> _idStack = new Stack<Guid>();
-        private IEnumerable<IPublishedContent> _pages;
-
-        public IUserIdentity Identity { get; private set; }
-        public int MaxDepth { get; private set; }
-        public int CurrentDepth => _idStack.Count;
-        public bool LoadPreview { get; private set; }
-        public bool ApplyPublicAccessRights { get; private set; }
-        public IQueryCollection QueryString { get; private set; }
-        public ModelFactory ModelFactory { get; private set; }
-
-        public bool ReachedMaxDepth
+        private class StackItem
         {
-            get
-            {
-                return MaxDepth > 0 && MaxDepth == CurrentDepth;
-            }
+            public Guid Key { get; set; }
+            public IPublishedContent Page { get; set; }
+            public string Culture { get; set; }
+            public ModelFactoryOptions Options { get; set; }
         }
 
-        public IPublishedContent Page { get; private set; }
-        public string Culture { get; private set; }
+        private readonly Stack<StackItem> _stack = new Stack<StackItem>();
+
+        private readonly IDeliRequestAccessor _deliRequestAccessor;
+        private readonly IDeliCulture _deliCulture;
+
+        public IPublishedContent Page => Peek()?.Page;
+        public string Culture => Peek()?.Culture;
+        public ModelFactoryOptions Options => Peek()?.Options;
+
+        public bool Initialized => CurrentDepth > 0;
+        public int CurrentDepth => _stack.Count;
+        public bool ReachedMaxDepth => (Options?.MaxDepth ?? 0) > 0 && CurrentDepth >= (Options?.MaxDepth ?? 0);
 
 
-        public ModelFactoryContext(
-            IUserIdentity identity,
-            IDeliContent deliContent)
+        public ModelFactoryContext(IDeliRequestAccessor deliRequestAccessor, IDeliCulture deliCulture)
         {
-            _deliContent = deliContent;
-            Identity = identity;
+            _deliRequestAccessor = deliRequestAccessor;
+            _deliCulture = deliCulture;
+
+            InitializeDepth();
         }
 
-        public void Init(ModelFactory modelFactory, ModelFactoryOptions options = null)
+        private bool InitializeDepth()
         {
-            ModelFactory = modelFactory;
-
-            MaxDepth = options?.MaxDepth ?? 0;
-            LoadPreview = options?.LoadPreview ?? false;
-            ApplyPublicAccessRights = options?.ApplyPublicAccessRights ?? true;
-            QueryString = options?.QueryString;
-            _idStack.Clear();
+            _stack.Clear();
+            return Push(CreateStackItem(_deliRequestAccessor.Current?.Content));
         }
 
-        public void Init(ModelFactory modelFactory, IPublishedContent page, ModelFactoryOptions options = null)
+        public bool InitializeDepth(IPublishedContent content, string culture = null, ModelFactoryOptions options = null)
         {
-            Init(modelFactory, options);
-            Page = page;
+            _stack.Clear();
+            return Push(CreateStackItem(content, null, culture, options));
         }
 
-        public void Init(ModelFactory modelFactory, IPublishedContent page, string culture, ModelFactoryOptions options = null)
+        public bool IncrementDepth(Guid key, string culture = null, ModelFactoryOptions options = null)
         {
-            Init(modelFactory, page, options);
-            Culture = culture;
+            return Initialized || InitializeDepth()
+                ? Push(CreateStackItem(null, key, culture, options))
+                : false;
         }
 
-        public void Init(ModelFactory modelFactory, IEnumerable<IPublishedContent> pages, string culture, ModelFactoryOptions options = null)
+        public void DecrementDepth()
         {
-            Init(modelFactory, pages.FirstOrDefault(), culture, options);
-            _pages = pages;
+            Pop();
         }
 
-        public IPublishedContent GetPreviewVersion(IPublishedContent content)
+        private bool Push(StackItem stackItem)
         {
-            return content != null && LoadPreview && content.ItemType == PublishedItemType.Content
-                ? _deliContent.UnpublishedContent(content.Key)
-                : content;
-        }
+            if (stackItem == null)
+                return false;
 
-        public bool DetectedRecursion(Guid key)
-        {
-            return _idStack.Count(x => x == key) > 1;
-        }
+            _stack.Push(stackItem);
 
-        public bool IncrementDepth(Guid key)
-        {
-            _idStack.Push(key);
-
-            if (MaxDepth == 0 && DetectedRecursion(key))
+            if (stackItem.Options.MaxDepth == 0 && DetectedRecursion(stackItem.Key))
             {
                 DecrementDepth();
                 return false;
             }
 
-            if (MaxDepth > 0 && CurrentDepth > MaxDepth)
+            if (stackItem.Options.MaxDepth > 0 && CurrentDepth > stackItem.Options.MaxDepth)
             {
                 DecrementDepth();
                 return false;
@@ -105,25 +86,40 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
             return true;
         }
 
-        public void DecrementDepth()
+        private bool DetectedRecursion(Guid key)
         {
-            _idStack.Pop();
+            return _stack.Count(x => x.Key == key) > 1;
         }
 
-        public bool NextPage()
+        private StackItem Peek()
         {
-            if (Page != null && _pages != null && _pages.Any())
-            {
-                var idx = _pages.IndexOf(Page);
-                if (idx >= 0 && idx < _pages.Count() - 1)
-                {
-                    Page = _pages.ElementAt(idx + 1);
-                    _idStack.Clear();
-                    return true;
-                }
-            }
+            return _stack.Any()
+                ? _stack.Peek()
+                : null;
+        }
 
-            return false;
+        private StackItem Pop()
+        {
+            return _stack.Any()
+                ? _stack.Pop()
+                : null;
+        }
+
+        private StackItem CreateStackItem(IPublishedContent content, Guid? key = null, string culture = null, ModelFactoryOptions options = null)
+        {
+            var stackItemKey = key != null ? key.Value : content?.Key;
+            if (stackItemKey == null)
+                return null;
+
+            var prev = Peek();
+
+            return new StackItem
+            {
+                Key = stackItemKey.Value,
+                Page = content ?? prev?.Page,
+                Culture = culture ?? prev?.Culture ?? _deliRequestAccessor.Current.Culture ?? _deliCulture.DefaultCulture,
+                Options = options ?? prev?.Options ?? _deliRequestAccessor.Current.ModelFactoryOptions ?? new ModelFactoryOptions()
+            };
         }
     }
 }

@@ -36,7 +36,7 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
                     .AddClaim(DeliveryClaimTypes.PreviewCulture, deliRequest.Culture);
 
                 var config = _deliConfig.Get();
-                var jwt = _authTokenHandler.CreateSingleUseJwtToken(deliRequest.OriginalUri.Authority, deliRequest.CallingUri.Authority, 60, claims.ToArray(), config.CertificateThumbprint);
+                var jwt = _authTokenHandler.CreateSingleUseJwtToken(deliRequest.OriginalUri.Authority, deliRequest.CallingUri.Authority, 60, claims.ToArray());
 
                 return jwt;
             }

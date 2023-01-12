@@ -19,9 +19,13 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
 
         public T GetFromRequest<T>(string cacheKey, T def = default(T))
         {
-            return ValidForRequest(cacheKey) && _httpContextAccessor.HttpContext.Items.TryGetValue(cacheKey, out var val) && val is T
-                ? (T)val
-                : def;
+            if (ValidForRequest(cacheKey) && _httpContextAccessor.HttpContext.Items.TryGetValue(cacheKey, out var val) && val is T)
+                return (T)val;
+
+            if (def != null)
+                AddToRequest(cacheKey, def);
+
+            return def;
         }
 
         public bool ExistsOnRequest(string cacheKey)

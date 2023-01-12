@@ -3,7 +3,6 @@ using Kruso.Umbraco.Delivery.ModelConversion;
 using Kruso.Umbraco.Delivery.ModelGeneration;
 using Kruso.Umbraco.Delivery.Models;
 using Kruso.Umbraco.Delivery.Routing;
-using Kruso.Umbraco.Delivery.Security;
 using Kruso.Umbraco.Delivery.Services;
 using Microsoft.Extensions.Logging;
 using System;
@@ -54,7 +53,7 @@ namespace Kruso.Umbraco.Delivery.Controllers.Renderers
             using (var client = new HttpClient())
             {
                 var jwt = _deliSecurity.CreateJwtPreviewToken();
-                var url = _deliUrl.GetAbsoluteDeliveryUrl(_deliRequest.Content, _deliRequest.Culture) + "?token=" + jwt;
+                var url = _deliUrl.GetPreviewPaneUrl(_deliRequest.Content, _deliRequest.Culture, jwt);
                 var previewHtml = LoadPreviewHtml();
                 var newHtml = previewHtml.Replace("{{url}}", url);
 
@@ -95,8 +94,8 @@ namespace Kruso.Umbraco.Delivery.Controllers.Renderers
 
             try
             {
-                _modelFactory.Init(_deliRequest.Content, _deliRequest.Culture, _deliRequest.ModelFactoryOptions);
-                return _modelConverter.Convert(_modelFactory.CreatePage(), TemplateType.Page);
+                var page = _modelFactory.CreatePage(_deliRequest.Content, _deliRequest.Culture, _deliRequest.ModelFactoryOptions);
+                return _modelConverter.Convert(page, TemplateType.Page);
             }
             catch (Exception ex)
             {

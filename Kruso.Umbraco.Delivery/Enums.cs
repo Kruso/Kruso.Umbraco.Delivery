@@ -21,7 +21,8 @@ namespace Kruso.Umbraco.Delivery
         Block,
         Route,
         Search,
-        Ref
+        Ref,
+        Property
     }
 
     public enum ContentWrapperType

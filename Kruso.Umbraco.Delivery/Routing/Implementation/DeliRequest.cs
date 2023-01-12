@@ -10,13 +10,26 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
 {
     public sealed class DeliRequest : IDeliRequest
     {
-        public RequestType RequestType { get; private set; }
+        private IPublishedContent _content;
+        public IPublishedContent Content
+        {
+            get
+            {
+                return _content;
+            }
+            private set
+            {
+                _content = value;
+                SetRequestType();
+            }
+        }
+
         public Uri CallingUri { get; private set; }
+        public RequestType RequestType { get; private set; } = RequestType.Initialized;
         public Uri OriginalUri { get; private set; }
         public IQueryCollection Query { get; private set; }
         public JwtSecurityToken Token { get; private set; }
 
-        public IPublishedContent Content { get; private set; }
         public string Culture { get; private set; }
 
         public string ResponseMessage { get; set; }
@@ -29,15 +42,8 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             OriginalUri = originalUri;
             Query = request.Query;
             Token = token;
-
-            RequestType = IsPreviewPaneRequest()
-                ? RequestType.PreviewPane
-                : RequestType.Initialized;
-
             ModelFactoryOptions = CreateModelFactoryOptions();
         }
-
-
 
         private ModelFactoryOptions CreateModelFactoryOptions()
         {
@@ -56,26 +62,34 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             return res;
         }
 
-        internal void Finalize(IPublishedContent content, string culture, Uri callingUri = null)
+        internal void Finalize(IPublishedContent content, string culture, bool isPreviewPaneRequest = false)
         {
-            if (RequestType != RequestType.PreviewPane)
+            if (isPreviewPaneRequest)
             {
-                Content = content;
-                Culture = culture;
+                CallingUri = OriginalUri;
+            }
 
-                if (Content != null)
-                {
-                    RequestType = IsPreviewContentRequest()
-                        ? RequestType.PreviewContent
-                        : RequestType.Content;
+            Content = content;
+            Culture = culture;
+        }
 
-                    if (callingUri != null)
-                    {
-                        CallingUri = callingUri;
-                    }
-                }
-                else
-                    RequestType = RequestType.Failed;
+        private void SetRequestType()
+        {
+            if (IsPreviewPaneRequest())
+            {
+                RequestType = RequestType.PreviewPane;
+            }
+            else if (IsPreviewContentRequest())
+            {
+                RequestType = RequestType.PreviewContent;
+            }
+            else if (Content != null)
+            {
+                RequestType = RequestType.Content;
+            }
+            else
+            {
+                RequestType = RequestType.Failed;
             }
         }
 

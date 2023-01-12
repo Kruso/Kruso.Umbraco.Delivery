@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Kruso.Umbraco.Delivery.Services;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 
@@ -6,56 +8,103 @@ namespace Kruso.Umbraco.Delivery.Security
 {
     public class CertificateHandler : ICertificateHandler
     {
-        public X509Certificate2 GetCertificate(string thumbprint = null)
+        private readonly IDeliConfig _deliConfig;
+        private readonly ILogger<CertificateHandler> _log;
+
+        public CertificateHandler(IDeliConfig deliConfig, ILogger<CertificateHandler> log) 
         {
-            return string.IsNullOrEmpty(thumbprint)
-                ? GetEmbeddedCertificate()
-                : GetCertificateByThumbprint(thumbprint);
+            _deliConfig = deliConfig;
+            _log = log;
+        }
+
+        public X509Certificate2 GetCertificate()
+        {
+            return GetCertificateByThumbprint()
+                ?? GetEmbeddedCertificate()
+                ?? GetFileCertificate();
         }
 
         private X509Certificate2 GetEmbeddedCertificate()
         {
             try
             {
-                using (var certStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(@"Kruso.Umbraco.Delivery.CN=RSKSampleIdentityServer.pfx"))
+                var config = _deliConfig.Get();
+                if (!string.IsNullOrEmpty(config.CertificateResourceName) && !string.IsNullOrEmpty(config.CertificatePassword))
                 {
-                    var rawBytes = new byte[certStream.Length];
-                    for (var index = 0; index < certStream.Length; index++)
+                    using (var certStream = Assembly.GetEntryAssembly().GetManifestResourceStream(config.CertificateResourceName))
                     {
-                        rawBytes[index] = (byte)certStream.ReadByte();
-                    }
+                        var rawBytes = new byte[certStream.Length];
+                        for (var index = 0; index < certStream.Length; index++)
+                        {
+                            rawBytes[index] = (byte)certStream.ReadByte();
+                        }
 
-                    return new X509Certificate2(rawBytes, "Password123!", X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.Exportable);
+                        return new X509Certificate2(rawBytes, config.CertificatePassword, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.Exportable);
+                    }
                 }
+
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return new X509Certificate2(AppDomain.CurrentDomain.BaseDirectory + "CN=RSKSampleIdentityServer.pfx", "Password123!");
+                _log.LogError(ex, "Failed to load embedded certificate");
             }
+
+            return null;
         }
 
-        private X509Certificate2 GetCertificateByThumbprint(string certThumbPrint)
+        private X509Certificate2 GetFileCertificate()
         {
-            X509Store store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
             try
             {
-                // Try to open the store.
-                store.Open(OpenFlags.ReadOnly);
-                X509Certificate2Collection certCollection = store.Certificates;
-                // Find currently valid certificates.
-                //X509Certificate2Collection currentCerts = certCollection.Find(X509FindType.FindByTimeValid, DateTime.Now, false);
-                // Find the certificate that matches the thumbprint.
-                X509Certificate2Collection signingCertificates = certCollection.Find(
-                    X509FindType.FindByThumbprint, certThumbPrint, false);
-
-                if (signingCertificates.Count == 0)
-                    return null;
-                return signingCertificates[0];
+                var config = _deliConfig.Get();
+                if (!string.IsNullOrEmpty(config.CertificateFileName) && !string.IsNullOrEmpty(config.CertificatePassword))
+                {
+                    return new X509Certificate2(AppDomain.CurrentDomain.BaseDirectory + config.CertificateFileName, config.CertificatePassword);
+                }
             }
-            finally
+            catch (Exception ex)
             {
-                store.Close();
+                _log.LogError(ex, "Failed to load file certificate");
             }
+
+            return null;
+        }
+
+        private X509Certificate2 GetCertificateByThumbprint()
+        {
+            try
+            {
+                var config = _deliConfig.Get();
+                if (!string.IsNullOrEmpty(config.CertificateThumbprint))
+                {
+                    var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
+                    try
+                    {
+                        // Try to open the store.
+                        store.Open(OpenFlags.ReadOnly);
+                        X509Certificate2Collection certCollection = store.Certificates;
+                        // Find currently valid certificates.
+                        //X509Certificate2Collection currentCerts = certCollection.Find(X509FindType.FindByTimeValid, DateTime.Now, false);
+                        // Find the certificate that matches the thumbprint.
+                        X509Certificate2Collection signingCertificates = certCollection.Find(
+                            X509FindType.FindByThumbprint, config.CertificateThumbprint, false);
+
+                        if (signingCertificates.Count == 0)
+                            return null;
+                        return signingCertificates[0];
+                    }
+                    finally
+                    {
+                        store.Close();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _log.LogError(ex, "Failed to load certificate by thumbprint");
+            }
+
+            return null;
         }
     }
 }

@@ -7,15 +7,17 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
     public class SliderPropertyValueFactory : IModelPropertyValueFactory
     {
         private readonly IDeliProperties _deliProperties;
+        private readonly IModelFactory _modelFactory;
 
-        public SliderPropertyValueFactory(IDeliProperties deliProperties)
+        public SliderPropertyValueFactory(IDeliProperties deliProperties, IModelFactory modelFactory)
         {
             _deliProperties = deliProperties;
+            _modelFactory = modelFactory;
         }
 
-        public virtual object Create(IModelFactoryContext context, IPublishedProperty property)
+        public virtual object Create(IPublishedProperty property)
         {
-            var val = (_deliProperties.Value(property, context.Culture) ?? 0).ToString();
+            var val = (_deliProperties.Value(property, _modelFactory.Context.Culture) ?? 0).ToString();
             int.TryParse(val, out var res);
             return res;
         }

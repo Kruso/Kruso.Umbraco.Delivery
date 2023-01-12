@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Runtime.Serialization;
+using Umbraco.Cms.Core.Models.PublishedContent;
 
 namespace Kruso.Umbraco.Delivery.Json
 {
@@ -17,6 +18,7 @@ namespace Kruso.Umbraco.Delivery.Json
             public const string ParentPageId = "parentPageId";
             public const string Culture = "culture";
             public const string Type = "type";
+            public const string CompositionTypes = "compositionTypes";
 
             public static readonly string[] All = new[]
             {
@@ -24,7 +26,8 @@ namespace Kruso.Umbraco.Delivery.Json
                 PageId,
                 ParentPageId,
                 Culture,
-                Type
+                Type,
+                CompositionTypes
             };
         }
 
@@ -41,6 +44,18 @@ namespace Kruso.Umbraco.Delivery.Json
             : base()
         {
             Culture = culture;
+        }
+
+        public static JsonNode Create(IPublishedElement content, string culture)
+        {
+            return new JsonNode
+            {
+                Id = content.Key,
+                PageId = content.Key,
+                Culture = culture,
+                Type = content.ContentType.Alias,
+                CompositionTypes = content.ContentType.CompositionAliases.ToArray()
+            };
         }
 
         public JsonNode(Guid id, string culture, string type)
@@ -125,6 +140,12 @@ namespace Kruso.Umbraco.Delivery.Json
         {
             get { return GetReserved<string>(ReservedProps.Type); }
             set { SetReserved(ReservedProps.Type, value.Capitalize()); }
+        }
+
+        public string[] CompositionTypes
+        {
+            get { return GetReserved<string[]>(ReservedProps.CompositionTypes); }
+            set { SetReserved(ReservedProps.CompositionTypes, value?.Select(x => x.Capitalize()).ToArray()); }
         }
 
         public static bool IsValueEmpty(object value)

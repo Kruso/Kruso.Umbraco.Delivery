@@ -20,17 +20,17 @@ namespace Kruso.Umbraco.Delivery.Security
             _logger = logger;
         }
 
-        public string CreateSingleUseJwtToken(string issuer, string audience, int expires, Claim[] claims, string certificateThumbprint = null)
+        public string CreateSingleUseJwtToken(string issuer, string audience, int expires, Claim[] claims)
         {
-            var jwtToken = CreateJwtToken(issuer, audience, expires, claims, certificateThumbprint);
+            var jwtToken = CreateJwtToken(issuer, audience, expires, claims);
             _deliCache.AddToMemory(jwtToken, jwtToken);
 
             return jwtToken;
         }
 
-        public string CreateJwtToken(string issuer, string audience, int expires, Claim[] claims, string certificateThumbprint = null)
+        public string CreateJwtToken(string issuer, string audience, int expires, Claim[] claims)
         {
-            using (var certificate = _certificateHandler.GetCertificate(certificateThumbprint))
+            using (var certificate = _certificateHandler.GetCertificate())
             {
                 var key = new X509SecurityKey(certificate);
 
@@ -53,7 +53,7 @@ namespace Kruso.Umbraco.Delivery.Security
             }
         }
 
-        public ValidateTokenResponse ValidateSingleUseJwtToken(string jwtToken, string issuer, string audience = null, string certificateThumbprint = null)
+        public ValidateTokenResponse ValidateSingleUseJwtToken(string jwtToken, string issuer, string audience = null)
         {
             if (string.IsNullOrEmpty(jwtToken))
             {
@@ -66,10 +66,10 @@ namespace Kruso.Umbraco.Delivery.Security
                 return new ValidateTokenResponse { Message = "Jwt single use token already used or doesn't exist" };
             }
 
-            return ValidateJwtToken(jwtToken, issuer, audience, certificateThumbprint);
+            return ValidateJwtToken(jwtToken, issuer, audience);
         }
 
-        public ValidateTokenResponse ValidateJwtToken(string jwtToken, string issuer, string audience = null, string certificateThumbprint = null)
+        public ValidateTokenResponse ValidateJwtToken(string jwtToken, string issuer, string audience = null)
         {
             if (string.IsNullOrEmpty(jwtToken))
             {

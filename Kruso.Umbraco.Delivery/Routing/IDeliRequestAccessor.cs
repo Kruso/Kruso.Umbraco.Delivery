@@ -10,6 +10,6 @@ namespace Kruso.Umbraco.Delivery.Routing
         IUserIdentity Identity { get; }
         IDeliRequest Current { get; }
         void InitializeDeliRequest(HttpRequest request, Uri originalUri, string jwtToken);
-        void FinalizeDeliRequest(IPublishedContent content, string culture, Uri callingUri = null);
+        void FinalizeDeliRequest(IPublishedContent content, string culture, bool isPreviewPaneRequest = false);
     }
 }

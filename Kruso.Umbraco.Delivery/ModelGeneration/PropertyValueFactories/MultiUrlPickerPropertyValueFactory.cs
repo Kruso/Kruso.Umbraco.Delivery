@@ -12,24 +12,24 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
     [ModelPropertyValueFactory("Umbraco.MultiUrlPicker")]
     public class MultiUrlPickerPropertyValueFactory : IModelPropertyValueFactory
     {
-        private readonly IDeliContent _deliContent;
         private readonly IDeliUrl _deliUrl;
         private readonly IDeliDataTypes _deliDataTypes;
         private readonly IDeliProperties _deliProperties;
+        private readonly IModelFactory _modelFactory;
 
-        public MultiUrlPickerPropertyValueFactory(IDeliContent deliContent, IDeliUrl deliUrl, IDeliDataTypes deliDataTypes, IDeliProperties deliProperties)
+        public MultiUrlPickerPropertyValueFactory(IDeliUrl deliUrl, IDeliDataTypes deliDataTypes, IDeliProperties deliProperties, IModelFactory modelFactory)
         {
-            _deliContent = deliContent;
             _deliUrl = deliUrl;
             _deliDataTypes = deliDataTypes;
             _deliProperties = deliProperties;
+            _modelFactory = modelFactory;
         }
 
-        public virtual object Create(IModelFactoryContext context, IPublishedProperty property)
+        public virtual object Create(IPublishedProperty property)
         {
             var links = new List<Link>();
 
-            var val = _deliProperties.Value(property, context.Culture);
+            var val = _deliProperties.Value(property, _modelFactory.Context.Culture);
             if (val == null)
                 return null;
 
@@ -44,7 +44,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
 
             var res = links
                 .Select(x => new JsonNode()
-                    .AddProp("url", x.Type == LinkType.External ? x.Url : _deliUrl.GetDeliveryUrl(x.Url, context.Culture))
+                    .AddProp("url", x.Type == LinkType.External ? x.Url : _deliUrl.GetDeliveryUrl(x.Url))
                     .AddProp("label", x.Name)
                     .AddProp("target", x.Target)
                     .AddProp("linkType", x.Type.ToString()))

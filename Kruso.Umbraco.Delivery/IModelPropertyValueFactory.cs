@@ -5,6 +5,6 @@ namespace Kruso.Umbraco.Delivery
 {
     public interface IModelPropertyValueFactory
     {
-        object Create(IModelFactoryContext context, IPublishedProperty property);
+        object Create(IPublishedProperty property);
     }
 }

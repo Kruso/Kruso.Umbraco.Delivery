@@ -92,11 +92,9 @@ namespace Kruso.Umbraco.Delivery.Search
                                         {
                                             umbCulture.WithCultureContext(culture, () =>
                                             {
-                                                modelFactory.Init(content, culture);
-
                                                 var modelNode = deliContent.IsPage(content)
-                                                    ? modelConverter.Convert(modelFactory.CreatePage(), TemplateType.Page)
-                                                    : modelConverter.Convert(modelFactory.CreateBlock(), TemplateType.Block);
+                                                    ? modelConverter.Convert(modelFactory.CreatePage(content, culture), TemplateType.Page)
+                                                    : modelConverter.Convert(modelFactory.CreateBlock(content, culture), TemplateType.Block);
 
                                                 if (!umbCulture.IsPublishedInCulture(content, culture))
                                                     modelNode = null;

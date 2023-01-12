@@ -2,7 +2,6 @@
 using Kruso.Umbraco.Delivery.Json;
 using Kruso.Umbraco.Delivery.ModelConversion;
 using Kruso.Umbraco.Delivery.ModelGeneration;
-using Kruso.Umbraco.Delivery.Models;
 using Kruso.Umbraco.Delivery.Services;
 using System;
 using System.Collections.Generic;
@@ -107,19 +106,10 @@ namespace Kruso.Umbraco.Delivery.Controllers.Renderers
                     .Node("domain")
                         .Node("cultureInfo").Culture;
 
-                var settingsContent = _deliPages.SettingsPage(domainCulture);
-                if (settingsContent != null)
-                {
-                    _modelFactory.Init(settingsContent, domainCulture);
-                    var settingsBlock = _modelFactory.CreateBlock(settingsContent);
-                    var settings = _modelConverter.Convert(settingsBlock, TemplateType.Block);
-
-                    domain.AddProp("settings", new JsonNode()
-                        .CopyAllExceptProps(settings, ExcludeSettingsProps));
-                }
-
-                domain.AddProp("routes", GetRouteInfo(domainCulture));
-                domain.AddProp("translations", GetTranslationInfo(domainCulture));
+                domain
+                    .AddProp("settings", GetSettings(domainCulture))
+                    .AddProp("routes", GetRouteInfo(domainCulture))
+                    .AddProp("translations", GetTranslationInfo(domainCulture));
 
                 domains.Add(domain);
             }
@@ -129,6 +119,21 @@ namespace Kruso.Umbraco.Delivery.Controllers.Renderers
                 .AddProp("domains", domains);
 
             return manifest;
+        }
+
+        private JsonNode GetSettings(string domainCulture)
+        {
+            var settingsContent = _deliPages.SettingsPage(domainCulture);
+            if (settingsContent != null)
+            {
+                var settingsBlock = _modelFactory.CreateBlock(settingsContent, domainCulture);
+                var settings = _modelConverter.Convert(settingsBlock, TemplateType.Block);
+
+                return new JsonNode()
+                    .CopyAllExceptProps(settings, ExcludeSettingsProps);
+            }
+
+            return null;
         }
 
         private IEnumerable<JsonNode> GetAllDomainInfo()
@@ -149,7 +154,7 @@ namespace Kruso.Umbraco.Delivery.Controllers.Renderers
 
                     res.Add(new JsonNode()
                         .AddProp("domain", new JsonNode()
-                            .AddProp("rootPageId", domain.ContentId)
+                            .AddProp("rootPageId", startPage.Key)
                             .AddProp("paths", domainPaths)
                             .AddProp("cultureInfo", _deliCulture.GetCultureInfo(domain.Culture))));
                 }
@@ -169,10 +174,9 @@ namespace Kruso.Umbraco.Delivery.Controllers.Renderers
                 _deliCulture.WithCultureContext(pageCulture, () =>
                 {
                     var descendants = _deliContent.PublishedDescendants(startPages[pageCulture]);
-                    _modelFactory.Init(descendants, pageCulture, new ModelFactoryOptions { ApplyPublicAccessRights = true });
 
                     var nodes = _modelFactory
-                        .CreateRoutes()
+                        .CreateRoutes(descendants, pageCulture)
                         .Select(x => _modelConverter.Convert(x, TemplateType.Route));
 
                     res.AddRange(nodes);

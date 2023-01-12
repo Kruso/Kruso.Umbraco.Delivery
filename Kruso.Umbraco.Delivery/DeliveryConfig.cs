@@ -21,6 +21,9 @@ namespace Kruso.Umbraco.Delivery
                 MediaCdnUrl = string.IsNullOrEmpty(siteValues?.MediaCdnUrl) ? MediaCdnUrl : siteValues.MediaCdnUrl,
                 ForwardedHeader = ForwardedHeader,
                 CertificateThumbprint = CertificateThumbprint,
+                CertificateFileName = CertificateFileName,
+                CertificateResourceName = CertificateResourceName,
+                CertificatePassword = CertificatePassword,
             };
 
             return values;
@@ -32,6 +35,9 @@ namespace Kruso.Umbraco.Delivery
         //Config values that are common for all sites.
         public string ForwardedHeader { get; set; }
         public string CertificateThumbprint { get; set; }
+        public string CertificateFileName { get; set; }
+        public string CertificateResourceName { get; set; }
+        public string CertificatePassword { get; set; }
     }
 
     public class DeliveryConfigBase

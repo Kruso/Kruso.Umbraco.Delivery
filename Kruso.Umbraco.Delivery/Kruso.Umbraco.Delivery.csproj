@@ -22,11 +22,9 @@
     <NoWarn>1701;1702;1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="CN=RSKSampleIdentityServer.pfx" />
     <None Remove="Controllers\Resources\previewTemplate.html" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="CN=RSKSampleIdentityServer.pfx" />
     <EmbeddedResource Include="Controllers\Resources\previewTemplate.html" />
   </ItemGroup>
   <ItemGroup>

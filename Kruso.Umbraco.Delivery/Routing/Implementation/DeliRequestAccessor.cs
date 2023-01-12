@@ -37,10 +37,10 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             _deliCache.AddToRequest(CacheKey, deliRequest);
         }
 
-        public void FinalizeDeliRequest(IPublishedContent content, string culture, Uri callingUri = null)
+        public void FinalizeDeliRequest(IPublishedContent content, string culture, bool isPreviewPaneRequest = false)
         {
             var deliRequest = _deliCache.GetFromRequest<DeliRequest>(CacheKey);
-            deliRequest?.Finalize(content, culture, callingUri);
+            deliRequest?.Finalize(content, culture, isPreviewPaneRequest);
         }
 
         private IUserIdentity GetUserIdentity()

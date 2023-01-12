@@ -18,7 +18,6 @@ namespace Kruso.Umbraco.Delivery.Routing
         private readonly IDeliRequestAccessor _deliRequestAccessor;
         private readonly IDeliContentLoader _deliContentLoader;
         private readonly IDeliCulture _deliCulture;
-        private readonly IDeliDomain _deliDomain;
         private readonly IDeliUrl _deliUrl;
 
         /// <summary>
@@ -30,7 +29,6 @@ namespace Kruso.Umbraco.Delivery.Routing
             IDeliRequestAccessor deliRequestAccessor,
             IDeliContentLoader deliContentLoader,
             IDeliCulture deliCulture,
-            IDeliDomain deliDomain,
             IDeliUrl deliUrl,
             ILogger<ContentFinderByIdPath> logger)
         {
@@ -39,7 +37,6 @@ namespace Kruso.Umbraco.Delivery.Routing
             _deliRequestAccessor = deliRequestAccessor ?? throw new System.ArgumentNullException(nameof(deliRequestAccessor));
             _deliContentLoader = deliContentLoader ?? throw new System.ArgumentNullException(nameof(deliContentLoader));
             _deliCulture = deliCulture ?? throw new System.ArgumentNullException(nameof(deliCulture));
-            _deliDomain = deliDomain ?? throw new System.ArgumentNullException(nameof(deliDomain));
             _deliUrl = deliUrl ?? throw new System.ArgumentNullException(nameof(deliUrl));
             _logger = logger ?? throw new System.ArgumentNullException(nameof(logger));
         }
@@ -73,9 +70,7 @@ namespace Kruso.Umbraco.Delivery.Routing
                 frequest.SetCulture(culture);
                 frequest.SetPublishedContent(content);
 
-                var domain = _deliDomain.GetDomainByContent(content, culture);
-                var callingUri = new Uri(_deliUrl.GetAbsoluteDeliveryUrl(content, culture));
-                _deliRequestAccessor.FinalizeDeliRequest(content, culture, callingUri);
+                _deliRequestAccessor.FinalizeDeliRequest(content, culture, isPreviewPaneRequest: true);
 
                 return Task.FromResult(true);
             }

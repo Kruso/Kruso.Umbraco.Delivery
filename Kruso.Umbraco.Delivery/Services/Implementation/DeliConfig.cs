@@ -1,6 +1,7 @@
 ﻿using Kruso.Umbraco.Delivery.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Linq;
 
 namespace Kruso.Umbraco.Delivery.Services.Implementation
 {
@@ -24,6 +25,11 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
                 
                 return _deliveryConfig.GetConfigValues(authority);
             }
+        }
+
+        public bool IsMultiSite()
+        {
+            return (_deliveryConfig.Sites?.Count() ?? 0) > 1;
         }
     }
 }

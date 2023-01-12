@@ -44,7 +44,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
 
             var res = links
                 .Select(x => new JsonNode()
-                    .AddProp("url", x.Type == LinkType.External ? x.Url : _deliUrl.GetDeliveryUrl(x.Url, _modelFactory.Context.Culture))
+                    .AddProp("url", x.Type == LinkType.External ? x.Url : _deliUrl.GetDeliveryUrl(x.Url))
                     .AddProp("label", x.Name)
                     .AddProp("target", x.Target)
                     .AddProp("linkType", x.Type.ToString()))

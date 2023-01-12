@@ -31,7 +31,7 @@ namespace Kruso.Umbraco.Delivery.Security
                 var config = _deliConfig.Get();
                 if (!string.IsNullOrEmpty(config.CertificateResourceName) && !string.IsNullOrEmpty(config.CertificatePassword))
                 {
-                    using (var certStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(config.CertificateResourceName))
+                    using (var certStream = Assembly.GetEntryAssembly().GetManifestResourceStream(config.CertificateResourceName))
                     {
                         var rawBytes = new byte[certStream.Length];
                         for (var index = 0; index < certStream.Length; index++)

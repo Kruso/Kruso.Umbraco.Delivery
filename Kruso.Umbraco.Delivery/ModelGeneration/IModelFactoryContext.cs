@@ -1,4 +1,5 @@
-﻿using Kruso.Umbraco.Delivery.Models;
+﻿using Kruso.Umbraco.Delivery.Json;
+using Kruso.Umbraco.Delivery.Models;
 using System;
 using Umbraco.Cms.Core.Models.PublishedContent;
 
@@ -13,8 +14,8 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
         IPublishedContent Page { get; }
         bool ReachedMaxDepth { get; }
 
-        void DecrementDepth();
-        bool IncrementDepth(Guid key, string culture = null, ModelFactoryOptions options = null);
-        bool InitializeDepth(IPublishedContent content, string culture = null, ModelFactoryOptions options = null);
+        JsonNode PageWithDepth(IPublishedContent page, string culture, ModelFactoryOptions options, Func<JsonNode> createPageFunc);
+        JsonNode BlockWithDepth(IPublishedContent block, string culture, ModelFactoryOptions options, Func<JsonNode> createBlockFunc);
+        JsonNode CustomBlockWithDepth(Guid key, string type, string culture, Func<JsonNode> createBlockFunc);
     }
 }

@@ -41,6 +41,14 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             }
         }
 
+        public void ReplaceOnRequest(string cacheKey, object val)
+        {
+            if (ExistsOnRequest(cacheKey))
+                _httpContextAccessor.HttpContext.Items.Remove(cacheKey);
+
+            AddToRequest(cacheKey, val);
+        }
+
         public T GetFromMemory<T>(string cacheKey, T def = default(T))
         {
             if (ValidForMemory(cacheKey) && _memoryCache.TryGetValue(cacheKey, out T val))

@@ -33,6 +33,8 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             }
         }
 
+        public string CurrentCulture => _variationContextAccessor.VariationContext?.Culture ?? DefaultCulture; 
+
         public string DefaultCulture
         {
             get

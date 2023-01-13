@@ -37,6 +37,7 @@ namespace Kruso.Umbraco.Delivery.Routing
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
             var originalUri = context.Request.AbsoluteUri();
+            var jwtToken = string.Empty;
 
             if (ShouldHandleRequest(context.Request))
             {
@@ -48,10 +49,10 @@ namespace Kruso.Umbraco.Delivery.Routing
                     context.Request.PathBase = callingAuthority.CleanPath();
                 }
 
-                var jwtToken = context.Request.GetJwtBearerToken();
-
-                _deliRequestAccessor.InitializeDeliRequest(context.Request, originalUri, jwtToken);
+                jwtToken = context.Request.GetJwtBearerToken();
             }
+
+            _deliRequestAccessor.Initialize(context.Request, originalUri, jwtToken);
 
             await next(context);
         }

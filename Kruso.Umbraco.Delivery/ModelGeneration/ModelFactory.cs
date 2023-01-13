@@ -39,33 +39,17 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
 
         public JsonNode CreatePage(IPublishedContent page, string culture = null, ModelFactoryOptions options = null)
         {
-            JsonNode jsonNode = null;
+            var context = GetContext();
 
-            if (page != null)
+            return context.PageWithDepth(page, culture, options, () =>
             {
-                var context = GetContext();
                 var componentSource = GetModelFactoryComponentSource();
 
-                context.InitializeDepth(page, culture, options);
+                var props = CreateProperties(page, componentSource);
+                var template = componentSource.GetTemplate(TemplateType.Page, page);
 
-                if (!CanRender(page, context))
-                    return null;
-
-                try
-                {
-                    var props = CreateProperties(page, componentSource);
-                    var template = componentSource.GetTemplate(TemplateType.Page, page);
-                    jsonNode = template.Create(context, props, page);
-                }
-                finally
-                {
-                    context.DecrementDepth();
-                }
-            }
-
-            return jsonNode?.AnyProps() ?? false
-                ? jsonNode
-                : null;
+                return template.Create(context, props, page);
+            });
         }
 
         public IEnumerable<JsonNode> CreatePages(IEnumerable<IPublishedContent> pages, string culture = null, ModelFactoryOptions options = null)
@@ -87,64 +71,35 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
 
         public JsonNode CreateCustomBlock(Guid id, string type, Action<JsonNode> fillBlockAction)
         {
-            JsonNode jsonNode = null;
+            var context = GetContext();
 
-            if (fillBlockAction != null)
+            return context.CustomBlockWithDepth(id, type, context.Culture, () =>
             {
-                var context = GetContext();
-                if (context.IncrementDepth(id))
-                {
-                    var block = new JsonNode(id, context.Page?.Key, context.Culture, type);
-                    fillBlockAction(block);
-                    context.DecrementDepth();
-                }
-                else
-                {
-                    var refContent = new DeliRefContent(id, type);
-                    var refTemplate = GetModelFactoryComponentSource().GetTemplate(TemplateType.Ref, refContent);
-                    jsonNode = refTemplate.Create(context, new JsonNode(), refContent);
-                }
-            }
-
-            return jsonNode;
+                var block = new JsonNode(id, context.Page?.Key, context.Culture, type);
+                fillBlockAction?.Invoke(block);
+                return block;
+            });
         }
 
         public JsonNode CreateBlock(IPublishedContent block, string culture = null, ModelFactoryOptions options = null)
         {
-            JsonNode jsonNode = null;
+            var context = GetContext();
 
-            if (block != null)
+            return context.BlockWithDepth(block, culture, options, () =>
             {
-                var context = GetContext();
-                if (CanRender(block, context))
-                {
-                    var componentSource = GetModelFactoryComponentSource();
+                var componentSource = GetModelFactoryComponentSource();
 
-                    if (context.IncrementDepth(block.Key))
-                    {
-                        var props = CreateProperties(block, componentSource);
-                        var template = componentSource.GetTemplate(TemplateType.Block, block);
-                        jsonNode = template.Create(context, props, block);
+                var props = CreateProperties(block, componentSource);
+                var template = componentSource.GetTemplate(TemplateType.Block, block);
 
-                        context.DecrementDepth();
-                    }
-                    else
-                    {
-                        var refTemplate = componentSource.GetTemplate(TemplateType.Ref, block);
-                        jsonNode = refTemplate.Create(context, new JsonNode(), block);
-                    }
-                }
-            }
-
-            return jsonNode?.AnyProps() ?? false
-                ? jsonNode
-                : null;
+                return template.Create(context, props, block);
+            });
         }
 
         public JsonNode CreateBlock(IPublishedElement element, string culture = null, ModelFactoryOptions options = null)
         {
             return element != null
-                ? CreateBlock(new DeliPublishedElement(_deliRequestAccessor.Current.Content, element), culture, options)
+                ? CreateBlock(new DeliPublishedElement(GetBlockPage(), element), culture, options)
                 : null;
         }
 
@@ -174,8 +129,10 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
 
         public IEnumerable<JsonNode> CreateBlocks(IEnumerable<IPublishedElement> items)
         {
+            var page = GetBlockPage();
+
             return items?.Any() ?? false
-                ? CreateBlocks(items.Select(x => new DeliPublishedElement(_deliRequestAccessor.Current.Content, x)), null, null)
+                ? CreateBlocks(items.Select(x => new DeliPublishedElement(page, x)), null, null)
                 : Enumerable.Empty<JsonNode>();
         }
 
@@ -187,21 +144,15 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
             if (items != null)
             {
                 var context = GetContext();
+                var componentSource = GetModelFactoryComponentSource();
+
                 foreach (var item in items)
                 {
-                    context.InitializeDepth(item, culture);
+                    var template = componentSource.GetTemplate(TemplateType.Route, item);
+                    var jsonNode = template.Create(context, new JsonNode(), item);
 
-                    try
-                    {
-                        var template = GetModelFactoryComponentSource().GetTemplate(TemplateType.Route, item);
-                        var jsonNode = template.Create(context, new JsonNode(), item);
-                        if (jsonNode != null)
-                            res.Add(jsonNode);
-                    }
-                    finally
-                    {
-                        context.DecrementDepth();
-                    }
+                    if (jsonNode != null)
+                        res.Add(jsonNode);
                 }
             }
 
@@ -244,17 +195,6 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
             return res;
         }
 
-        private bool CanRender(IPublishedContent content, IModelFactoryContext context)
-        {
-            if (_deliContent.IsPage(content))
-            {
-                return _deliRequestAccessor.Identity.HasAccess(content)
-                    && content.IsPublished(context.Culture);
-            }
-
-            return true;
-        }
-
         private IModelFactoryContext GetContext()
         {
             return _deliCache.GetFromRequest("deli_ModelFactory_Context", _serviceProvider.GetService<IModelFactoryContext>());
@@ -266,6 +206,12 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
             {
                 return scope.ServiceProvider.GetService<IModelFactoryComponentSource>();
             }
+        }
+
+        private IPublishedContent GetBlockPage()
+        {
+            var context = GetContext();
+            return context.Page ?? _deliRequestAccessor.Current?.Content;
         }
     }
 }

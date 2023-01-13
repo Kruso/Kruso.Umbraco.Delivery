@@ -58,7 +58,7 @@ namespace Kruso.Umbraco.Delivery.Routing
                     });
                 }
 
-                _deliRequestAccessor.FinalizeDeliRequest(notFoundPage, culture);
+                _deliRequestAccessor.Finalize(notFoundPage, culture);
 
                 request.SetDomain(domain);
                 request.SetPublishedContent(notFoundPage);

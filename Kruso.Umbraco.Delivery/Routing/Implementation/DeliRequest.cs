@@ -10,37 +10,41 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
 {
     public sealed class DeliRequest : IDeliRequest
     {
-        private IPublishedContent _content;
-        public IPublishedContent Content
-        {
-            get
-            {
-                return _content;
-            }
-            private set
-            {
-                _content = value;
-                SetRequestType();
-            }
-        }
+        private bool _finalized = false;
 
-        public Uri CallingUri { get; private set; }
-        public RequestType RequestType { get; private set; } = RequestType.Initialized;
-        public Uri OriginalUri { get; private set; }
-        public IQueryCollection Query { get; private set; }
-        public JwtSecurityToken Token { get; private set; }
-
+        public IPublishedContent Content { get; private set; }
         public string Culture { get; private set; }
+
+        public HttpRequest Request { get; private set; }
+        public RequestType RequestType => GetRequestType();
+        public RequestOrigin RequestOrigin => GetRequestOrigin();
+
+        public Uri CallingUri => Request.AbsoluteUri();
+
+        public Uri OriginalUri { get; private set; }
+        public IQueryCollection Query => Request?.Query;
+        public JwtSecurityToken Token { get; private set; }
 
         public string ResponseMessage { get; set; }
 
         public ModelFactoryOptions ModelFactoryOptions { get; private set; }
 
+        internal DeliRequest()
+        {
+            ModelFactoryOptions = CreateModelFactoryOptions();
+        }
+
+        internal DeliRequest(HttpRequest request)
+        {
+            Request = request;
+            OriginalUri = request.AbsoluteUri();
+            ModelFactoryOptions = CreateModelFactoryOptions();
+        }
+
         internal DeliRequest(HttpRequest request, Uri originalUri, JwtSecurityToken token)
         {
-            CallingUri = request.AbsoluteUri();
+            Request = request;
             OriginalUri = originalUri;
-            Query = request.Query;
             Token = token;
             ModelFactoryOptions = CreateModelFactoryOptions();
         }
@@ -49,7 +53,7 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
         {
             var res = new ModelFactoryOptions
             {
-                LoadPreview = IsPreviewContentRequest(),
+                LoadPreview = RequestType == RequestType.PreviewContent,
                 QueryString = Query,
                 IncludeFields = Query.Strs("include"),
                 ExcludeFields = Query.Strs("exclude")
@@ -62,35 +66,35 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             return res;
         }
 
-        internal void Finalize(IPublishedContent content, string culture, bool isPreviewPaneRequest = false)
+        internal void Finalize(IPublishedContent content, string culture)
         {
-            if (isPreviewPaneRequest)
-            {
-                CallingUri = OriginalUri;
-            }
-
             Content = content;
             Culture = culture;
+            _finalized = true;
         }
 
-        private void SetRequestType()
+        private RequestType GetRequestType()
         {
-            if (IsPreviewPaneRequest())
-            {
-                RequestType = RequestType.PreviewPane;
-            }
-            else if (IsPreviewContentRequest())
-            {
-                RequestType = RequestType.PreviewContent;
-            }
-            else if (Content != null)
-            {
-                RequestType = RequestType.Content;
-            }
-            else
-            {
-                RequestType = RequestType.Failed;
-            }
+            if (IsPreviewContentRequest())
+                return RequestType.PreviewContent;
+
+            if (!_finalized)
+                return RequestType.Initialized;
+
+            if (Content != null)
+                return RequestType.Content;
+
+            return RequestType.Failed;
+        }
+
+        private RequestOrigin GetRequestOrigin()
+        {
+            if (CallingUri == null || OriginalUri == null)
+                return RequestOrigin.Indexer;
+            
+            return CallingUri.Authority.Equals(OriginalUri.Authority, StringComparison.InvariantCultureIgnoreCase)
+                ? RequestOrigin.Backend
+                : RequestOrigin.Frontend;
         }
 
         private bool IsPreviewContentRequest()
@@ -98,13 +102,6 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             return Token != null
                 && int.TryParse(Token.Claims.ValueOfType(DeliveryClaimTypes.PreviewId), out var tokenContentId)
                 && tokenContentId == (Content?.Id ?? -1);
-        }
-
-        private bool IsPreviewPaneRequest()
-        {
-            return CallingUri.Authority.Equals(OriginalUri.Authority, StringComparison.InvariantCultureIgnoreCase)
-                ? CallingUri.CleanPath() == (Content?.Id.ToString() ?? "-1")
-                : false;
         }
     }
 }

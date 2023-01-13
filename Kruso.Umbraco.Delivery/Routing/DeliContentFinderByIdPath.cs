@@ -62,7 +62,7 @@ namespace Kruso.Umbraco.Delivery.Routing
 
             var culture = _requestAccessor.GetQueryStringValue("culture");
             if (string.IsNullOrEmpty(culture))
-                culture = _deliCulture.DefaultCulture;
+                culture = _deliCulture.CurrentCulture;
 
             var content = _deliContentLoader.FindContentById(id, culture);
             if (content != null && _deliRequestAccessor.Identity.UserType == UserType.BackOffice)
@@ -70,7 +70,7 @@ namespace Kruso.Umbraco.Delivery.Routing
                 frequest.SetCulture(culture);
                 frequest.SetPublishedContent(content);
 
-                _deliRequestAccessor.FinalizeDeliRequest(content, culture, isPreviewPaneRequest: true);
+                _deliRequestAccessor.Finalize(content, culture);
 
                 return Task.FromResult(true);
             }

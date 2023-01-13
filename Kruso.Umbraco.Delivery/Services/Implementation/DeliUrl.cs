@@ -37,9 +37,10 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             return GetAbsoluteDeliveryUrl(content, culture, path)?.ToString();
         }
 
-        public string GetPreviewPaneUrl(IPublishedContent content, string culture, string jwtToken)
+        public string GetPreviewPaneUrl(string jwtToken)
         {
-            return $"{GetAbsoluteDeliveryUrl(content, culture)}?token={jwtToken}";
+            var deliRequest = _deliRequestAccessor.Current;
+            return $"{GetAbsoluteDeliveryUrl(deliRequest.Content, deliRequest.Culture)}?token={jwtToken}";
         }
 
         public IEnumerable<UrlInfo> GetAlternativeDeliveryUrls(IPublishedContent content, string culture)
@@ -91,9 +92,7 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
         private Uri GetAbsoluteDeliveryUrl(IPublishedContent content = null, string culture = null, string path = null)
         {
             var deliRequest = _deliRequestAccessor.Current;
-            var frontendHostUri = deliRequest != null && deliRequest.RequestType != RequestType.PreviewPane
-                ? deliRequest.CallingUri
-                : null;
+            var frontendHostUri = deliRequest?.CallingUri;
 
             if (frontendHostUri == null && !_deliConfig.IsMultiSite())
                 Uri.TryCreate(_deliConfig.Get().FrontendHost, UriKind.Absolute, out frontendHostUri);

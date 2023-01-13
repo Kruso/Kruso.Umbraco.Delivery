@@ -8,7 +8,7 @@ namespace Kruso.Umbraco.Delivery.Services
     {
         string GetAbsoluteDeliveryUrl(string relativePath);
         string GetAbsoluteDeliveryUrl(IPublishedContent content, string culture);
-        string GetPreviewPaneUrl(IPublishedContent content, string culture, string jwtToken);
+        string GetPreviewPaneUrl(string jwtToken);
         string GetDeliveryUrl(IPublishedContent content, string culture);
         string GetDeliveryUrl(string path);
         IEnumerable<UrlInfo> GetAlternativeDeliveryUrls(IPublishedContent content, string culture);

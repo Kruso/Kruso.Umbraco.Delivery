@@ -8,6 +8,7 @@
         bool ExistsOnRequest(string cacheKey);
         T GetFromMemory<T>(string cacheKey, T def = default);
         T GetFromRequest<T>(string cacheKey, T def = default);
+        void ReplaceOnRequest(string cacheKey, object val);
         bool RemoveFromMemory(string cacheKey);
     }
 }

@@ -5,7 +5,7 @@ namespace Kruso.Umbraco.Delivery.Routing
 {
     public interface IDeliContentLoader
     {
-        IPublishedContent FindContentById(int id, string culture);
-        IPublishedContent FindContentByRoute(IPublishedRequestBuilder requestBuilder, string domainSeg, string requestSeg);
+        IPublishedContent FindContentById(int id, string culture, bool preview = false);
+        IPublishedContent FindContentByRoute(IPublishedRequestBuilder requestBuilder, string domainSeg, string requestSeg, bool preview = false);
     }
 }

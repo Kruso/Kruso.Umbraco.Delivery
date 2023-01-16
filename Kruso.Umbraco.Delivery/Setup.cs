@@ -38,7 +38,7 @@ namespace Kruso.Umbraco.Delivery
             builder.ContentFinders()
                 .InsertBefore<ContentFinderByUrl, DeliContentFinderByUrl>()
                 .Remove<ContentFinderByUrl>()
-                .InsertBefore<ContentFinderByIdPath, DeliContentFinderByIdPath>()
+                .InsertBefore<ContentFinderByIdPath, DeliContentFinderByPreviewUrl>()
                 .Remove<ContentFinderByIdPath>();
 
             builder.Components().Append<SearchIndexerComponent>();

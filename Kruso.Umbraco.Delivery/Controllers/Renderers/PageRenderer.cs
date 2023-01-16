@@ -6,10 +6,7 @@ using Kruso.Umbraco.Delivery.Routing;
 using Kruso.Umbraco.Delivery.Services;
 using Microsoft.Extensions.Logging;
 using System;
-using System.IO;
 using System.Net;
-using System.Net.Http;
-using System.Reflection;
 
 namespace Kruso.Umbraco.Delivery.Controllers.Renderers
 {
@@ -19,8 +16,6 @@ namespace Kruso.Umbraco.Delivery.Controllers.Renderers
         private readonly IModelFactory _modelFactory;
         private readonly IDeliRequest _deliRequest;
         private readonly IDeliContent _deliContent;
-        private readonly IDeliUrl _deliUrl;
-        private readonly IDeliSecurity _deliSecurity;
         private readonly ILogger<PageRenderer> _log;
 
         public PageRenderer(
@@ -28,16 +23,12 @@ namespace Kruso.Umbraco.Delivery.Controllers.Renderers
             IModelFactory modelFactory,
             IDeliRequestAccessor deliRequestAccessor,
             IDeliContent deliContent,
-            IDeliUrl deliUrl,
-            IDeliSecurity deliSecurity,
             ILogger<PageRenderer> log)
         {
             _modelConverter = modelConverter;
             _modelFactory = modelFactory;
             _deliRequest = deliRequestAccessor.Current;
             _deliContent = deliContent;
-            _deliUrl = deliUrl;
-            _deliSecurity = deliSecurity;
             _log = log;
         }
 
@@ -75,44 +66,5 @@ namespace Kruso.Umbraco.Delivery.Controllers.Renderers
                 Message = message
             };
         }
-
-        //private RenderResponse CreatePreviewResponse()
-        //{
-        //    using (var client = new HttpClient())
-        //    {
-        //        var jwt = _deliSecurity.CreateJwtPreviewToken();
-        //        var url = _deliUrl.GetPreviewPaneUrl(_deliRequest.Content, _deliRequest.Culture, jwt);
-        //        var previewHtml = LoadPreviewHtml();
-        //        var newHtml = previewHtml.Replace("{{url}}", url);
-
-        //        var res = new RenderResponse
-        //        {
-        //            Data = newHtml,
-        //            ContentType = "text/html",
-        //            Message = _deliRequest.ResponseMessage
-        //        };
-
-        //        return res;
-        //    }
-        //}
-
-        //private JsonNode CreateJsonNode(out string errorMessage)
-        //{
-
-        //}
-
-        //private string LoadPreviewHtml()
-        //{
-        //    const string resourceName = "Kruso.Umbraco.Delivery.Controllers.Resources.previewTemplate.html";
-        //    var assembly = Assembly.GetExecutingAssembly();
-
-        //    using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-        //    using (StreamReader reader = new StreamReader(stream))
-        //    {
-        //        var template = reader.ReadToEnd();
-        //        return template;
-        //    }
-        //}
-
     }
 }

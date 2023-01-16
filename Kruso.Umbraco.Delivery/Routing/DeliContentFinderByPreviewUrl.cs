@@ -10,7 +10,7 @@ using Umbraco.Cms.Core.Web;
 
 namespace Kruso.Umbraco.Delivery.Routing
 {
-    public class DeliContentFinderByIdPath : IContentFinder
+    public class DeliContentFinderByPreviewUrl : IContentFinder
     {
         private readonly ILogger<ContentFinderByIdPath> _logger;
         private readonly IRequestAccessor _requestAccessor;
@@ -23,7 +23,7 @@ namespace Kruso.Umbraco.Delivery.Routing
         /// <summary>
         /// Initializes a new instance of the <see cref="ContentFinderByIdPath"/> class.
         /// </summary>
-        public DeliContentFinderByIdPath(
+        public DeliContentFinderByPreviewUrl(
             IOptions<WebRoutingSettings> webRoutingSettings,
             IRequestAccessor requestAccessor,
             IDeliRequestAccessor deliRequestAccessor,
@@ -48,24 +48,21 @@ namespace Kruso.Umbraco.Delivery.Routing
         /// <returns>A value indicating whether an Umbraco document was found and assigned.</returns>
         public Task<bool> TryFindContent(IPublishedRequestBuilder frequest)
         {
+            if (_deliRequestAccessor.Identity.UserType == UserType.BackOffice)
+            {
+                _logger.LogDebug("Request is not from a backoffice user");
+                return Task.FromResult(false);
+            }
+
             var path = frequest.AbsolutePathDecoded.Trim('/');
-            if (!int.TryParse(path, out var id))
+            if (!TryGetContent(path, out var id, out var culture))
             {
                 _logger.LogDebug("Path {path} is not a valid content id", path);
                 return Task.FromResult(false);
             }
 
-            if (_webRoutingSettings.DisableFindContentByIdPath)
-            { 
-                return Task.FromResult(false);
-            }
-
-            var culture = _requestAccessor.GetQueryStringValue("culture");
-            if (string.IsNullOrEmpty(culture))
-                culture = _deliCulture.CurrentCulture;
-
-            var content = _deliContentLoader.FindContentById(id, culture);
-            if (content != null && _deliRequestAccessor.Identity.UserType == UserType.BackOffice)
+            var content = _deliContentLoader.FindContentById(id, culture, true);
+            if (content != null)
             {
                 frequest.SetCulture(culture);
                 frequest.SetPublishedContent(content);
@@ -76,6 +73,28 @@ namespace Kruso.Umbraco.Delivery.Routing
             }
 
             return Task.FromResult(false);
+        }
+
+        private bool TryGetContent(string path, out int contentId, out string culture)
+        {
+            contentId = -1;
+            culture = null;
+
+            var parts = path.Split('/');
+
+            if (parts.Length != 2)
+                return false;
+
+            if (!_deliCulture.IsCultureSupported(parts[0]))
+                return false;
+
+            if (!int.TryParse(parts[1], out var id))
+                return false;
+
+            contentId = id;
+            culture = parts[0];
+
+            return true;
         }
     }
 }

@@ -1,50 +1,72 @@
-﻿using Kruso.Umbraco.Delivery.Extensions;
-using Kruso.Umbraco.Delivery.Routing;
+﻿using Kruso.Umbraco.Delivery.Routing;
 using Kruso.Umbraco.Delivery.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Umbraco.Cms.Core.Models.Membership;
+using Umbraco.Cms.Core.Security;
+using Umbraco.Cms.Web.Common.Authorization;
 using Umbraco.Cms.Web.Common.Controllers;
+using UmbCore = Umbraco.Cms.Core;
 
 namespace Kruso.Umbraco.Delivery.Controllers
 {
     public class PreviewApiController : UmbracoApiController
     {
         private readonly IDeliContent _deliContent;
-        private readonly IDeliCulture _deliCulture;
         private readonly IDeliSecurity _deliSecurity;
         private readonly IDeliUrl _deliUrl;
         private readonly IDeliRequestAccessor _deliRequestAccessor;
 
-        public PreviewApiController(IDeliContent deliContent, IDeliCulture deliCulture, IDeliSecurity deliSecurity, IDeliUrl deliUrl, IDeliRequestAccessor deliRequestAccessor) 
+        private readonly IBackOfficeSecurityAccessor _backofficeSecurityAccessor;
+        private readonly UmbCore.Web.ICookieManager _cookieManager;
+
+        public PreviewApiController(
+            IDeliContent deliContent, 
+            IDeliSecurity deliSecurity, 
+            IDeliUrl deliUrl, 
+            IDeliRequestAccessor deliRequestAccessor,
+
+            IBackOfficeSecurityAccessor backofficeSecurityAccessor,
+            UmbCore.Web.ICookieManager cookieManager) 
         {
             _deliContent = deliContent;
-            _deliCulture = deliCulture;
             _deliSecurity = deliSecurity;
             _deliUrl = deliUrl;
             _deliRequestAccessor = deliRequestAccessor;
+
+            _backofficeSecurityAccessor = backofficeSecurityAccessor;
+            _cookieManager = cookieManager;
         }
 
+        /// <summary>
+        ///     The endpoint that is loaded within the preview iframe
+        /// </summary>
         [HttpGet]
-        [Route("umbraco/preview")]
-        public IActionResult Preview(int? id, bool? init)
+        [Route("umbraco/preview/frame")]
+        [Authorize(Policy = AuthorizationPolicies.BackOfficeAccess)]
+        public ActionResult Frame(int id, string culture)
         {
-            if (init != null && init.HasValue && init == true) 
-                return Ok();
+            EnterPreview(id);
 
-            if (id == null || id <= 0)
-                return NotFound();
-
-            var content = _deliContent.PublishedContent(id.Value);
-            _deliRequestAccessor.Finalize(content, _deliCulture.CurrentCulture);
+            var content = _deliContent.PublishedContent(id);
+            _deliRequestAccessor.Finalize(content, culture);
 
             var jwt = _deliSecurity.CreateJwtPreviewToken();
             var url = _deliUrl.GetPreviewPaneUrl(jwt);
 
             return Redirect(url);
+            // use a numeric URL because content may not be in cache and so .Url would fail
+            //var query = culture.IsNullOrWhiteSpace() ? string.Empty : $"?culture={culture}";
+
+            //return RedirectPermanent($"../../{id}{query}");
+        }
+
+        public ActionResult? EnterPreview(int id)
+        {
+            IUser? user = _backofficeSecurityAccessor.BackOfficeSecurity?.CurrentUser;
+            _cookieManager.SetCookieValue(UmbCore.Constants.Web.PreviewCookieName, "preview");
+
+            return new EmptyResult();
         }
     }
 }

@@ -38,7 +38,6 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
         {
             Request = request;
             OriginalUri = request.AbsoluteUri();
-            ModelFactoryOptions = CreateModelFactoryOptions();
         }
 
         internal DeliRequest(HttpRequest request, Uri originalUri, JwtSecurityToken token)
@@ -46,7 +45,6 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             Request = request;
             OriginalUri = originalUri;
             Token = token;
-            ModelFactoryOptions = CreateModelFactoryOptions();
         }
 
         private ModelFactoryOptions CreateModelFactoryOptions()
@@ -71,6 +69,8 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             Content = content;
             Culture = culture;
             _finalized = true;
+
+            ModelFactoryOptions = CreateModelFactoryOptions();
         }
 
         private RequestType GetRequestType()

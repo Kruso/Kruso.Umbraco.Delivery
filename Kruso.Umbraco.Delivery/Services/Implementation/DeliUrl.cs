@@ -26,21 +26,53 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             _deliConfig = deliConfig;
         }
 
+        public Uri GetFrontendHostUri(IPublishedContent content, string culture)
+        {
+            var deliRequest = _deliRequestAccessor.Current;
+            if (deliRequest == null)
+                return null;
+
+            Uri frontendHostUri = null;
+            if (deliRequest.RequestOrigin == RequestOrigin.Frontend)
+                frontendHostUri = deliRequest.CallingUri;
+
+            if (frontendHostUri == null && !_deliConfig.IsMultiSite())
+                Uri.TryCreate(_deliConfig.Get().FrontendHost, UriKind.Absolute, out frontendHostUri);
+
+            if (frontendHostUri == null)
+            {
+                var domain = content == null || culture == null
+                    ? _deliDomain.GetDefaultDomainByRequest()
+                    : _deliDomain.GetDomainByContent(content, culture);
+
+                if (domain != null && Uri.TryCreate(domain.Name, UriKind.Absolute, out var domainUri))
+                    frontendHostUri = new Uri($"{domainUri.Scheme}://{domainUri.Authority}");
+            }
+
+            return frontendHostUri;
+        }
+
         public string GetAbsoluteDeliveryUrl(string relativePath)
         {
-            return GetAbsoluteDeliveryUrl(null, null, relativePath)?.ToString();
+            return GetAbsoluteDeliveryUri(null, null, relativePath)?.ToString();
         }
 
         public string GetAbsoluteDeliveryUrl(IPublishedContent content, string culture)
         {
             var path = GetDeliveryUrl(content, culture);
-            return GetAbsoluteDeliveryUrl(content, culture, path)?.ToString();
+            return GetAbsoluteDeliveryUri(content, culture, path)?.ToString();
         }
 
         public string GetPreviewPaneUrl(string jwtToken)
         {
             var deliRequest = _deliRequestAccessor.Current;
-            return $"{GetAbsoluteDeliveryUrl(deliRequest.Content, deliRequest.Culture)}?token={jwtToken}";
+
+            var frontendHostUri = GetFrontendHostUri(deliRequest.Content, deliRequest.Culture);
+            var path = $"{deliRequest.Culture}/{deliRequest.Content.Id}?token={jwtToken}";
+
+            return frontendHostUri != null
+                ? new Uri(frontendHostUri, path).ToString()
+                : string.Empty;
         }
 
         public IEnumerable<UrlInfo> GetAlternativeDeliveryUrls(IPublishedContent content, string culture)
@@ -89,28 +121,14 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
                 : path;
         }
 
-        private Uri GetAbsoluteDeliveryUrl(IPublishedContent content = null, string culture = null, string path = null)
+        private Uri GetAbsoluteDeliveryUri(IPublishedContent content = null, string culture = null, string path = null)
         {
-            var deliRequest = _deliRequestAccessor.Current;
-            var frontendHostUri = deliRequest?.CallingUri;
-
-            if (frontendHostUri == null && !_deliConfig.IsMultiSite())
-                Uri.TryCreate(_deliConfig.Get().FrontendHost, UriKind.Absolute, out frontendHostUri);
-
-            if (frontendHostUri == null)
-            {
-                var domain = content == null || culture == null
-                    ? _deliDomain.GetDefaultDomainByRequest()
-                    : _deliDomain.GetDomainByContent(content, culture);
-
-                if (Uri.TryCreate(domain.Name, UriKind.Absolute, out var domainUri))
-                    frontendHostUri = new Uri($"{domainUri.Scheme}://{domainUri.Authority}");
-            }
+            var frontendHostUri = GetFrontendHostUri(content, culture);
 
             if (content != null)
                 path = GetDeliveryUrl(content, culture);
 
-            return !string.IsNullOrEmpty(path)
+            return frontendHostUri != null && !string.IsNullOrEmpty(path)
                 ? new Uri(frontendHostUri, path)
                 : frontendHostUri;
         }

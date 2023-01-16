@@ -30,10 +30,8 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             _logger = logger;
         }
 
-        public IPublishedContent FindContentById(int id, string culture)
+        public IPublishedContent FindContentById(int id, string culture, bool preview = false)
         {
-            var preview = LoadPreview();
-
             _logger.LogDebug("Trying to load content {id}:{culture}. Preview={preview}", id, culture, preview);
 
             var content = preview
@@ -50,11 +48,10 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             return res;
         }
 
-        public IPublishedContent FindContentByRoute(IPublishedRequestBuilder requestBuilder, string domainSeg, string requestSeg)
+        public IPublishedContent FindContentByRoute(IPublishedRequestBuilder requestBuilder, string domainSeg, string requestSeg, bool preview = false)
         {
             IPublishedContent res = null;
 
-            var preview = LoadPreview();
             var route = BuildRoute(requestBuilder, domainSeg, requestSeg);
 
             _logger.LogDebug("Trying to load content by route {route}. Preview={preview}", route, preview);
@@ -90,12 +87,6 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
                 && _deliContent.IsPage(content)
                 && _deliCulture.IsPublishedInCulture(content, culture)
                 && _deliRequestAccessor.Identity.HasAccess(content);
-        }
-
-        private bool LoadPreview()
-        {
-            var deliRequest = _deliRequestAccessor.Current;
-            return (deliRequest?.RequestType ?? RequestType.Content) == RequestType.PreviewContent;
         }
     }
 }

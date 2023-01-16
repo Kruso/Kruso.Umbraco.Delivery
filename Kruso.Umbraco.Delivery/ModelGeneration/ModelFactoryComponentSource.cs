@@ -5,7 +5,7 @@ using Umbraco.Cms.Core.Models.PublishedContent;
 
 namespace Kruso.Umbraco.Delivery.ModelGeneration
 {
-    internal class ModelFactoryComponentSource : IModelFactoryComponentSource
+    public class ModelFactoryComponentSource : IModelFactoryComponentSource
     {
         private Dictionary<string, IModelTemplate> _modelTemplates = null;
         private Dictionary<string, IModelPropertyValueFactory> _propertyValueFactories = null;

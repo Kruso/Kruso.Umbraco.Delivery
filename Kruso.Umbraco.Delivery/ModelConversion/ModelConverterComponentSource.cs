@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Kruso.Umbraco.Delivery.ModelConversion
 {
-    internal class ModelConverterComponentSource : IModelConverterComponentSource
+    public class ModelConverterComponentSource : IModelConverterComponentSource
     {
         private readonly Dictionary<string, IModelNodeConverter> _modelNodeConverters = null;
         private readonly Dictionary<string, IModelNodeListConverter> _modelNodeListConverters = null;

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.Routing;
 
@@ -6,6 +7,7 @@ namespace Kruso.Umbraco.Delivery.Services
 {
     public interface IDeliUrl
     {
+        Uri GetFrontendHostUri(IPublishedContent content, string culture);
         string GetAbsoluteDeliveryUrl(string relativePath);
         string GetAbsoluteDeliveryUrl(IPublishedContent content, string culture);
         string GetPreviewPaneUrl(string jwtToken);

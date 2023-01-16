@@ -55,10 +55,6 @@ namespace Kruso.Umbraco.Delivery.Controllers
             var url = _deliUrl.GetPreviewPaneUrl(jwt);
 
             return Redirect(url);
-            // use a numeric URL because content may not be in cache and so .Url would fail
-            //var query = culture.IsNullOrWhiteSpace() ? string.Empty : $"?culture={culture}";
-
-            //return RedirectPermanent($"../../{id}{query}");
         }
 
         public ActionResult? EnterPreview(int id)

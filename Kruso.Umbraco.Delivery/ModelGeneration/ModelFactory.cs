@@ -15,8 +15,8 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
     public class ModelFactory : IModelFactory
     {
         private readonly IServiceProvider _serviceProvider;
-        private readonly IModelFactoryComponentSource _modelFactoryComponentSource;
         private readonly IDeliRequestAccessor _deliRequestAccessor;
+        private readonly IDeliContent _deliContent;
         private readonly IDeliCache _deliCache;
         private readonly ILogger<ModelFactory> _log;
 
@@ -24,14 +24,14 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
 
         public ModelFactory(
             IServiceProvider serviceProvider,
-            IModelFactoryComponentSource modelFactoryComponentSource,
             IDeliRequestAccessor deliRequestAccessor,
+            IDeliContent deliContent,
             IDeliCache deliCache,
             ILogger<ModelFactory> log)
         {
             _serviceProvider = serviceProvider;
-            _modelFactoryComponentSource = modelFactoryComponentSource;
             _deliRequestAccessor = deliRequestAccessor;
+            _deliContent = deliContent;
             _deliCache = deliCache;
 
             _log = log;
@@ -43,8 +43,10 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
 
             return context.PageWithDepth(page, culture, options, () =>
             {
-                var props = CreateProperties(page);
-                var template = _modelFactoryComponentSource.GetTemplate(TemplateType.Page, page);
+                var componentSource = GetModelFactoryComponentSource();
+
+                var props = CreateProperties(page, componentSource);
+                var template = componentSource.GetTemplate(TemplateType.Page, page);
 
                 return template.Create(context, props, page);
             });
@@ -85,8 +87,10 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
 
             return context.BlockWithDepth(block, culture, options, () =>
             {
-                var props = CreateProperties(block);
-                var template = _modelFactoryComponentSource.GetTemplate(TemplateType.Block, block);
+                var componentSource = GetModelFactoryComponentSource();
+
+                var props = CreateProperties(block, componentSource);
+                var template = componentSource.GetTemplate(TemplateType.Block, block);
 
                 return template.Create(context, props, block);
             });
@@ -140,10 +144,11 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
             if (items != null)
             {
                 var context = GetContext();
+                var componentSource = GetModelFactoryComponentSource();
 
                 foreach (var item in items)
                 {
-                    var template = _modelFactoryComponentSource.GetTemplate(TemplateType.Route, item);
+                    var template = componentSource.GetTemplate(TemplateType.Route, item);
                     var jsonNode = template.Create(context, new JsonNode(), item);
 
                     if (jsonNode != null)
@@ -154,7 +159,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
             return res;
         }
 
-        private JsonNode CreateProperties(IPublishedElement content)
+        private JsonNode CreateProperties(IPublishedElement content, IModelFactoryComponentSource componentSource)
         {
             var props = new JsonNode();
 
@@ -162,7 +167,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
             {
                 foreach (var property in content.Properties)
                 {
-                    var modelProperty = GetModelProperty(content, property);
+                    var modelProperty = GetModelProperty(content, property, componentSource);
                     props.AddProp(modelProperty.Name, modelProperty.Value);
                 }
             }
@@ -170,16 +175,16 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
             return props;
         }
 
-        private ModelProperty GetModelProperty(IPublishedElement content, IPublishedProperty property)
+        private ModelProperty GetModelProperty(IPublishedElement content, IPublishedProperty property, IModelFactoryComponentSource componentSource)
         {
             var res = new ModelProperty(property.Alias);
             IModelPropertyValueFactory resolver = null;
 
             try
             {
-                resolver = _modelFactoryComponentSource.GetPropertyValueFactory(content, property);
+                resolver = componentSource.GetPropertyValueFactory(content, property);
                 var val = resolver?.Create(property);
-                res.Value = _modelFactoryComponentSource.GetPropertyModelTemplate().Create(content, property, val);
+                res.Value = componentSource.GetPropertyModelTemplate().Create(content, property, val);
             }
             catch (Exception ex)
             {
@@ -192,9 +197,14 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
 
         private IModelFactoryContext GetContext()
         {
+            return _deliCache.GetFromRequest("deli_ModelFactory_Context", _serviceProvider.GetService<IModelFactoryContext>());
+        }
+
+        private IModelFactoryComponentSource GetModelFactoryComponentSource()
+        {
             using (var scope = _serviceProvider.CreateScope())
             {
-                return _deliCache.GetFromRequest("deli_ModelFactory_Context", _serviceProvider.GetService<IModelFactoryContext>());
+                return scope.ServiceProvider.GetService<IModelFactoryComponentSource>();
             }
         }
 

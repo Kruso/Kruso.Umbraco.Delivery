@@ -1,4 +1,5 @@
 ﻿using Kruso.Umbraco.Delivery.Json;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ namespace Kruso.Umbraco.Delivery.ModelConversion
 {
     public class ModelConverter : IModelConverter
     {
-        private readonly IModelConverterComponentSource _modelConverterComponentSource;
+        private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<ModelConverter> _log;
 
         private static readonly string[] ExcludeTypes =
@@ -16,9 +17,9 @@ namespace Kruso.Umbraco.Delivery.ModelConversion
             "Image"
         };
 
-        public ModelConverter(IModelConverterComponentSource modelConverterComponentSource, ILogger<ModelConverter> log)
+        public ModelConverter(IServiceProvider serviceProvider, ILogger<ModelConverter> log)
         {
-            _modelConverterComponentSource = modelConverterComponentSource;
+            _serviceProvider = serviceProvider;
             _log = log;
         }
 
@@ -80,7 +81,7 @@ namespace Kruso.Umbraco.Delivery.ModelConversion
                 ? ""
                 : converterKey ?? nodeType;
 
-            var converter = _modelConverterComponentSource.GetConverter(converterType, contentType);
+            var converter = GetModelConverterSource().GetConverter(converterType, contentType);
             if (converter == null)
             {
                 target = source;
@@ -102,7 +103,7 @@ namespace Kruso.Umbraco.Delivery.ModelConversion
             var nodeListProps = target.AllPropsOf<IEnumerable<JsonNode>>();
             foreach (var kvp in nodeListProps.Where(x => x.Value.All(n => IsValidForListConverter(n))))
             {
-                var listConverter = _modelConverterComponentSource.GetListConverter(nodeType, kvp.Key);
+                var listConverter = GetModelConverterSource().GetListConverter(nodeType, kvp.Key);
                 if (listConverter != null)
                 {
                     var res = new List<JsonNode>();
@@ -119,6 +120,14 @@ namespace Kruso.Umbraco.Delivery.ModelConversion
             return node.Id != Guid.Empty 
                 && !string.IsNullOrEmpty(node.Type) 
                 && !ExcludeTypes.Contains(node.Type);
+        }
+
+        private IModelConverterComponentSource GetModelConverterSource()
+        {
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                return scope.ServiceProvider.GetService<IModelConverterComponentSource>();
+            }
         }
     }
 }

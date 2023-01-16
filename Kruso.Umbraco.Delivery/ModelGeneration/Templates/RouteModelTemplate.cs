@@ -1,6 +1,7 @@
 ﻿using Kruso.Umbraco.Delivery.Extensions;
 using Kruso.Umbraco.Delivery.Json;
 using Kruso.Umbraco.Delivery.Services;
+using System;
 using System.Linq;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Extensions;
@@ -25,14 +26,15 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.Templates
 
         public virtual JsonNode Create(IModelFactoryContext context, JsonNode props, IPublishedContent content)
         {
-            var node = new JsonNode(content.Key, context.Culture, content.ContentType.Alias)
+            var route = new JsonNode
             {
-                ParentPageId = _deliCulture.IsPublishedInCulture(content, context.Culture)
-                    ? content.Parent?.Key 
-                    : null
+                Id = content.Key,
+                ParentPageId = GetParentPageId(content, context.Culture),
+                Type = content.ContentType.Alias,
+                Culture = context.Culture,
             };
 
-            node
+            route
                 .AddProp("name", content.Name)
                 .AddProp("isRoot", content.Root().Key == content.Key)
                 .AddProp("route", _deliUrl.GetDeliveryUrl(content, context.Culture))
@@ -43,7 +45,14 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.Templates
                     .Select(x => x.Key)
                     .ToList());
 
-            return node;
+            return route;
+        }
+
+        private Guid? GetParentPageId(IPublishedContent content, string culture)
+        {
+            return _deliCulture.IsPublishedInCulture(content.Parent, culture) 
+                ? content.Parent.Key 
+                : null;
         }
     }
 }

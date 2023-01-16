@@ -23,5 +23,7 @@ namespace Kruso.Umbraco.Delivery.Routing
         ModelFactoryOptions ModelFactoryOptions { get; }
 
         string ResponseMessage { get; set; }
+
+        bool IsPreviewForContent(int? id);
     }
 }

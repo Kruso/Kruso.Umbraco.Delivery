@@ -48,31 +48,39 @@ namespace Kruso.Umbraco.Delivery.Routing
         /// <returns>A value indicating whether an Umbraco document was found and assigned.</returns>
         public Task<bool> TryFindContent(IPublishedRequestBuilder frequest)
         {
-            if (_deliRequestAccessor.Identity.UserType == UserType.BackOffice)
-            {
-                _logger.LogDebug("Request is not from a backoffice user");
-                return Task.FromResult(false);
-            }
-
             var path = frequest.AbsolutePathDecoded.Trim('/');
             if (!TryGetContent(path, out var id, out var culture))
             {
-                _logger.LogDebug("Path {path} is not a valid content id", path);
+                _logger.LogDebug("Path {path} is not a valid format for a preview request", path);
+                return Task.FromResult(false);
+            }
+
+            if (_deliRequestAccessor.Current == null)
+            {
+                _logger.LogDebug("There is no valid delivery request object initialized", path);
                 return Task.FromResult(false);
             }
 
             var content = _deliContentLoader.FindContentById(id, culture, true);
-            if (content != null)
+
+            if (content == null)
             {
-                frequest.SetCulture(culture);
-                frequest.SetPublishedContent(content);
-
-                _deliRequestAccessor.Finalize(content, culture);
-
-                return Task.FromResult(true);
+                _logger.LogDebug("Request {path} did not provide a valid content id", path);
+                return Task.FromResult(false);
             }
 
-            return Task.FromResult(false);
+            if (!_deliRequestAccessor.Current.IsPreviewForContent(content.Id))
+            {
+                _logger.LogDebug("Request {path} is not a valid preview request", path);
+                return Task.FromResult(false);
+            }
+
+            frequest.SetCulture(culture);
+            frequest.SetPublishedContent(content);
+
+            _deliRequestAccessor.Finalize(content, culture);
+
+            return Task.FromResult(true);
         }
 
         private bool TryGetContent(string path, out int contentId, out string culture)

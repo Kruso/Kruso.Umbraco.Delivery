@@ -75,7 +75,14 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
 
             return context.CustomBlockWithDepth(id, type, context.Culture, () =>
             {
-                var block = new JsonNode(id, context.Page?.Key, context.Culture, type);
+                var block = new JsonNode
+                {
+                    Id = id,
+                    PageId = context.Page?.Key,
+                    Culture = context.Culture,
+                    Type = type
+                };
+
                 fillBlockAction?.Invoke(block);
                 return block;
             });

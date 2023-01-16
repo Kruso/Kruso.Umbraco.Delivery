@@ -47,11 +47,18 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             Token = token;
         }
 
+        public bool IsPreviewForContent(int? id)
+        {
+            return Token != null && id != null && id.HasValue
+                && int.TryParse(Token.Claims.ValueOfType(DeliveryClaimTypes.PreviewId), out var tokenContentId)
+                && tokenContentId == id;
+        }
+
         private ModelFactoryOptions CreateModelFactoryOptions()
         {
             var res = new ModelFactoryOptions
             {
-                LoadPreview = RequestType == RequestType.PreviewContent,
+                LoadPreview = IsPreviewForContent(Content?.Id),
                 QueryString = Query,
                 IncludeFields = Query.Strs("include"),
                 ExcludeFields = Query.Strs("exclude")
@@ -75,7 +82,7 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
 
         private RequestType GetRequestType()
         {
-            if (IsPreviewContentRequest())
+            if (IsPreviewForContent(Content?.Id))
                 return RequestType.PreviewContent;
 
             if (!_finalized)
@@ -95,13 +102,6 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             return CallingUri.Authority.Equals(OriginalUri.Authority, StringComparison.InvariantCultureIgnoreCase)
                 ? RequestOrigin.Backend
                 : RequestOrigin.Frontend;
-        }
-
-        private bool IsPreviewContentRequest()
-        {
-            return Token != null
-                && int.TryParse(Token.Claims.ValueOfType(DeliveryClaimTypes.PreviewId), out var tokenContentId)
-                && tokenContentId == (Content?.Id ?? -1);
         }
     }
 }

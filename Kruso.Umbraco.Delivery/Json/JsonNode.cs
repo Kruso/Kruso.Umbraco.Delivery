@@ -40,45 +40,6 @@ namespace Kruso.Umbraco.Delivery.Json
         {
         }
 
-        public JsonNode(string culture)
-            : base()
-        {
-            Culture = culture;
-        }
-
-        public static JsonNode Create(IPublishedElement content, string culture)
-        {
-            return new JsonNode
-            {
-                Id = content.Key,
-                PageId = content.Key,
-                Culture = culture,
-                Type = content.ContentType.Alias,
-                CompositionTypes = content.ContentType.CompositionAliases.ToArray()
-            };
-        }
-
-        public JsonNode(Guid id, string culture, string type)
-            : base()
-        {
-            Id = id;
-            PageId = id;
-            Culture = culture;
-            Type = type;
-        }
-
-        public JsonNode(Guid id, Guid? pageId, string culture, string type)
-            : base()
-        {
-            Id = id;
-
-            if (pageId == null || pageId != id)
-                PageId = pageId;
-
-            Culture = culture;
-            Type = type;
-        }
-
         public object this[string key]
         {
             get
@@ -145,7 +106,7 @@ namespace Kruso.Umbraco.Delivery.Json
         public string[] CompositionTypes
         {
             get { return GetReserved<string[]>(ReservedProps.CompositionTypes); }
-            set { SetReserved(ReservedProps.CompositionTypes, value?.Select(x => x.Capitalize()).ToArray()); }
+            set { SetReserved(ReservedProps.CompositionTypes, value?.Select(x => x.Capitalize()).ToArray() ?? new string[0] ); }
         }
 
         public static bool IsValueEmpty(object value)

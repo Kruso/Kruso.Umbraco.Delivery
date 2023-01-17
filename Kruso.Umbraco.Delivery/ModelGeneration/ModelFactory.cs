@@ -16,7 +16,6 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IDeliRequestAccessor _deliRequestAccessor;
-        private readonly IDeliContent _deliContent;
         private readonly IDeliCache _deliCache;
         private readonly ILogger<ModelFactory> _log;
 
@@ -25,13 +24,11 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
         public ModelFactory(
             IServiceProvider serviceProvider,
             IDeliRequestAccessor deliRequestAccessor,
-            IDeliContent deliContent,
             IDeliCache deliCache,
             ILogger<ModelFactory> log)
         {
             _serviceProvider = serviceProvider;
             _deliRequestAccessor = deliRequestAccessor;
-            _deliContent = deliContent;
             _deliCache = deliCache;
 
             _log = log;
@@ -204,7 +201,20 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
 
         private IModelFactoryContext GetContext()
         {
-            return _deliCache.GetFromRequest("deli_ModelFactory_Context", _serviceProvider.GetService<IModelFactoryContext>());
+            return _deliCache.GetFromRequest("deli_ModelFactory_Context", () =>
+            {
+                var modelFactoryContext = _serviceProvider.GetService<IModelFactoryContext>();
+                modelFactoryContext.CreateRef = (content) =>
+                {
+                    var context = GetContext();
+                    var componentSource = GetModelFactoryComponentSource();
+
+                    var refTemplate = componentSource.GetTemplate(TemplateType.Ref, content);
+                    return refTemplate.Create(context, new JsonNode(), content);
+                };
+
+                return modelFactoryContext; 
+            });
         }
 
         private IModelFactoryComponentSource GetModelFactoryComponentSource()

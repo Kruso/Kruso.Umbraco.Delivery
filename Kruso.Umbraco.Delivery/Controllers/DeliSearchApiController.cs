@@ -33,13 +33,7 @@ namespace Kruso.Umbraco.Delivery.Controllers
                 var searchRequest = SearchRequest.Create(culture, queryName, HttpContext.Request.Query);
                 var res = _searchQueryExecutor.Execute(searchRequest);
 
-                if (res.pageResults != null)
-                {
-                    res.pageResults = res.pageResults
-                        .Select(x => _modelConverter.Convert(x, TemplateType.Search))
-                        .Where(x => x != null)
-                        .ToArray();
-                }
+                res.pageResults = _modelConverter.Convert(res.pageResults, TemplateType.Search).ToArray();
 
                 return new ApiResponse(res);
             });

@@ -25,12 +25,15 @@ namespace Kruso.Umbraco.Delivery.ModelConversion
 
         public IEnumerable<JsonNode> Convert(IEnumerable<JsonNode> source, TemplateType converterType, string converterKey = null)
         {
-            return source.Select(x => Convert(x, converterType, converterKey));
+            return source?
+                .Select(x => Convert(x, converterType, converterKey))
+                .Where(x => x != null)
+                ?? Enumerable.Empty<JsonNode>();
         }
 
         public JsonNode Convert(JsonNode source, TemplateType converterType, string converterKey = null)
         {
-            if (source.Val<bool>("isRef"))
+            if (source.IsRefType)
                 return source;
 
             var target = converterType != TemplateType.Route

@@ -15,11 +15,11 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.Templates
                 Id = content.Key,
                 PageId = context.Page.Key,
                 Culture = context.Culture,
-                Type = "Ref",
+                Type = DeliConstants.RefTypeAlias,
                 CompositionTypes = content.ContentType?.CompositionAliases?.ToArray()
             };
 
-            nodeRef.AddProp("refType", content.ContentType.Alias.Capitalize());
+            nodeRef.AddProp(DeliConstants.RefTypeProperty, content.ContentType.Alias.Capitalize());
 
             return nodeRef;
         }

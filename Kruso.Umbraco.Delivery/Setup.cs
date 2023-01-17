@@ -102,12 +102,13 @@ namespace Kruso.Umbraco.Delivery
                 .AddSingleton<IModelTemplate, BlockModelTemplate>()
                 .AddSingleton<IModelTemplate, RouteModelTemplate>()
                 .AddSingleton<IModelTemplate, RefModelTemplate>()
+                .AddSingleton<IModelTemplate, MediaModelTemplate>()
                 .AddSingleton<IPropertyModelTemplate, PropertyModelTemplate>();
 
             services
                 .AddSingleton<IModelConverterComponentSource, ModelConverterComponentSource>()
                 .AddSingleton<IModelConverter, ModelConverter>()
-                .AddScoped<ISearchQueryExecutor, SearchQueryExecutor>()
+                .AddSingleton<ISearchQueryExecutor, SearchQueryExecutor>()
                 .AddSingleton<IModelFactoryComponentSource, ModelFactoryComponentSource>()
                 .AddTransient<IModelFactoryContext, ModelFactoryContext>()
                 .AddSingleton<IModelFactory, ModelFactory>();

@@ -14,6 +14,8 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
         IPublishedContent Page { get; }
         bool ReachedMaxDepth { get; }
 
+        Func<IPublishedContent, JsonNode> CreateRef { get; set; }
+
         JsonNode PageWithDepth(IPublishedContent page, string culture, ModelFactoryOptions options, Func<JsonNode> createPageFunc);
         JsonNode BlockWithDepth(IPublishedContent block, string culture, ModelFactoryOptions options, Func<JsonNode> createBlockFunc);
         JsonNode CustomBlockWithDepth(Guid key, string type, string culture, Func<JsonNode> createBlockFunc);

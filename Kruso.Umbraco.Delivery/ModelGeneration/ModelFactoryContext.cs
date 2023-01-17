@@ -2,7 +2,6 @@
 using Kruso.Umbraco.Delivery.Models;
 using Kruso.Umbraco.Delivery.Routing;
 using Kruso.Umbraco.Delivery.Services;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,8 +23,6 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
 
         private readonly IDeliRequestAccessor _deliRequestAccessor;
         private readonly IDeliCulture _deliCulture;
-        private readonly IDeliContent _deliContent;
-        private readonly IServiceProvider _serviceProvider;
 
         public IPublishedContent Page => Peek()?.Page;
         public string Culture => Peek()?.Culture;
@@ -35,17 +32,17 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
         public int CurrentDepth => _stack.Count;
         public bool ReachedMaxDepth => (Options?.MaxDepth ?? 0) > 0 && CurrentDepth >= (Options?.MaxDepth ?? 0);
 
-        public ModelFactoryContext(IDeliRequestAccessor deliRequestAccessor, IDeliCulture deliCulture, IDeliContent deliContent, IServiceProvider serviceProvider)
+        public Func<IPublishedContent, JsonNode> CreateRef { get; set; }
+
+        public ModelFactoryContext(IDeliRequestAccessor deliRequestAccessor, IDeliCulture deliCulture)
         {
             _deliRequestAccessor = deliRequestAccessor;
             _deliCulture = deliCulture;
-            _deliContent = deliContent;
-            _serviceProvider = serviceProvider;
         }
 
         public JsonNode PageWithDepth(IPublishedContent page, string culture, ModelFactoryOptions options, Func<JsonNode> createPageFunc)
         {
-            if (!CanRender(page))
+            if (!CanRender(page, options))
                 return null;
 
             var didIncrement = IncrementDepth(page, culture, options);
@@ -54,7 +51,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
 
         public JsonNode BlockWithDepth(IPublishedContent block, string culture, ModelFactoryOptions options, Func<JsonNode> createBlockFunc)
         {
-            if (!CanRender(block))
+            if (!CanRender(block, options))
                 return null;
 
             var didIncrement = IncrementDepth(block.Key, culture, options);
@@ -64,15 +61,9 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
         public JsonNode CustomBlockWithDepth(Guid key, string type, string culture, Func<JsonNode> createBlockFunc)
         {
             var didIncrement = IncrementDepth(key, culture, null);
-            var jsonNode = WithDepth(null, didIncrement, createBlockFunc);
-            if (jsonNode == null && didIncrement)
-            {
-                var refContent = new DeliRefContent(key, type);
-                var refTemplate = GetModelFactoryComponentSource().GetTemplate(TemplateType.Ref, refContent);
-                jsonNode = refTemplate.Create(this, new JsonNode(), refContent);
-            }
+            var refContent = new DeliRefContent(key, type);
 
-            return jsonNode;
+            return WithDepth(refContent, didIncrement, createBlockFunc);
         }
 
         private JsonNode WithDepth(IPublishedContent content, bool didIncrement, Func<JsonNode> createBlockFunc)
@@ -94,12 +85,10 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
                     DecrementDepth();
                 }
             }
-            else if (content != null)
+            else if (content != null && CreateRef != null)
             {
-                var refTemplate = GetModelFactoryComponentSource().GetTemplate(TemplateType.Ref, content);
-                return refTemplate.Create(this, new JsonNode(), content);
+                return CreateRef(content);
             }
-
 
             return null;
         }
@@ -180,27 +169,18 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
             };
         }
 
-        private IModelFactoryComponentSource GetModelFactoryComponentSource()
-        {
-            using (var scope = _serviceProvider.CreateScope())
-            {
-                return scope.ServiceProvider.GetService<IModelFactoryComponentSource>();
-            }
-        }
-
-        private bool CanRender(IPublishedContent content)
+        private bool CanRender(IPublishedContent content, ModelFactoryOptions options)
         {
             if (content == null)
                 return false;
 
-            //TODO: This is not correct, some blocks are access controlled.
-            if (_deliContent.IsPage(content))
-            {
-                return _deliRequestAccessor.Identity.HasAccess(content)
-                    && content.IsPublished(Culture);
-            }
+            if (content.ItemType == PublishedItemType.Element)
+                return true;
 
-            return true;
+            if (options == null || !options.ApplyPublicAccessRights)
+                return true;
+
+            return content.IsPublished(Culture) && _deliRequestAccessor.Identity.HasAccess(content);
         }
     }
 }

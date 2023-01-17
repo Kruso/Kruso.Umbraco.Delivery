@@ -103,6 +103,8 @@ namespace Kruso.Umbraco.Delivery.Json
             set { SetReserved(ReservedProps.Type, value.Capitalize()); }
         }
 
+        public bool IsRefType => Type == DeliConstants.RefTypeAlias;
+
         public string[] CompositionTypes
         {
             get { return GetReserved<string[]>(ReservedProps.CompositionTypes); }

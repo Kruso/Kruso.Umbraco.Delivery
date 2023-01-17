@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.PublishedContent;
@@ -59,5 +60,20 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             return jObject?.Properties().FirstOrDefault(x => x.Name == prop)?.Value.ToString();
         }
 
+        public IEnumerable<T> PublishedContentValue<T>(IPublishedProperty property, string culture)
+            where T : IPublishedElement
+        {
+            var res = new List<T>();
+            if (Value(property, culture) is T item)
+            {
+                res.Add(item);
+            }
+            else if (Value(property, culture) is IEnumerable<T> items)
+            {
+                res.AddRange(items);
+            }
+
+            return res;
+        }
     }
 }

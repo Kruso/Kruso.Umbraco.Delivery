@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using System;
 
 namespace Kruso.Umbraco.Delivery.Services.Implementation
 {
@@ -15,6 +16,20 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             _httpContextAccessor = httpContextAccessor;
             _memoryCache = memoryCache;
             _logger = logger;
+        }
+
+        public T GetFromRequest<T>(string cacheKey, Func<T> create)
+        {
+            if (ValidForRequest(cacheKey) && _httpContextAccessor.HttpContext.Items.TryGetValue(cacheKey, out var val) && val is T)
+                return (T)val;
+
+            var def = create != null
+                ? create()
+                : default(T);
+
+            AddToRequest(cacheKey, def);
+                
+            return def;
         }
 
         public T GetFromRequest<T>(string cacheKey, T def = default(T))
@@ -39,6 +54,14 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             {
                 _httpContextAccessor.HttpContext.Items.Add(cacheKey, val);
             }
+        }
+
+        public void ReplaceOnRequest(string cacheKey, object val)
+        {
+            if (ExistsOnRequest(cacheKey))
+                _httpContextAccessor.HttpContext.Items.Remove(cacheKey);
+
+            AddToRequest(cacheKey, val);
         }
 
         public T GetFromMemory<T>(string cacheKey, T def = default(T))

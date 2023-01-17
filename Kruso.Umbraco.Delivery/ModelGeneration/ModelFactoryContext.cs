@@ -1,4 +1,5 @@
-﻿using Kruso.Umbraco.Delivery.Models;
+﻿using Kruso.Umbraco.Delivery.Json;
+using Kruso.Umbraco.Delivery.Models;
 using Kruso.Umbraco.Delivery.Routing;
 using Kruso.Umbraco.Delivery.Services;
 using System;
@@ -31,35 +32,81 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
         public int CurrentDepth => _stack.Count;
         public bool ReachedMaxDepth => (Options?.MaxDepth ?? 0) > 0 && CurrentDepth >= (Options?.MaxDepth ?? 0);
 
+        public Func<IPublishedContent, JsonNode> CreateRef { get; set; }
 
         public ModelFactoryContext(IDeliRequestAccessor deliRequestAccessor, IDeliCulture deliCulture)
         {
             _deliRequestAccessor = deliRequestAccessor;
             _deliCulture = deliCulture;
-
-            InitializeDepth();
         }
 
-        private bool InitializeDepth()
+        public JsonNode PageWithDepth(IPublishedContent page, string culture, ModelFactoryOptions options, Func<JsonNode> createPageFunc)
         {
-            _stack.Clear();
-            return Push(CreateStackItem(_deliRequestAccessor.Current?.Content));
+            if (!CanRender(page, options))
+                return null;
+
+            var didIncrement = IncrementDepth(page, culture, options);
+            return WithDepth(page, didIncrement, createPageFunc);
         }
 
-        public bool InitializeDepth(IPublishedContent content, string culture = null, ModelFactoryOptions options = null)
+        public JsonNode BlockWithDepth(IPublishedContent block, string culture, ModelFactoryOptions options, Func<JsonNode> createBlockFunc)
         {
-            _stack.Clear();
-            return Push(CreateStackItem(content, null, culture, options));
+            if (!CanRender(block, options))
+                return null;
+
+            var didIncrement = IncrementDepth(block.Key, culture, options);
+            return WithDepth(block, didIncrement, createBlockFunc);
         }
 
-        public bool IncrementDepth(Guid key, string culture = null, ModelFactoryOptions options = null)
+        public JsonNode CustomBlockWithDepth(Guid key, string type, string culture, Func<JsonNode> createBlockFunc)
         {
-            return Initialized || InitializeDepth()
-                ? Push(CreateStackItem(null, key, culture, options))
-                : false;
+            var didIncrement = IncrementDepth(key, culture, null);
+            var refContent = new DeliRefContent(key, type);
+
+            return WithDepth(refContent, didIncrement, createBlockFunc);
         }
 
-        public void DecrementDepth()
+        private JsonNode WithDepth(IPublishedContent content, bool didIncrement, Func<JsonNode> createBlockFunc)
+        {
+            if (didIncrement)
+            {
+                try
+                {
+                    if (createBlockFunc != null)
+                    {
+                        var jsonNode = createBlockFunc();
+                        return jsonNode?.AnyProps() ?? false
+                            ? jsonNode
+                            : null;
+                    }
+                }
+                finally
+                {
+                    DecrementDepth();
+                }
+            }
+            else if (content != null && CreateRef != null)
+            {
+                return CreateRef(content);
+            }
+
+            return null;
+        }
+
+        private bool IncrementDepth(IPublishedContent page, string culture = null, ModelFactoryOptions options = null)
+        {
+            return Push(CreateStackItem(page, null, culture, options));
+        }
+
+        private bool IncrementDepth(Guid key, string culture = null, ModelFactoryOptions options = null)
+        {
+            if (!Initialized)
+                Push(CreateStackItem(_deliRequestAccessor.Current?.Content, null, culture, options));
+
+            return Push(CreateStackItem(null, key, culture, options));
+        }
+
+        private void DecrementDepth()
         {
             Pop();
         }
@@ -105,9 +152,9 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
                 : null;
         }
 
-        private StackItem CreateStackItem(IPublishedContent content, Guid? key = null, string culture = null, ModelFactoryOptions options = null)
+        private StackItem CreateStackItem(IPublishedContent page, Guid? key = null, string culture = null, ModelFactoryOptions options = null)
         {
-            var stackItemKey = key != null ? key.Value : content?.Key;
+            var stackItemKey = key != null ? key.Value : page?.Key;
             if (stackItemKey == null)
                 return null;
 
@@ -116,10 +163,24 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
             return new StackItem
             {
                 Key = stackItemKey.Value,
-                Page = content ?? prev?.Page,
-                Culture = culture ?? prev?.Culture ?? _deliRequestAccessor.Current.Culture ?? _deliCulture.DefaultCulture,
-                Options = options ?? prev?.Options ?? _deliRequestAccessor.Current.ModelFactoryOptions ?? new ModelFactoryOptions()
+                Page = page ?? prev?.Page,
+                Culture = culture ?? prev?.Culture ?? _deliRequestAccessor.Current?.Culture ?? _deliCulture.DefaultCulture,
+                Options = options ?? prev?.Options ?? _deliRequestAccessor.Current?.ModelFactoryOptions ?? new ModelFactoryOptions()
             };
+        }
+
+        private bool CanRender(IPublishedContent content, ModelFactoryOptions options)
+        {
+            if (content == null)
+                return false;
+
+            if (content.ItemType == PublishedItemType.Element)
+                return true;
+
+            if (options == null || !options.ApplyPublicAccessRights)
+                return true;
+
+            return content.IsPublished(Culture) && _deliRequestAccessor.Identity.HasAccess(content);
         }
     }
 }

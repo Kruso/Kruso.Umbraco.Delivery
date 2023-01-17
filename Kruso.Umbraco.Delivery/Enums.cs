@@ -11,8 +11,14 @@ namespace Kruso.Umbraco.Delivery
         Initialized,
         Content,
         PreviewContent,
-        PreviewPane,
         Failed
+    }
+
+    public enum RequestOrigin
+    {
+        Backend,
+        Frontend,
+        Indexer
     }
 
     public enum TemplateType

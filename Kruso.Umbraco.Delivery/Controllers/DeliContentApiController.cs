@@ -56,7 +56,7 @@ namespace Kruso.Umbraco.Delivery.Controllers
             return Execute(culture, () =>
             {
                 var content = _deliContent.PublishedContent(pageId);
-                _deliRequestAccessor.FinalizeDeliRequest(content, culture);
+                _deliRequestAccessor.Finalize(content, culture);
                 return GetPageContent();
             });
         }
@@ -68,7 +68,7 @@ namespace Kruso.Umbraco.Delivery.Controllers
             return Execute(culture, () =>
             {
                 var content = _deliContent.PublishedContent(pageId);
-                _deliRequestAccessor.FinalizeDeliRequest(content, culture);
+                _deliRequestAccessor.Finalize(content, culture);
                 return GetBlockContent(blockId);
             });
         }
@@ -80,7 +80,7 @@ namespace Kruso.Umbraco.Delivery.Controllers
             return Execute(culture, () =>
             {
                 var content = _deliContent.PublishedContent(id);
-                _deliRequestAccessor.FinalizeDeliRequest(content, culture);
+                _deliRequestAccessor.Finalize(content, culture);
                 return CreateChildContent(type, skip, page, pageSize);
             });
         }
@@ -95,7 +95,7 @@ namespace Kruso.Umbraco.Delivery.Controllers
                 var culture = _deliDomain.GetDomainCulture(path);
                 var content = _deliContent.PublishedContent(newPath, culture);
 
-                _deliRequestAccessor.FinalizeDeliRequest(content, culture);
+                _deliRequestAccessor.Finalize(content, culture);
                 return GetPageContent();
             });
         }
@@ -188,7 +188,7 @@ namespace Kruso.Umbraco.Delivery.Controllers
 
                 foreach (var child in children)
                 {
-                    _deliRequestAccessor.FinalizeDeliRequest(child, deliRequest.Culture);
+                    _deliRequestAccessor.Finalize(child, deliRequest.Culture);
                     response = GetPageContent();
                     if (response.StatusCode == HttpStatusCode.OK && response.Payload is JsonNode payload)
                     {

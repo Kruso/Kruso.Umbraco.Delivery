@@ -23,13 +23,17 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.Templates
 
         public virtual JsonNode Create(IModelFactoryContext context, JsonNode props, IPublishedContent content)
         {
-            var page = new JsonNode(content.Key, context.Culture, content.ContentType.Alias)
+            var page = new JsonNode
             {
-                ParentPageId = content.Parent?.Key
+                Id = content.Key,
+                PageId = content.Key,
+                ParentPageId = content.Parent?.Key,
+                Type = content.ContentType.Alias,
+                Culture = context.Culture,
+                CompositionTypes = content.ContentType.CompositionAliases?.ToArray()
             };
-            
+
             page
-                .AddProp("compositionTypes", content.ContentType.CompositionAliases?.ToArray() ?? new string[0])
                 .AddProp("name", content.Name)
                 .AddProp("urls", CreateUrls(context, content))
                 .AddProp("sortOrder", content.SortOrder)
@@ -70,7 +74,12 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.Templates
                         ? selectedContent.UrlSegment(altCulture)
                         : altUrl.Trim('/');
 
-                    alts.Add(new JsonNode(altCulture)
+                    var alt = new JsonNode
+                    {
+                        Culture = altCulture
+                    };
+
+                    alts.Add(alt
                         .AddProp("slug", altSlug)
                         .AddProp("url", altUrl)
                         .AddProp("canonicalUrl", _deliUrl.GetAbsoluteDeliveryUrl(selectedContent, altCulture))

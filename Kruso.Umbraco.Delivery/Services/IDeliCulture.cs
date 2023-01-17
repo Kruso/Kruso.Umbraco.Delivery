@@ -9,6 +9,7 @@ namespace Kruso.Umbraco.Delivery.Services
     {
         string[] SupportedCultures { get; }
         string DefaultFallbackCulture { get; }
+        string CurrentCulture { get; }
         string DefaultCulture { get; }
 
         IEnumerable<string> GetCultures(IPublishedContent content);

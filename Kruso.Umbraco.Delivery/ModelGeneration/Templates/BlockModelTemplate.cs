@@ -1,5 +1,6 @@
 ﻿using Kruso.Umbraco.Delivery.Json;
 using Kruso.Umbraco.Delivery.Services;
+using System.Linq;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Extensions;
 
@@ -19,11 +20,23 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.Templates
 
         public virtual JsonNode Create(IModelFactoryContext context, JsonNode props, IPublishedContent block)
         {
-           return new JsonNode(block.Key, context.Page?.Key, context.Culture, block.ContentType.Alias)
+            var jsonNode = new JsonNode
+            {
+                Id = block.Key,
+                PageId = context.Page?.Key,
+                ParentPageId = context.Page?.Parent?.Key,
+                Type = block.ContentType.Alias,
+                Culture = context.Culture,
+                CompositionTypes = block.ContentType.CompositionAliases?.ToArray()
+            };
+
+            jsonNode
                 .AddPropIfNotNull("name", block.Name)
                 .AddPropIfNotNull("urls", CreateUrls(context, block))
                 .AddProp("sortOrder", block.SortOrder)
                 .CopyAllProps(props);
+
+            return jsonNode;
         }
 
         public JsonNode CreateUrls(IModelFactoryContext context, IPublishedContent block)

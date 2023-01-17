@@ -29,7 +29,15 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             _serviceProvider = serviceProvider;
         }
 
-        public void InitializeDeliRequest(HttpRequest request, Uri originalUri, string jwtToken)
+        public void InitializeIndexing(IPublishedContent content, string culture)
+        {
+            var deliRequest = new DeliRequest();
+            deliRequest.Finalize(content, culture);
+
+            _deliCache.ReplaceOnRequest(CacheKey, deliRequest);
+        }
+
+        public void Initialize(HttpRequest request, Uri originalUri, string jwtToken)
         {
             var token = _deliSecurity.ValidateJwtPreviewToken(request, originalUri);
             var deliRequest = new DeliRequest(request, originalUri, token);
@@ -37,10 +45,10 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             _deliCache.AddToRequest(CacheKey, deliRequest);
         }
 
-        public void FinalizeDeliRequest(IPublishedContent content, string culture, bool isPreviewPaneRequest = false)
+        public void Finalize(IPublishedContent content, string culture)
         {
             var deliRequest = _deliCache.GetFromRequest<DeliRequest>(CacheKey);
-            deliRequest?.Finalize(content, culture, isPreviewPaneRequest);
+            deliRequest?.Finalize(content, culture);
         }
 
         private IUserIdentity GetUserIdentity()

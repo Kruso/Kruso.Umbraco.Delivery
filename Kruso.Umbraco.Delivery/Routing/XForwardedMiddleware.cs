@@ -4,8 +4,11 @@ using Kruso.Umbraco.Delivery.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Umbraco.Cms.Core.Routing;
+using Umbraco.Extensions;
 
 namespace Kruso.Umbraco.Delivery.Routing
 {
@@ -13,9 +16,16 @@ namespace Kruso.Umbraco.Delivery.Routing
     {
         private readonly string[] ExcludeRoutes = new string[]
         {
+            "api/keepalive/ping",
             "umbraco",
             "media",
             "app_plugins"
+        };
+
+        private readonly string[] IncludeRoutes = new string[]
+        {
+            "umbraco/preview/",
+            "umbraco/backoffice/umbracoapi/content/getbyid"
         };
 
         public const string DefaultForwardedHeader = "X-Forwarded-For";
@@ -36,10 +46,9 @@ namespace Kruso.Umbraco.Delivery.Routing
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
-            var originalUri = context.Request.AbsoluteUri();
-
             if (ShouldHandleRequest(context.Request))
             {
+                Debug.WriteLine(context.Request.AbsoluteUri());
                 var callingAuthority = GetCallingAuthority(context);
                 if (callingAuthority != null)
                 {
@@ -48,9 +57,9 @@ namespace Kruso.Umbraco.Delivery.Routing
                     context.Request.PathBase = callingAuthority.CleanPath();
                 }
 
+                var originalUri = context.Request.AbsoluteUri();
                 var jwtToken = context.Request.GetJwtBearerToken();
-
-                _deliRequestAccessor.InitializeDeliRequest(context.Request, originalUri, jwtToken);
+                _deliRequestAccessor.Initialize(context.Request, originalUri, jwtToken);
             }
 
             await next(context);
@@ -61,8 +70,10 @@ namespace Kruso.Umbraco.Delivery.Routing
             if (request == null)
                 return false;
 
-            var requestPath = request.AbsoluteUri().CleanPath();
-            return !ExcludeRoutes.Any(r => requestPath.StartsWith(r));
+            var path = request.AbsoluteUri().CleanPath();
+
+            return !ExcludeRoutes.Any(r => path.InvariantStartsWith(r))
+                || IncludeRoutes.Any(r => path.InvariantStartsWith(r));
         }
 
         private Uri GetCallingAuthority(HttpContext context)

@@ -1,7 +1,4 @@
-﻿using Kruso.Umbraco.Delivery.Json;
-using Kruso.Umbraco.Delivery.Services;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Kruso.Umbraco.Delivery.Services;
 using Umbraco.Cms.Core.Models.PublishedContent;
 
 namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
@@ -20,21 +17,10 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
 
         public virtual object Create(IPublishedProperty property)
         {
-            IEnumerable<JsonNode> blocks = null;
+            var culture = _modelFactory.Context.Culture;
+            var contentItems = _modelFactory.CreateBlocks(_deliProperties.PublishedContentValue<IPublishedElement>(property, culture));
 
-            var val = _deliProperties.Value(property, _modelFactory.Context.Culture);
-            if (val is IPublishedElement item)
-            {
-                var block = _modelFactory.CreateBlock(item);
-                if (block != null)
-                    blocks = new List<JsonNode>() { block };
-            }
-            else if (val is IEnumerable<IPublishedElement> items)
-            {
-                blocks = _modelFactory.CreateBlocks(items).ToList();
-            }
-
-            return blocks ?? Enumerable.Empty<JsonNode>();
+            return contentItems;
         }
     }
 }

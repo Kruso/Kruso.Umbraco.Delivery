@@ -9,7 +9,9 @@ namespace Kruso.Umbraco.Delivery.Routing
     {
         IUserIdentity Identity { get; }
         IDeliRequest Current { get; }
-        void InitializeDeliRequest(HttpRequest request, Uri originalUri, string jwtToken);
-        void FinalizeDeliRequest(IPublishedContent content, string culture, bool isPreviewPaneRequest = false);
+
+        void InitializeIndexing(IPublishedContent content, string culture);
+        void Initialize(HttpRequest request, Uri originalUri, string jwtToken);
+        void Finalize(IPublishedContent content, string culture);
     }
 }

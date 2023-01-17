@@ -33,6 +33,8 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             }
         }
 
+        public string CurrentCulture => _variationContextAccessor.VariationContext?.Culture ?? DefaultCulture; 
+
         public string DefaultCulture
         {
             get
@@ -54,7 +56,7 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
 
         public bool IsCultureSupported(string culture)
         {
-            return SupportedCultures.Contains(culture);
+            return SupportedCultures.Any(sc => sc.Equals(culture, StringComparison.InvariantCultureIgnoreCase));
         }
 
         public string GetFallbackCulture(string culture)

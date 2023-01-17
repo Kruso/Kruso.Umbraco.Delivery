@@ -1,6 +1,4 @@
-﻿using Kruso.Umbraco.Delivery.Extensions;
-using Kruso.Umbraco.Delivery.Security;
-using Kruso.Umbraco.Delivery.Services;
+﻿using Kruso.Umbraco.Delivery.Services;
 using Microsoft.Extensions.Logging;
 using System;
 using Umbraco.Cms.Core.Models.PublishedContent;
@@ -32,10 +30,8 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             _logger = logger;
         }
 
-        public IPublishedContent FindContentById(int id, string culture)
+        public IPublishedContent FindContentById(int id, string culture, bool preview = false)
         {
-            var preview = ShouldLoadPreviewContent();
-
             _logger.LogDebug("Trying to load content {id}:{culture}. Preview={preview}", id, culture, preview);
 
             var content = preview
@@ -52,11 +48,10 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             return res;
         }
 
-        public IPublishedContent FindContentByRoute(IPublishedRequestBuilder requestBuilder, string domainSeg, string requestSeg)
+        public IPublishedContent FindContentByRoute(IPublishedRequestBuilder requestBuilder, string domainSeg, string requestSeg, bool preview = false)
         {
             IPublishedContent res = null;
 
-            var preview = ShouldLoadPreviewContent();
             var route = BuildRoute(requestBuilder, domainSeg, requestSeg);
 
             _logger.LogDebug("Trying to load content by route {route}. Preview={preview}", route, preview);
@@ -92,12 +87,6 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
                 && _deliContent.IsPage(content)
                 && _deliCulture.IsPublishedInCulture(content, culture)
                 && _deliRequestAccessor.Identity.HasAccess(content);
-        }
-
-        private bool ShouldLoadPreviewContent()
-        {
-            var token = _deliRequestAccessor.Current?.Token;
-            return token != null && int.TryParse(token.Claims.ValueOfType(DeliveryClaimTypes.PreviewId), out var id);
         }
     }
 }

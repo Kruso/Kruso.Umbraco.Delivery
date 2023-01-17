@@ -10,7 +10,7 @@ using Umbraco.Cms.Core.Web;
 
 namespace Kruso.Umbraco.Delivery.Routing
 {
-    public class DeliContentFinderByIdPath : IContentFinder
+    public class DeliContentFinderByPreviewUrl : IContentFinder
     {
         private readonly ILogger<ContentFinderByIdPath> _logger;
         private readonly IRequestAccessor _requestAccessor;
@@ -23,7 +23,7 @@ namespace Kruso.Umbraco.Delivery.Routing
         /// <summary>
         /// Initializes a new instance of the <see cref="ContentFinderByIdPath"/> class.
         /// </summary>
-        public DeliContentFinderByIdPath(
+        public DeliContentFinderByPreviewUrl(
             IOptions<WebRoutingSettings> webRoutingSettings,
             IRequestAccessor requestAccessor,
             IDeliRequestAccessor deliRequestAccessor,
@@ -49,33 +49,60 @@ namespace Kruso.Umbraco.Delivery.Routing
         public Task<bool> TryFindContent(IPublishedRequestBuilder frequest)
         {
             var path = frequest.AbsolutePathDecoded.Trim('/');
-            if (!int.TryParse(path, out var id))
+            if (!TryGetContent(path, out var id, out var culture))
             {
-                _logger.LogDebug("Path {path} is not a valid content id", path);
+                _logger.LogDebug("Path {path} is not a valid format for a preview request", path);
                 return Task.FromResult(false);
             }
 
-            if (_webRoutingSettings.DisableFindContentByIdPath)
-            { 
+            if (_deliRequestAccessor.Current == null)
+            {
+                _logger.LogDebug("There is no valid delivery request object initialized", path);
                 return Task.FromResult(false);
             }
 
-            var culture = _requestAccessor.GetQueryStringValue("culture");
-            if (string.IsNullOrEmpty(culture))
-                culture = _deliCulture.DefaultCulture;
+            var content = _deliContentLoader.FindContentById(id, culture, true);
 
-            var content = _deliContentLoader.FindContentById(id, culture);
-            if (content != null && _deliRequestAccessor.Identity.UserType == UserType.BackOffice)
+            if (content == null)
             {
-                frequest.SetCulture(culture);
-                frequest.SetPublishedContent(content);
-
-                _deliRequestAccessor.FinalizeDeliRequest(content, culture, isPreviewPaneRequest: true);
-
-                return Task.FromResult(true);
+                _logger.LogDebug("Request {path} did not provide a valid content id", path);
+                return Task.FromResult(false);
             }
 
-            return Task.FromResult(false);
+            if (!_deliRequestAccessor.Current.IsPreviewForContent(content.Id))
+            {
+                _logger.LogDebug("Request {path} is not a valid preview request", path);
+                return Task.FromResult(false);
+            }
+
+            frequest.SetCulture(culture);
+            frequest.SetPublishedContent(content);
+
+            _deliRequestAccessor.Finalize(content, culture);
+
+            return Task.FromResult(true);
+        }
+
+        private bool TryGetContent(string path, out int contentId, out string culture)
+        {
+            contentId = -1;
+            culture = null;
+
+            var parts = path.Split('/');
+
+            if (parts.Length != 2)
+                return false;
+
+            if (!_deliCulture.IsCultureSupported(parts[0]))
+                return false;
+
+            if (!int.TryParse(parts[1], out var id))
+                return false;
+
+            contentId = id;
+            culture = parts[0];
+
+            return true;
         }
     }
 }

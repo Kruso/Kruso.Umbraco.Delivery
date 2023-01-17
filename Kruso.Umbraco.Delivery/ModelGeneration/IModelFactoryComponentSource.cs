@@ -3,7 +3,7 @@ using Umbraco.Cms.Core.Models.PublishedContent;
 
 namespace Kruso.Umbraco.Delivery.ModelGeneration
 {
-    internal interface IModelFactoryComponentSource
+    public interface IModelFactoryComponentSource
     {
         IPropertyModelTemplate GetPropertyModelTemplate();
         IModelPropertyValueFactory GetPropertyValueFactory(IPublishedElement content, IPublishedProperty property);

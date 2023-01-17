@@ -8,17 +8,22 @@ namespace Kruso.Umbraco.Delivery.Routing
 {
     public interface IDeliRequest
     {
+        IPublishedContent Content { get; }
+        string Culture { get; }
+
+        HttpRequest Request { get; }
         RequestType RequestType { get; }
+        RequestOrigin RequestOrigin { get; }
+
         Uri CallingUri { get; }
         Uri OriginalUri { get; }
         IQueryCollection Query { get; }
         JwtSecurityToken Token { get; }
 
-        IPublishedContent Content { get; }
-        string Culture { get; }
-
         ModelFactoryOptions ModelFactoryOptions { get; }
 
         string ResponseMessage { get; set; }
+
+        bool IsPreviewForContent(int? id);
     }
 }

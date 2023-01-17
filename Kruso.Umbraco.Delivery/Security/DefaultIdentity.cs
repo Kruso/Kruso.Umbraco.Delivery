@@ -1,5 +1,7 @@
 ﻿using IdentityModel;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -8,12 +10,15 @@ using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.Security;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Extensions;
+using UmbCore = Umbraco.Cms.Core;
 
 namespace Kruso.Umbraco.Delivery.Security
 {
     public class DefaultIdentity : IUserIdentity
     {
         private readonly IPublicAccessService _publicAccessService;
+        private readonly IOptionsSnapshot<CookieAuthenticationOptions> _cookieOptionsSnapshot;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public Claim[] Claims { get; private set; }
 
@@ -35,26 +40,28 @@ namespace Kruso.Umbraco.Delivery.Security
 
         public string LastName => Claims.LastName();
 
-        public DefaultIdentity(IMemberManager memberManager, IBackOfficeSecurityAccessor backOfficeSecurityAccessor, IPublicAccessService publicAccessService)
+        public DefaultIdentity(IHttpContextAccessor httpContextAccessor, IMemberManager memberManager, IOptionsSnapshot<CookieAuthenticationOptions> cookieOptionsSnapshot, IPublicAccessService publicAccessService)
         {
             UserType = UserType.Visitor;
+
+            _httpContextAccessor = httpContextAccessor;
+            _cookieOptionsSnapshot = cookieOptionsSnapshot;
             _publicAccessService = publicAccessService;
 
             var claims = new List<Claim>();
-            var umbUser = backOfficeSecurityAccessor?.BackOfficeSecurity?.CurrentUser;
+            var umbUser = GetBackOfficeUser();
             if (umbUser != null)
             {
                 UserType = UserType.BackOffice;
                 claims
-                    .AddClaim(Constants.Claims.PreferredUserName, umbUser.Username)
-                    .AddClaim(JwtClaimTypes.Email, umbUser.Email)
-                    .AddClaim(JwtClaimTypes.GivenName, umbUser.Name?.Split(' ').FirstOrDefault())
-                    .AddClaim(JwtClaimTypes.FamilyName, umbUser.Name?.Split(' ').LastOrDefault());
+                    .AddClaim(Constants.Claims.PreferredUserName, umbUser.GetUsername())
+                    .AddClaim(JwtClaimTypes.Email, umbUser.GetEmail())
+                    .AddClaim(JwtClaimTypes.GivenName, umbUser.GetRealName()?.Split(' ').FirstOrDefault())
+                    .AddClaim(JwtClaimTypes.FamilyName, umbUser.GetRealName()?.Split(' ').LastOrDefault());
 
-                if (umbUser.Groups?.Any() ?? false)
+                if (umbUser.GetRoles()?.Any() ?? false)
                 {
-                    var roles = umbUser.Groups.Select(x => x.Name).Distinct();
-                    foreach (var role in roles)
+                    foreach (var role in umbUser.GetRoles())
                     {
                         claims.AddClaim(JwtClaimTypes.Role, role);
                     }
@@ -98,6 +105,20 @@ namespace Kruso.Umbraco.Delivery.Security
             Task.WaitAll(t);
 
             return t.Result;
+        }
+
+        private ClaimsIdentity GetBackOfficeUser()
+        {
+            var cookieOptions = _cookieOptionsSnapshot.Get(UmbCore.Constants.Security.BackOfficeAuthenticationType);
+
+            string backOfficeCookie = _httpContextAccessor.HttpContext?.Request?.Cookies[cookieOptions.Cookie.Name!];
+            if (backOfficeCookie != null)
+            {
+                var unprotected = cookieOptions.TicketDataFormat.Unprotect(backOfficeCookie!);
+                return unprotected!.Principal.GetUmbracoIdentity();
+            }
+
+            return null;
         }
     }
 }

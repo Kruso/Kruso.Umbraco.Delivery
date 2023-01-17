@@ -41,7 +41,6 @@ namespace Kruso.Umbraco.Delivery.Json
         {
             return node != null
                 && node.Id != Guid.Empty
-                && node.PageId != null
                 && !string.IsNullOrEmpty(node.Type);
         }
 

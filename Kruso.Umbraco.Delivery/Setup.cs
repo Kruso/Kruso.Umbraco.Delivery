@@ -102,23 +102,22 @@ namespace Kruso.Umbraco.Delivery
                 .AddSingleton<IModelTemplate, BlockModelTemplate>()
                 .AddSingleton<IModelTemplate, RouteModelTemplate>()
                 .AddSingleton<IModelTemplate, RefModelTemplate>()
-                .AddSingleton<IModelTemplate, MediaModelTemplate>()
                 .AddSingleton<IPropertyModelTemplate, PropertyModelTemplate>();
 
             services
                 .AddSingleton<IModelConverterComponentSource, ModelConverterComponentSource>()
-                .AddSingleton<IModelConverter, ModelConverter>()
-                .AddSingleton<ISearchQueryExecutor, SearchQueryExecutor>()
                 .AddSingleton<IModelFactoryComponentSource, ModelFactoryComponentSource>()
-                .AddTransient<IModelFactoryContext, ModelFactoryContext>()
-                .AddSingleton<IModelFactory, ModelFactory>();
+                .AddSingleton<ISearchQueryExecutorComponentSource, SearchQueryExecutorComponentSource>()
+                .AddSingleton<IModelConverter, ModelConverter>()
+                .AddSingleton<IModelFactory, ModelFactory>()
+                .AddSingleton<ISearchQueryExecutor, SearchQueryExecutor>()
+                .AddTransient<IModelFactoryContext, ModelFactoryContext>();
 
             services.Configure<UmbracoRenderingDefaultsOptions>(c =>
             {
                 c.DefaultControllerType = typeof(DeliRenderController);
             });
 
-            //services.AddConfig<DeliveryConfig>(configuration, "Umbraco.Delivery");
             services.AddConfig<DeliveryConfig>(configuration, "UmbracoDelivery");
 
             VersionHelper.RegisterVersion(typeof(Setup).Assembly);

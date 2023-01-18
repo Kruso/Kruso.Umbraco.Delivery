@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace Kruso.Umbraco.Delivery
 {
-    public class ModelNodeListConverterAttribute : IdentifiableAttribute
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+    public sealed class ModelNodeListConverterAttribute : IdentifiableAttribute
     {
         public ModelNodeListConverterAttribute(params string[] propertyNames)
             : base(propertyNames)

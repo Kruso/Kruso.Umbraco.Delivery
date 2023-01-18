@@ -1,29 +1,34 @@
 ﻿using Examine;
 using Kruso.Umbraco.Delivery.Extensions;
-using Kruso.Umbraco.Delivery.Json;
+using Kruso.Umbraco.Delivery.ModelConversion;
 using Kruso.Umbraco.Delivery.ModelGeneration;
 using Kruso.Umbraco.Delivery.Services;
+using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace Kruso.Umbraco.Delivery.Search
 {
     public class SearchQueryExecutor : ISearchQueryExecutor
     {
+        private readonly IServiceProvider _serviceProvider;
         private readonly IDeliContent _deliContent;
         private readonly IModelFactory _modelFactory;
+        private readonly IModelConverter _modelConverter;
         private readonly IExamineManager _examineManager;
 
-        private Dictionary<string, ISearchQuery> _searchQueries = null;
-
-        public SearchQueryExecutor(IEnumerable<ISearchQuery> searchQueries, IDeliContent deliContent, IModelFactory modelFactory, IExamineManager examineManager)
+        public SearchQueryExecutor(
+            IServiceProvider serviceProvider,
+            IDeliContent deliContent, 
+            IModelFactory modelFactory, 
+            IModelConverter modelConverter, 
+            IExamineManager examineManager)
         {
+            _serviceProvider = serviceProvider;
             _deliContent = deliContent;
             _modelFactory = modelFactory;
+            _modelConverter = modelConverter;
             _examineManager = examineManager;
-
-            _searchQueries = searchQueries.ToFilteredDictionary<ISearchQuery, SearchQueryAttribute>();
         }
 
         public SearchResult Execute(SearchRequest searchRequest)
@@ -46,22 +51,24 @@ namespace Kruso.Umbraco.Delivery.Search
                 var searchResults = searchQuery?.Execute(index.Searcher, searchRequest);
                 if (searchResults?.Any() ?? false)
                 {
-                    var pages = searchResults
-                        .Select(x => _deliContent.PublishedContent(Convert.ToInt32(x.Id)))
-                        .Skip(skip);
+                    var results = searchResults.Where(x => searchRequest.CustomFilterFunc?.Invoke(x) ?? true);
+
+                    results = searchRequest.CustomSortOrderFunc != null
+                        ? results.OrderBy(x => searchRequest.CustomSortOrderFunc(x)).Skip(skip)
+                        : results.Skip(skip);
 
                     if (take > 0)
-                        pages = pages.Take(take);
+                        results = results.Take(take);
 
-                    var pageModels = _modelFactory
-                        .CreatePages(pages, searchRequest.Culture)
+                    var pages = results
+                        .Select(x => _deliContent.PublishedContent(Convert.ToInt32(x.Id)));
+
+                    var pageModels = _modelConverter.Convert(_modelFactory.CreatePages(pages, searchRequest.Culture), TemplateType.Search)
                         .ToList();
 
                     res.totalCount = searchResults.TotalItemCount;
-                    res.pageResults = pageModels ?? Enumerable.Empty<JsonNode>();
+                    res.pageResults = pageModels;
                     res.success = true;
-
-                    return res;
                 }
             }
 
@@ -70,11 +77,11 @@ namespace Kruso.Umbraco.Delivery.Search
 
         private ISearchQuery GetSearchQuery(string queryName)
         {
-            var key = queryName.ToLower();
-
-            return _searchQueries.ContainsKey(key)
-                ? _searchQueries[key]
-                : null;
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                var componentSource = scope.ServiceProvider.GetService<ISearchQueryExecutorComponentSource>();
+                return componentSource.GetSearchQuery(queryName);
+            }
         }
     }
 }

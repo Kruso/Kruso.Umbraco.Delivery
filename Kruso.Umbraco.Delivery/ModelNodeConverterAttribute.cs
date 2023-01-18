@@ -1,4 +1,5 @@
 ﻿using Kruso.Umbraco.Delivery.Extensions;
+using System;
 using System.Linq;
 
 namespace Kruso.Umbraco.Delivery
@@ -6,7 +7,8 @@ namespace Kruso.Umbraco.Delivery
     /// <summary>
     /// Mark a class as a ModelConverter (also have the class implement the IModelConverter interface) using this attribute. 
     /// </summary>
-    public class ModelNodeConverterAttribute : IdentifiableAttribute
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+    public sealed class ModelNodeConverterAttribute : IdentifiableAttribute
     {
         public TemplateType ConverterType { get; private set; }
 

@@ -17,21 +17,24 @@ namespace Kruso.Umbraco.Delivery.Extensions
 
             foreach (var component in components.OrderBy(x => x.GetType().Namespace == thisNamespace ? 0 : 1))
             {
-                var attr = component.GetType().GetCustomAttributes(typeof(TA), true).FirstOrDefault() as TA;
-                if (attr != null)
+                foreach (var attr in component.GetType().GetCustomAttributes(typeof(TA), true).Cast<TA>())
                 {
-                    foreach (var c in attr.Components)
+                    if (attr != null)
                     {
-                        if (!res.ContainsKey(c))
+                        foreach (var c in attr.Components)
                         {
-                            res.Add(c, component);
-                        }
-                        else
-                        {
-                            res[c] = component;
+                            if (!res.ContainsKey(c))
+                            {
+                                res.Add(c, component);
+                            }
+                            else
+                            {
+                                res[c] = component;
+                            }
                         }
                     }
                 }
+
             }
 
             return res;

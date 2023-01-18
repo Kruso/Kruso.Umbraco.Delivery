@@ -1,4 +1,5 @@
-﻿using Kruso.Umbraco.Delivery.Json;
+﻿using Examine;
+using Kruso.Umbraco.Delivery.Json;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,9 @@ namespace Kruso.Umbraco.Delivery.Search
         public int Page { get; set; }
         public int PageSize { get; set; }
         public JsonNode Params { get; private set; } = new JsonNode();
+
+        public Func<ISearchResult, int> CustomSortOrderFunc;
+        public Func<ISearchResult, bool> CustomFilterFunc;
 
         public int IntParam(string parm)
         {

@@ -38,7 +38,7 @@ namespace Kruso.Umbraco.Delivery.Search
 
         public string StringParam(string parm)
         {
-            return Params.Val<string>(parm);
+            return Params.Val<string[]>(parm)?.First();
         }
 
         public string[] StringParams(string parm)
@@ -71,10 +71,7 @@ namespace Kruso.Umbraco.Delivery.Search
                 else
                 {
                     var vals = CreateStringArray(group.SelectMany(kvp => kvp.Value));
-                    if (vals.Length == 1)
-                        searchRequest.Params.AddProp(group.Key, vals.First());
-                    else if (vals.Length > 1)
-                        searchRequest.Params.AddProp(group.Key, vals);
+                    searchRequest.Params.AddProp(group.Key, vals);
                 }
             }
 

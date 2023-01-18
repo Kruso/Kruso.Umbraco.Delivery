@@ -100,6 +100,7 @@ namespace Kruso.Umbraco.Delivery
             services
                 .AddSingleton<IModelTemplate, PageModelTemplate>()
                 .AddSingleton<IModelTemplate, BlockModelTemplate>()
+                .AddSingleton<IModelTemplate, MediaModelTemplate>()
                 .AddSingleton<IModelTemplate, RouteModelTemplate>()
                 .AddSingleton<IModelTemplate, RefModelTemplate>()
                 .AddSingleton<IPropertyModelTemplate, PropertyModelTemplate>();

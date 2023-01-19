@@ -62,11 +62,18 @@ namespace Kruso.Umbraco.Delivery.Security
 
             if (!_deliCache.RemoveFromMemory(jwtToken))
             {
-                _logger.LogInformation($"Jwt single use token {ObfuscateToken(jwtToken)} already used or doesn't exist");
+                _logger.LogWarning($"Jwt single use token {ObfuscateToken(jwtToken)} already used or doesn't exist");
                 return new ValidateTokenResponse { Message = "Jwt single use token already used or doesn't exist" };
             }
 
-            return ValidateJwtToken(jwtToken, issuer, audience);
+            var res = ValidateJwtToken(jwtToken, issuer, audience);
+
+            if (!res.Succeeded)
+            {
+                _logger.LogWarning($"Jwt single use token {ObfuscateToken(jwtToken)} failed validation: {res.Message}");
+            }
+
+            return res;
         }
 
         public ValidateTokenResponse ValidateJwtToken(string jwtToken, string issuer, string audience = null)

@@ -48,7 +48,7 @@ namespace Kruso.Umbraco.Delivery.Routing
         {
             if (ShouldHandleRequest(context.Request))
             {
-                Debug.WriteLine(context.Request.AbsoluteUri());
+                var originalUri = context.Request.AbsoluteUri();
                 var callingAuthority = GetCallingAuthority(context);
                 if (callingAuthority != null)
                 {
@@ -57,7 +57,6 @@ namespace Kruso.Umbraco.Delivery.Routing
                     context.Request.PathBase = callingAuthority.CleanPath();
                 }
 
-                var originalUri = context.Request.AbsoluteUri();
                 var jwtToken = context.Request.GetJwtBearerToken();
                 _deliRequestAccessor.Initialize(context.Request, originalUri, jwtToken);
             }

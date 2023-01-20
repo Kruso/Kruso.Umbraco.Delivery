@@ -13,5 +13,6 @@ namespace Kruso.Umbraco.Delivery.Routing
         void InitializeIndexing(IPublishedContent content, string culture, Uri callingUri);
         void Initialize(HttpRequest request, Uri originalUri, string jwtToken);
         IDeliRequest Finalize(IPublishedContent content, string culture, Uri callingUri = null);
+        IDeliRequest Unfinalize();
     }
 }

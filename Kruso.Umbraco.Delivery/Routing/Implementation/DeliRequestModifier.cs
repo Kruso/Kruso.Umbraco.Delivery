@@ -1,11 +1,8 @@
 ﻿using Kruso.Umbraco.Delivery.Extensions;
 using Kruso.Umbraco.Delivery.Services;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.Extensions.Logging;
-using Org.BouncyCastle.Bcpg.OpenPgp;
 using System;
-using System.IO;
 using System.Linq;
 using Umbraco.Cms.Core.Routing;
 using Umbraco.Extensions;
@@ -14,7 +11,6 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
 {
     public class DeliRequestModifier : IDeliRequestModifier
     {
-        public const string DefaultForwardedHeader = "X-Forwarded-For";
         public const string HostHeader = "X-Forwarded-Host";
         public const string ProtoHeader = "X-Forwarded-Proto";
         public const string PrefixHeader = "X-Forwarded-Prefix";
@@ -82,9 +78,10 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
         public Uri DetermineCallingHost(HttpRequest request)
         {
             var config = _deliConfig.Get();
-            var callingHost =
-                GetCallingHostFromHeader(request, config.ForwardedHeader)
-                ?? GetCallingHostFromHeader(request, DefaultForwardedHeader);
+
+            var callingHost = string.IsNullOrEmpty(config.ForwardedHeader)
+                ? GetCallingHostFromHeader(request, config.ForwardedHeader)
+                : null;
 
             if (string.IsNullOrEmpty(callingHost))
             {

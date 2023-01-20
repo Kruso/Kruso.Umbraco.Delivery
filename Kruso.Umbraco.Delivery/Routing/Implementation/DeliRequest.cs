@@ -11,6 +11,7 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
     public sealed class DeliRequest : IDeliRequest
     {
         private bool _finalized = false;
+        private Uri _originalCallingUri;
 
         public IPublishedContent Content { get; private set; }
         public string Culture { get; private set; }
@@ -23,6 +24,7 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
 
         public Uri OriginalUri { get; private set; }
         public IQueryCollection Query => Request?.Query;
+        public string JwtToken { get; private set; }
         public JwtSecurityToken Token { get; internal set; }
 
         public string ResponseMessage { get; set; }
@@ -43,26 +45,27 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             RequestOrigin = GetRequestOrigin();
         }
 
-        internal DeliRequest(HttpRequest request, Uri originalUri)
+        internal DeliRequest(HttpRequest request, Uri originalUri, string jwtToken)
         {
             Request = request;
+            JwtToken = jwtToken;
             CallingUri = request.AbsoluteUri();
             OriginalUri = originalUri;
             RequestOrigin = GetRequestOrigin();
         }
 
-        public bool IsPreviewForContent(int? id)
+        public bool IsValidPreviewRequest()
         {
-            return Token != null && id != null && id.HasValue
+            return Token != null && Content != null
                 && int.TryParse(Token.Claims.ValueOfType(DeliveryClaimTypes.PreviewId), out var tokenContentId)
-                && tokenContentId == id;
+                && tokenContentId == Content.Id;
         }
 
         private ModelFactoryOptions CreateModelFactoryOptions()
         {
             var res = new ModelFactoryOptions
             {
-                LoadPreview = IsPreviewForContent(Content?.Id),
+                LoadPreview = IsValidPreviewRequest(),
                 QueryString = Query,
                 IncludeFields = Query.Strs("include"),
                 ExcludeFields = Query.Strs("exclude")
@@ -75,6 +78,21 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             return res;
         }
 
+        internal void UnFinalize()
+        {
+            Content = null;
+            Culture = null;
+            _finalized = false;
+
+            if (_originalCallingUri != null)
+            {
+                CallingUri = _originalCallingUri;
+                _originalCallingUri = null;
+            }
+
+            ModelFactoryOptions = CreateModelFactoryOptions();
+        }
+
         internal void Finalize(IPublishedContent content, string culture, Uri callingUri = null)
         {
             Content = content;
@@ -82,14 +100,17 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             _finalized = true;
 
             if (callingUri != null)
+            {
+                _originalCallingUri = CallingUri;
                 CallingUri = callingUri;
+            }
 
             ModelFactoryOptions = CreateModelFactoryOptions();
         }
 
         private RequestType GetRequestType()
         {
-            if (IsPreviewForContent(Content?.Id))
+            if (IsValidPreviewRequest())
                 return RequestType.PreviewContent;
 
             if (!_finalized)

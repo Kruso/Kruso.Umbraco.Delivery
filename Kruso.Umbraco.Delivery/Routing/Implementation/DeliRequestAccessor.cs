@@ -1,5 +1,4 @@
-﻿using Kruso.Umbraco.Delivery.Extensions;
-using Kruso.Umbraco.Delivery.Security;
+﻿using Kruso.Umbraco.Delivery.Security;
 using Kruso.Umbraco.Delivery.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,9 +38,7 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
 
         public void Initialize(HttpRequest request, Uri originalUri, string jwtToken)
         {
-            var deliRequest = new DeliRequest(request, originalUri);
-            deliRequest.Token = _deliSecurity.ValidateJwtPreviewToken(jwtToken, deliRequest.OriginalUri.Authority, deliRequest.CallingUri.Authority);
-
+            var deliRequest = new DeliRequest(request, originalUri, jwtToken);
             _deliCache.AddToRequest(CacheKey, deliRequest);
         }
 
@@ -49,6 +46,17 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
         {
             var deliRequest = _deliCache.GetFromRequest<DeliRequest>(CacheKey);
             deliRequest?.Finalize(content, culture, callingUri);
+
+            if (!string.IsNullOrEmpty(deliRequest.JwtToken))
+                deliRequest.Token = _deliSecurity.ValidateJwtPreviewToken(deliRequest.JwtToken, deliRequest.OriginalUri.Authority, deliRequest.CallingUri.Authority);
+
+            return deliRequest;
+        }
+
+        public IDeliRequest Unfinalize()
+        {
+            var deliRequest = _deliCache.GetFromRequest<DeliRequest>(CacheKey);
+            deliRequest?.UnFinalize();
 
             return deliRequest;
         }

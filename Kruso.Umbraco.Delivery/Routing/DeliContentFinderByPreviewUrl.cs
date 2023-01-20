@@ -16,7 +16,7 @@ namespace Kruso.Umbraco.Delivery.Routing
         private readonly IDeliRequestAccessor _deliRequestAccessor;
         private readonly IDeliContentLoader _deliContentLoader;
         private readonly IDeliCulture _deliCulture;
-
+        private readonly IDeliUrl _deliUrl;
         /// <summary>
         /// Initializes a new instance of the <see cref="ContentFinderByIdPath"/> class.
         /// </summary>
@@ -24,11 +24,13 @@ namespace Kruso.Umbraco.Delivery.Routing
             IDeliRequestAccessor deliRequestAccessor,
             IDeliContentLoader deliContentLoader,
             IDeliCulture deliCulture,
+            IDeliUrl deliUrl,
             ILogger<ContentFinderByIdPath> logger)
         {
             _deliRequestAccessor = deliRequestAccessor ?? throw new System.ArgumentNullException(nameof(deliRequestAccessor));
             _deliContentLoader = deliContentLoader ?? throw new System.ArgumentNullException(nameof(deliContentLoader));
             _deliCulture = deliCulture ?? throw new System.ArgumentNullException(nameof(deliCulture));
+            _deliUrl = deliUrl ?? throw new System.ArgumentNullException(nameof(deliUrl));
             _logger = logger ?? throw new System.ArgumentNullException(nameof(logger));
         }
 
@@ -60,16 +62,17 @@ namespace Kruso.Umbraco.Delivery.Routing
                 return Task.FromResult(false);
             }
 
-            if (!_deliRequestAccessor.Current.IsPreviewForContent(content.Id))
+            var callingUrl = _deliUrl.GetAbsoluteDeliveryUrl(content, culture);
+            var deliRequest = _deliRequestAccessor.Finalize(content, culture, new Uri(callingUrl));
+            if (!deliRequest.IsValidPreviewRequest())
             {
                 _logger.LogDebug("Request {path} is not a valid preview request", path);
+                _deliRequestAccessor.Unfinalize();
                 return Task.FromResult(false);
             }
 
             frequest.SetCulture(culture);
             frequest.SetPublishedContent(content);
-
-            _deliRequestAccessor.Finalize(content, culture);
 
             return Task.FromResult(true);
         }

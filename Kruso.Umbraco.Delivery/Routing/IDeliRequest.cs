@@ -24,6 +24,6 @@ namespace Kruso.Umbraco.Delivery.Routing
 
         string ResponseMessage { get; set; }
 
-        bool IsPreviewForContent(int? id);
+        bool IsValidPreviewRequest();
     }
 }

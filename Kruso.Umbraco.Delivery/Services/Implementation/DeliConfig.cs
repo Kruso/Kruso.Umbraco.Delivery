@@ -1,35 +1,25 @@
 ﻿using Kruso.Umbraco.Delivery.Routing;
-using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Linq;
 
 namespace Kruso.Umbraco.Delivery.Services.Implementation
 {
     public class DeliConfig : IDeliConfig
     {
-        private readonly IServiceProvider _serviceProvider;
+        private readonly IDeliRequestAccessor _deliRequestAccessor;
         private readonly DeliveryConfig _deliveryConfig;
 
-        public DeliConfig(IServiceProvider serviceProvider, DeliveryConfig deliveryConfig)
+        public DeliConfig(IDeliRequestAccessor deliRequestAccessor, DeliveryConfig deliveryConfig)
         {
-            _serviceProvider = serviceProvider;
+            _deliRequestAccessor = deliRequestAccessor;
             _deliveryConfig = deliveryConfig;
         }
 
-        public DeliveryConfigValues Get(string authority = null)
+        public DeliveryConfigValues Get(Uri callingUri = null)
         {
-            using (var scope = _serviceProvider.CreateScope())
-            {
-                var deliRequestAccessor = scope.ServiceProvider.GetService<IDeliRequestAccessor>();
-                authority ??= deliRequestAccessor.Current?.CallingUri?.Authority;
-                
-                return _deliveryConfig.GetConfigValues(authority);
-            }
+            callingUri ??= _deliRequestAccessor.Current?.CallingUri;
+            return _deliveryConfig.GetConfigValues(callingUri);
         }
 
-        public bool IsMultiSite()
-        {
-            return (_deliveryConfig.Sites?.Count() ?? 0) > 1;
-        }
+        public bool IsMultiSite() => _deliveryConfig.IsMultiSite();
     }
 }

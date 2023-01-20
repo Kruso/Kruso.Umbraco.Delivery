@@ -17,9 +17,9 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
 
         public HttpRequest Request { get; private set; }
         public RequestType RequestType => GetRequestType();
-        public RequestOrigin RequestOrigin => GetRequestOrigin();
+        public RequestOrigin RequestOrigin { get; private set; } = RequestOrigin.Backend;
 
-        public Uri CallingUri => Request.AbsoluteUri();
+        public Uri CallingUri { get; private set; }
 
         public Uri OriginalUri { get; private set; }
         public IQueryCollection Query => Request?.Query;
@@ -32,18 +32,23 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
         internal DeliRequest()
         {
             ModelFactoryOptions = CreateModelFactoryOptions();
+            RequestOrigin = GetRequestOrigin();
         }
 
         internal DeliRequest(HttpRequest request)
         {
             Request = request;
+            CallingUri =  request.AbsoluteUri();
             OriginalUri = request.AbsoluteUri();
+            RequestOrigin = GetRequestOrigin();
         }
 
         internal DeliRequest(HttpRequest request, Uri originalUri)
         {
             Request = request;
+            CallingUri = request.AbsoluteUri();
             OriginalUri = originalUri;
+            RequestOrigin = GetRequestOrigin();
         }
 
         public bool IsPreviewForContent(int? id)
@@ -70,11 +75,14 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             return res;
         }
 
-        internal void Finalize(IPublishedContent content, string culture)
+        internal void Finalize(IPublishedContent content, string culture, Uri callingUri = null)
         {
             Content = content;
             Culture = culture;
             _finalized = true;
+
+            if (callingUri != null)
+                CallingUri = callingUri;
 
             ModelFactoryOptions = CreateModelFactoryOptions();
         }

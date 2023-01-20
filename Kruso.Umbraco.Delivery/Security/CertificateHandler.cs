@@ -1,4 +1,5 @@
 ﻿using Kruso.Umbraco.Delivery.Services;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Reflection;
@@ -8,12 +9,12 @@ namespace Kruso.Umbraco.Delivery.Security
 {
     public class CertificateHandler : ICertificateHandler
     {
-        private readonly IDeliConfig _deliConfig;
+        private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<CertificateHandler> _log;
 
-        public CertificateHandler(IDeliConfig deliConfig, ILogger<CertificateHandler> log) 
+        public CertificateHandler(IServiceProvider serviceProvider, ILogger<CertificateHandler> log) 
         {
-            _deliConfig = deliConfig;
+            _serviceProvider = serviceProvider;
             _log = log;
         }
 
@@ -28,7 +29,7 @@ namespace Kruso.Umbraco.Delivery.Security
         {
             try
             {
-                var config = _deliConfig.Get();
+                var config = GetDeliConfig().Get();
                 if (!string.IsNullOrEmpty(config.CertificateResourceName) && !string.IsNullOrEmpty(config.CertificatePassword))
                 {
                     using (var certStream = Assembly.GetEntryAssembly().GetManifestResourceStream(config.CertificateResourceName))
@@ -56,7 +57,7 @@ namespace Kruso.Umbraco.Delivery.Security
         {
             try
             {
-                var config = _deliConfig.Get();
+                var config = GetDeliConfig().Get();
                 if (!string.IsNullOrEmpty(config.CertificateFileName) && !string.IsNullOrEmpty(config.CertificatePassword))
                 {
                     return new X509Certificate2(AppDomain.CurrentDomain.BaseDirectory + config.CertificateFileName, config.CertificatePassword);
@@ -74,7 +75,7 @@ namespace Kruso.Umbraco.Delivery.Security
         {
             try
             {
-                var config = _deliConfig.Get();
+                var config = GetDeliConfig().Get();
                 if (!string.IsNullOrEmpty(config.CertificateThumbprint))
                 {
                     var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
@@ -105,6 +106,14 @@ namespace Kruso.Umbraco.Delivery.Security
             }
 
             return null;
+        }
+
+        private IDeliConfig GetDeliConfig()
+        {
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                return scope.ServiceProvider.GetService<IDeliConfig>();
+            }
         }
     }
 }

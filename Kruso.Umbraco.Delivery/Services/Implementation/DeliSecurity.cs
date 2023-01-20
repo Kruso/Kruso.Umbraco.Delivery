@@ -13,13 +13,11 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
     public class DeliSecurity : IDeliSecurity
     {
         private readonly IAuthTokenHandler _authTokenHandler;
-        private readonly IDeliConfig _deliConfig;
         private readonly IServiceProvider _serviceProvider;
 
-        public DeliSecurity(IDeliConfig deliConfig, IAuthTokenHandler authTokenHandler, IServiceProvider serviceProvider)
+        public DeliSecurity(IAuthTokenHandler authTokenHandler, IServiceProvider serviceProvider)
         {
             _authTokenHandler = authTokenHandler;
-            _deliConfig = deliConfig;
             _serviceProvider = serviceProvider;
         }
 
@@ -35,7 +33,6 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
                     .AddClaim(DeliveryClaimTypes.PreviewId, deliRequest.Content.Id)
                     .AddClaim(DeliveryClaimTypes.PreviewCulture, deliRequest.Culture);
 
-                var config = _deliConfig.Get();
                 var jwt = _authTokenHandler.CreateSingleUseJwtToken(deliRequest.OriginalUri.Authority, deliRequest.CallingUri.Authority, 60, claims.ToArray());
 
                 return jwt;

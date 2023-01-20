@@ -3,6 +3,9 @@ using Kruso.Umbraco.Delivery.Routing.Implementation;
 using Kruso.Umbraco.Delivery.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Runtime.CompilerServices;
 using Umbraco.Cms.Core.Models.Membership;
 using Umbraco.Cms.Core.Security;
 using Umbraco.Cms.Web.Common.Authorization;
@@ -21,14 +24,18 @@ namespace Kruso.Umbraco.Delivery.Controllers
         private readonly IBackOfficeSecurityAccessor _backofficeSecurityAccessor;
         private readonly UmbCore.Web.ICookieManager _cookieManager;
 
+        private readonly ILogger<PreviewApiController> _log;
+
         public PreviewApiController(
-            IDeliContent deliContent, 
-            IDeliSecurity deliSecurity, 
-            IDeliUrl deliUrl, 
+            IDeliContent deliContent,
+            IDeliSecurity deliSecurity,
+            IDeliUrl deliUrl,
             IDeliRequestAccessor deliRequestAccessor,
 
             IBackOfficeSecurityAccessor backofficeSecurityAccessor,
-            UmbCore.Web.ICookieManager cookieManager) 
+            UmbCore.Web.ICookieManager cookieManager,
+
+            ILogger<PreviewApiController> log) 
         {
             _deliContent = deliContent;
             _deliSecurity = deliSecurity;
@@ -37,6 +44,8 @@ namespace Kruso.Umbraco.Delivery.Controllers
 
             _backofficeSecurityAccessor = backofficeSecurityAccessor;
             _cookieManager = cookieManager;
+
+            _log = log;
         }
 
         /// <summary>
@@ -50,9 +59,14 @@ namespace Kruso.Umbraco.Delivery.Controllers
             EnterPreview(id);
 
             var content = _deliContent.PublishedContent(id);
-            _deliRequestAccessor.Finalize(content, culture);
+            if (content == null)
+            {
+                _log.LogError($"Failed to find preview content for id = {id}, culture = {culture}");
+                return NotFound();
+            }
 
-            var deliRequest = _deliRequestAccessor.Current;
+            var callingUrl = _deliUrl.GetAbsoluteDeliveryUrl(content, culture);
+            var deliRequest = _deliRequestAccessor.Finalize(content, culture, new Uri(callingUrl));
 
             var jwt = _deliSecurity.CreateJwtPreviewToken(deliRequest.OriginalUri.Authority, deliRequest.CallingUri.Authority);
             var url = _deliUrl.GetPreviewPaneUrl(jwt);

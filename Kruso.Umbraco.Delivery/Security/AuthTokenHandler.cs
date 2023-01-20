@@ -55,12 +55,12 @@ namespace Kruso.Umbraco.Delivery.Security
 
         public ValidateTokenResponse ValidateSingleUseJwtToken(string jwtToken, string issuer, string audience = null)
         {
-            _logger.LogInformation($"Jwt token {ObfuscateToken(jwtToken)} validating. Issuer = {issuer}, Audience = {audience}");
-
             if (string.IsNullOrEmpty(jwtToken))
             {
                 return new ValidateTokenResponse { Message = "No single use access token" };
             }
+
+            _logger.LogInformation($"Jwt token {ObfuscateToken(jwtToken)} validating. Issuer = {issuer}, Audience = {audience}");
 
             if (!_deliCache.RemoveFromMemory(jwtToken))
             {

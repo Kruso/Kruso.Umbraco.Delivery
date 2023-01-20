@@ -75,56 +75,5 @@ namespace Kruso.Umbraco.Delivery.Extensions
 
             return nvc;
         }
-
-        public static string CleanPath(this string path)
-        {
-            if (path == null)
-                path = string.Empty;
-
-            path = path.TrimStart('#');
-
-            if (path.Contains('?'))
-                path = path.Substring(0, path.IndexOf('?'));
-
-            if (path.Contains('#'))
-                path = path.Substring(0, path.IndexOf('#'));
-
-            if (!path.EndsWith("/"))
-                path += "/";
-
-            if (!path.StartsWith("/"))
-                path = "/" + path;
-
-            return path.ToLower();
-        }
-
-        public static string[] Segments(this string path)
-        {
-            var res = path.CleanPath().Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Select(x => $"/{x}")
-                .ToArray();
-
-            return res.Length == 0
-                ? new string[] { "/" }
-                : res;
-        }
-
-        public static string MatchableSegment(this string[] segments)
-        {
-            if (segments == null || segments.Length == 0)
-                return "/";
-
-            var res = segments.Length == 1
-                ? segments[0]
-                : segments[1];
-
-            if (!res.StartsWith("/"))
-                res = $"/{res}";
-
-            if (!res.EndsWith("/"))
-                res = $"{res}/";
-
-            return res;
-        }
     }
 }

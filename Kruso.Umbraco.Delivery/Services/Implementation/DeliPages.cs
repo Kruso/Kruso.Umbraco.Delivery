@@ -78,13 +78,13 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
 
         public IPublishedContent SettingsPage(string culture)
         {
-            var config = _deliveryConfig.GetConfigValues(_deliRequestAccessor.Current?.CallingUri.Authority);
+            var config = _deliveryConfig.GetConfigValues(_deliRequestAccessor.Current?.CallingUri);
             return FindStartPageRelative(config.SettingsType, culture);
         }
 
         public IPublishedContent NotFoundPage(string culture)
         {
-            var config = _deliveryConfig.GetConfigValues(_deliRequestAccessor.Current?.CallingUri.Authority);
+            var config = _deliveryConfig.GetConfigValues(_deliRequestAccessor.Current?.CallingUri);
             return FindStartPageRelative(config.NotFoundType, culture) ?? FindStartPageRelative(config.NotFoundType, _deliCulture.DefaultCulture);
         }
 

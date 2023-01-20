@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Kruso.Umbraco.Delivery.Extensions;
+using System;
 using System.Linq;
 
 namespace Kruso.Umbraco.Delivery
@@ -8,17 +8,19 @@ namespace Kruso.Umbraco.Delivery
     {
         public DeliveryConfigBase[] Sites { get; set; }
 
-        public DeliveryConfigValues GetConfigValues(string frontendHost)
+        public DeliveryConfigValues GetConfigValues(Uri callingUri = null)
         {
-            var siteValues = Sites?.FirstOrDefault(s => s.FrontendHost == frontendHost);
+            var siteValues = !IsMultiSite()
+                ? Sites?.FirstOrDefault()
+                : Sites.FirstOrDefault(s => IsMatchingAuthority(FrontendHost, callingUri));
 
             var values = new DeliveryConfigValues
             {
-                FrontendHost = string.IsNullOrEmpty(siteValues?.FrontendHost) ? FrontendHost : siteValues.FrontendHost,
-                NotFoundType = string.IsNullOrEmpty(siteValues?.NotFoundType) ? NotFoundType : siteValues.NotFoundType,
-                SettingsType = string.IsNullOrEmpty(siteValues?.SettingsType) ? SettingsType : siteValues.SettingsType,
-                RobotsTxtProperty = string.IsNullOrEmpty(siteValues?.RobotsTxtProperty) ? RobotsTxtProperty : siteValues.RobotsTxtProperty,
-                MediaCdnUrl = string.IsNullOrEmpty(siteValues?.MediaCdnUrl) ? MediaCdnUrl : siteValues.MediaCdnUrl,
+                FrontendHost = GetValue(siteValues?.FrontendHost, FrontendHost),
+                NotFoundType = GetValue(siteValues?.NotFoundType, NotFoundType),
+                SettingsType = GetValue(siteValues?.SettingsType, SettingsType),
+                RobotsTxtProperty = GetValue(siteValues?.RobotsTxtProperty, RobotsTxtProperty),
+                MediaCdnUrl = GetValue(siteValues?.MediaCdnUrl, MediaCdnUrl),
                 ForwardedHeader = ForwardedHeader,
                 CertificateThumbprint = CertificateThumbprint,
                 CertificateFileName = CertificateFileName,
@@ -27,6 +29,24 @@ namespace Kruso.Umbraco.Delivery
             };
 
             return values;
+        }
+
+        public bool IsMultiSite() => (Sites?.Length ?? 0) > 1;
+
+        private string GetValue(string siteValue, string defaultValue)
+        {
+            return string.IsNullOrEmpty(siteValue)
+                ? defaultValue
+                : siteValue;
+        }
+
+        private bool IsMatchingAuthority(string frontendHost, Uri callingUri)
+        {
+            var frontendUri = frontendHost.AbsoluteUri();
+            if (callingUri == null || frontendUri == null)
+                return false;
+
+            return callingUri.Authority == callingUri.Authority;
         }
     }
 

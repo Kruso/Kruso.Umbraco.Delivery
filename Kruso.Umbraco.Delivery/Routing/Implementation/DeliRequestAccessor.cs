@@ -39,8 +39,8 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
 
         public void Initialize(HttpRequest request, Uri originalUri, string jwtToken)
         {
-            var token = _deliSecurity.ValidateJwtPreviewToken(request, originalUri);
-            var deliRequest = new DeliRequest(request, originalUri, token);
+            var deliRequest = new DeliRequest(request, originalUri);
+            deliRequest.Token = _deliSecurity.ValidateJwtPreviewToken(jwtToken, deliRequest.OriginalUri.Authority, deliRequest.CallingUri.Authority);
 
             _deliCache.AddToRequest(CacheKey, deliRequest);
         }

@@ -23,7 +23,7 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
 
         public Uri OriginalUri { get; private set; }
         public IQueryCollection Query => Request?.Query;
-        public JwtSecurityToken Token { get; private set; }
+        public JwtSecurityToken Token { get; internal set; }
 
         public string ResponseMessage { get; set; }
 
@@ -40,11 +40,10 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             OriginalUri = request.AbsoluteUri();
         }
 
-        internal DeliRequest(HttpRequest request, Uri originalUri, JwtSecurityToken token)
+        internal DeliRequest(HttpRequest request, Uri originalUri)
         {
             Request = request;
             OriginalUri = originalUri;
-            Token = token;
         }
 
         public bool IsPreviewForContent(int? id)

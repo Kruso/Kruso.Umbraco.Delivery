@@ -47,7 +47,7 @@ namespace Kruso.Umbraco.Delivery.Security
                 var token = tokenHandler.CreateToken(tokenDescriptor);
                 var jwtToken = tokenHandler.WriteToken(token);
 
-                _logger.LogInformation($"Jwt token {ObfuscateToken(jwtToken)} created");
+                _logger.LogInformation($"Jwt token {ObfuscateToken(jwtToken)} created. Issuer = {issuer}, Audience = {audience}");
                 
                 return jwtToken;
             }
@@ -55,6 +55,8 @@ namespace Kruso.Umbraco.Delivery.Security
 
         public ValidateTokenResponse ValidateSingleUseJwtToken(string jwtToken, string issuer, string audience = null)
         {
+            _logger.LogInformation($"Jwt token {ObfuscateToken(jwtToken)} validating. Issuer = {issuer}, Audience = {audience}");
+
             if (string.IsNullOrEmpty(jwtToken))
             {
                 return new ValidateTokenResponse { Message = "No single use access token" };
@@ -70,7 +72,7 @@ namespace Kruso.Umbraco.Delivery.Security
 
             if (!res.Succeeded)
             {
-                _logger.LogWarning($"Jwt single use token {ObfuscateToken(jwtToken)} failed validation: {res.Message}");
+                _logger.LogWarning($"Jwt single use token {ObfuscateToken(jwtToken)} failed validation. Issuer = {issuer}, Audience = {audience}");
             }
 
             return res;

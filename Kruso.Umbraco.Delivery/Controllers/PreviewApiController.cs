@@ -1,4 +1,5 @@
 ﻿using Kruso.Umbraco.Delivery.Routing;
+using Kruso.Umbraco.Delivery.Routing.Implementation;
 using Kruso.Umbraco.Delivery.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -51,7 +52,9 @@ namespace Kruso.Umbraco.Delivery.Controllers
             var content = _deliContent.PublishedContent(id);
             _deliRequestAccessor.Finalize(content, culture);
 
-            var jwt = _deliSecurity.CreateJwtPreviewToken();
+            var deliRequest = _deliRequestAccessor.Current;
+
+            var jwt = _deliSecurity.CreateJwtPreviewToken(deliRequest.OriginalUri.Authority, deliRequest.CallingUri.Authority);
             var url = _deliUrl.GetPreviewPaneUrl(jwt);
 
             return Redirect(url);

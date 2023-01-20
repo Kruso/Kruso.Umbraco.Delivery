@@ -6,7 +6,7 @@ namespace Kruso.Umbraco.Delivery.Services
 {
     public interface IDeliSecurity
     {
-        string CreateJwtPreviewToken();
-        JwtSecurityToken ValidateJwtPreviewToken(HttpRequest request, Uri originalUri);
+        string CreateJwtPreviewToken(string issuer, string audience = null);
+        JwtSecurityToken ValidateJwtPreviewToken(string jwtToken, string issuer, string audience = null);
     }
 }

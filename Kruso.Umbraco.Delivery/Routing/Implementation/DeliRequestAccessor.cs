@@ -45,10 +45,13 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
         public IDeliRequest Finalize(IPublishedContent content, string culture, Uri callingUri = null)
         {
             var deliRequest = _deliCache.GetFromRequest<DeliRequest>(CacheKey);
-            deliRequest?.Finalize(content, culture, callingUri);
+            if (deliRequest != null)
+            {
+                deliRequest.Finalize(content, culture, callingUri);
 
-            if (!string.IsNullOrEmpty(deliRequest.JwtToken))
-                deliRequest.Token = _deliSecurity.ValidateJwtPreviewToken(deliRequest.JwtToken, deliRequest.OriginalUri.Authority, deliRequest.CallingUri.Authority);
+                if (!string.IsNullOrEmpty(deliRequest.JwtToken))
+                    deliRequest.Token = _deliSecurity.ValidateJwtPreviewToken(deliRequest.JwtToken, deliRequest.OriginalUri.Authority, deliRequest.CallingUri.Authority);
+            }
 
             return deliRequest;
         }

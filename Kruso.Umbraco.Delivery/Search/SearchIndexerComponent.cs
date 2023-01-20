@@ -84,7 +84,7 @@ namespace Kruso.Umbraco.Delivery.Search
                                     var modelConverter = scope.ServiceProvider.GetService<IModelConverter>();
                                     var modelFactory = scope.ServiceProvider.GetService<IModelFactory>();
                                     var deliContent = scope.ServiceProvider.GetService<IDeliContent>();
-
+                                    var deliUrl = scope.ServiceProvider.GetService<IDeliUrl>();
                                     try
                                     {
                                         var modelNodesByCulture = new Dictionary<string, JsonNode>();
@@ -92,7 +92,8 @@ namespace Kruso.Umbraco.Delivery.Search
                                         {
                                             umbCulture.WithCultureContext(culture, () =>
                                             {
-                                                deliRequestAccessor.InitializeIndexing(content, culture);
+                                                var callingUri = deliUrl.GetFrontendHostUri(content, culture);
+                                                deliRequestAccessor.InitializeIndexing(content, culture, callingUri);
 
                                                 var modelNode = deliContent.IsPage(content)
                                                     ? modelConverter.Convert(modelFactory.CreatePage(content, culture), TemplateType.Page)

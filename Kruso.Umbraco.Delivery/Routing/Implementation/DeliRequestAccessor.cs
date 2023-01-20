@@ -29,10 +29,10 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             _serviceProvider = serviceProvider;
         }
 
-        public void InitializeIndexing(IPublishedContent content, string culture)
+        public void InitializeIndexing(IPublishedContent content, string culture, Uri callingUri)
         {
             var deliRequest = new DeliRequest();
-            deliRequest.Finalize(content, culture);
+            deliRequest.Finalize(content, culture, callingUri);
 
             _deliCache.ReplaceOnRequest(CacheKey, deliRequest);
         }
@@ -45,10 +45,12 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             _deliCache.AddToRequest(CacheKey, deliRequest);
         }
 
-        public void Finalize(IPublishedContent content, string culture)
+        public IDeliRequest Finalize(IPublishedContent content, string culture, Uri callingUri = null)
         {
             var deliRequest = _deliCache.GetFromRequest<DeliRequest>(CacheKey);
-            deliRequest?.Finalize(content, culture);
+            deliRequest?.Finalize(content, culture, callingUri);
+
+            return deliRequest;
         }
 
         private IUserIdentity GetUserIdentity()

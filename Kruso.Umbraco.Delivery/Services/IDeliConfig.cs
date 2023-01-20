@@ -8,7 +8,7 @@ namespace Kruso.Umbraco.Delivery.Services
 {
     public interface IDeliConfig
     {
-        DeliveryConfigValues Get(string authority = null);
+        DeliveryConfigValues Get(Uri callingUri = null);
         bool IsMultiSite();
     }
 }

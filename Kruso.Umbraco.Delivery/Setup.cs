@@ -61,7 +61,6 @@ namespace Kruso.Umbraco.Delivery
                 .AddSingleton<IDeliPages, DeliPages>()
                 .AddSingleton<IDeliDataTypes, DeliDataTypes>()
                 .AddSingleton<IDeliContentLoader, DeliContentLoader>()
-                .AddSingleton<IDeliRequestAccessor, DeliRequestAccessor>()
                 .AddSingleton<ICertificateHandler, CertificateHandler>()
                 .AddSingleton<IAuthTokenHandler, AuthTokenHandler>()
                 .AddSingleton<IDeliContentTypes, DeliContentTypes>()
@@ -71,6 +70,8 @@ namespace Kruso.Umbraco.Delivery
 
             services
                 .AddTransient<XForwardedMiddleware>()
+                .AddSingleton<IDeliRequestModifier, DeliRequestModifier>()
+                .AddSingleton<IDeliRequestAccessor, DeliRequestAccessor>()
                 .AddScoped<IUserIdentity, DefaultIdentity>()
                 .AddScoped<PageRenderer>()
                 .AddScoped<ManifestRenderer>()

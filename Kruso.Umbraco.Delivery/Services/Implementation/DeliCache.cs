@@ -102,7 +102,7 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             var res = !string.IsNullOrEmpty(cacheKey);
 
             if (!res)
-                _logger.LogInformation($"Invalid for memory cache. Cache key {cacheKey}");
+                _logger.LogDebug($"Invalid for memory cache. Cache key {cacheKey}");
 
             return res;
         }
@@ -112,7 +112,7 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             var res = !string.IsNullOrEmpty(cacheKey) && _httpContextAccessor.HttpContext != null;
 
             if (!res)
-                _logger.LogInformation($"Invalid for request cache. Cache key {cacheKey}, HttpContext: {_httpContextAccessor.HttpContext != null}");
+                _logger.LogDebug($"Invalid for request cache. Cache key {cacheKey}, HttpContext: {_httpContextAccessor.HttpContext != null}");
 
             return res;
         }

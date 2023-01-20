@@ -13,31 +13,22 @@ namespace Kruso.Umbraco.Delivery.Routing
     public class DeliContentFinderByPreviewUrl : IContentFinder
     {
         private readonly ILogger<ContentFinderByIdPath> _logger;
-        private readonly IRequestAccessor _requestAccessor;
-        private readonly WebRoutingSettings _webRoutingSettings;
         private readonly IDeliRequestAccessor _deliRequestAccessor;
         private readonly IDeliContentLoader _deliContentLoader;
         private readonly IDeliCulture _deliCulture;
-        private readonly IDeliUrl _deliUrl;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ContentFinderByIdPath"/> class.
         /// </summary>
         public DeliContentFinderByPreviewUrl(
-            IOptions<WebRoutingSettings> webRoutingSettings,
-            IRequestAccessor requestAccessor,
             IDeliRequestAccessor deliRequestAccessor,
             IDeliContentLoader deliContentLoader,
             IDeliCulture deliCulture,
-            IDeliUrl deliUrl,
             ILogger<ContentFinderByIdPath> logger)
         {
-            _webRoutingSettings = webRoutingSettings.Value ?? throw new System.ArgumentNullException(nameof(webRoutingSettings));
-            _requestAccessor = requestAccessor ?? throw new System.ArgumentNullException(nameof(requestAccessor));
             _deliRequestAccessor = deliRequestAccessor ?? throw new System.ArgumentNullException(nameof(deliRequestAccessor));
             _deliContentLoader = deliContentLoader ?? throw new System.ArgumentNullException(nameof(deliContentLoader));
             _deliCulture = deliCulture ?? throw new System.ArgumentNullException(nameof(deliCulture));
-            _deliUrl = deliUrl ?? throw new System.ArgumentNullException(nameof(deliUrl));
             _logger = logger ?? throw new System.ArgumentNullException(nameof(logger));
         }
 

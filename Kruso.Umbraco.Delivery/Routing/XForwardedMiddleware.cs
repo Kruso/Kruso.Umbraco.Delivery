@@ -93,12 +93,18 @@ namespace Kruso.Umbraco.Delivery.Routing
                 }
             }
 
+            _logger.LogInformation($"No calling authority found in header for {context.Request.AbsoluteUri()}. Trying settings...");
+
             if (string.IsNullOrEmpty(callingAuthority) && !_deliConfig.IsMultiSite())
             {
                 callingAuthority = config.FrontendHost;
+
             }
 
             Uri.TryCreate(callingAuthority, UriKind.Absolute, out var baseUri);
+
+            if (baseUri == null)
+                _logger.LogInformation($"No calling authority found in settings for {context.Request.AbsoluteUri()}.");
 
             return baseUri;
         }

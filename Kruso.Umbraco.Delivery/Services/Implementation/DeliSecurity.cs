@@ -23,7 +23,7 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             _serviceProvider = serviceProvider;
         }
 
-        public string CreateJwtPreviewToken()
+        public string CreateJwtPreviewToken(string issuer, string audience = null)
         {
             using (var scope = _serviceProvider.CreateScope())
             {
@@ -42,10 +42,9 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             }
         }
 
-        public JwtSecurityToken ValidateJwtPreviewToken(HttpRequest request, Uri originalUri)
+        public JwtSecurityToken ValidateJwtPreviewToken(string jwtToken, string issuer, string audience = null)
         {
-            var jwtToken = request.GetJwtBearerToken();
-            var tokenResponse = _authTokenHandler.ValidateSingleUseJwtToken(jwtToken, originalUri.Authority, request.AbsoluteUri().Authority);
+            var tokenResponse = _authTokenHandler.ValidateSingleUseJwtToken(jwtToken, issuer, audience);
 
             return tokenResponse?.ValidatedToken;
         }

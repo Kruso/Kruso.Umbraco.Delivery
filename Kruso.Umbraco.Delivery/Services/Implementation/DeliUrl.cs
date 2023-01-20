@@ -46,10 +46,10 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
                     : _deliDomain.GetDomainByContent(content, culture);
 
                 if (domain != null && Uri.TryCreate(domain.Name, UriKind.Absolute, out var domainUri))
-                    frontendHostUri = new Uri($"{domainUri.Scheme}://{domainUri.Authority}");
+                    frontendHostUri = domainUri;
             }
 
-            return frontendHostUri;
+            return frontendHostUri.HostUri();
         }
 
         public string GetAbsoluteDeliveryUrl(string relativePath)

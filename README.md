@@ -14,6 +14,7 @@ This package will add a REST-like content delivery API to Umbraco CMS. It provid
 * Supports multiple sites (in multiple languages) without the need for addtional host names for your Umbraco instance.
 * Supports "hybrid mode". [A page can be returned as a traditional page, or as Json](https://github.com/Kruso/Kruso.Umbraco.Delivery/wiki/1.-Get-Started#the-umbraco-json-template).
 * [Get information about sites and languages, and get all available routes for all documents](https://github.com/Kruso/Kruso.Umbraco.Delivery/wiki/2.-Using-Umbraco.Delivery#the-manifest).
+* Supports [secure/private preview](https://github.com/Kruso/Kruso.Umbraco.Delivery/wiki/3.-Configuration#preview-configuration).
 
 As far as possible Umbraco.Delivery will work out of the box without further configuration, even for a multi-site and multi-language setup.
 
@@ -30,9 +31,9 @@ It was made public as Kruso.Umbraco.Delivery because we at [Kruso](https://kruso
 ## How to use
 
 Please read the [wiki](https://github.com/Kruso/Kruso.Umbraco.Delivery/wiki). <br>
-There are still some features that are not documented. You are welcome to open an [issue](https://github.com/Kruso/Kruso.Umbraco.Delivery/issues) if you have any questions. <br>
+Some features may not be well documented. You are welcome to open an [issue](https://github.com/Kruso/Kruso.Umbraco.Delivery/issues) if you have any questions. <br>
 
+## Possible roadmap
+* Include a basic ISearchQuery. Menaing that basic search will be enabled without any coding needed.
+* Simpler preview without the need for a certificate. Will be ok for sites without very high security requirements.
 
-
-[TODO]
-Describe multi-site setup, and preview configuration.

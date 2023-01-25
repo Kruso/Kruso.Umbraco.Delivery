@@ -24,6 +24,10 @@ namespace Kruso.Umbraco.Delivery.ModelConversion
             _log = log;
         }
 
+
+        public bool HasConverters() => _modelNodeConverters.Any();
+        public bool HasListConverters() => _modelNodeListConverters.Any();
+
         public IModelNodeListConverter GetListConverter(string documentAlias, string propertyName = null)
         {
             if (!string.IsNullOrEmpty(documentAlias))
@@ -49,6 +53,9 @@ namespace Kruso.Umbraco.Delivery.ModelConversion
 
         public IModelNodeConverter GetConverter(TemplateType templateType, string type)
         {
+            if (templateType == TemplateType.Route)
+                type = string.Empty;
+
             var key = templateType.MakeKey(type);
 
             if (_modelNodeConverters.ContainsKey(key))

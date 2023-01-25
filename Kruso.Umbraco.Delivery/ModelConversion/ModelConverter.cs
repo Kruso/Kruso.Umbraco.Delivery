@@ -25,111 +25,137 @@ namespace Kruso.Umbraco.Delivery.ModelConversion
 
         public IEnumerable<JsonNode> Convert(IEnumerable<JsonNode> source, TemplateType converterType, string converterKey = null)
         {
-            return source?
-                .Select(x => Convert(x, converterType, converterKey))
-                .Where(x => x != null)
-                ?? Enumerable.Empty<JsonNode>();
+            if (source == null || !source.Any())
+                return Enumerable.Empty<JsonNode>();
+
+            var componentSource = GetModelConverterSource();
+            if (componentSource == null)
+                return source;
+
+            return source
+                .Select(x => Convert(componentSource, x, converterType, converterKey))
+                .Where(x => x != null);
         }
 
         public JsonNode Convert(JsonNode source, TemplateType converterType, string converterKey = null)
         {
-            if (source.IsRefType)
+            var componentSource = GetModelConverterSource();
+            if (componentSource == null)
                 return source;
 
-            var target = converterType != TemplateType.Route
-                ? new JsonNode()
-                : source;
-
-            if (converterType != TemplateType.Route)
-            {
-                if (source != null)
-                {
-                    foreach (var propName in source.AllPropNames())
-                    {
-                        var dataNode = source.Node(propName);
-                        if (dataNode != null)
-                        {
-                            var res = Convert(dataNode, TemplateType.Block);
-                            target.AddProp(propName, res);
-                        }
-                        else
-                        {
-                            if (source.PropIs<IEnumerable<JsonNode>>(propName))
-                            {
-                                var blocks = source.Nodes(propName);
-                                var res = blocks.Select(x => Convert(x, TemplateType.Block));
-
-                                target.AddProp(propName, res);
-                            }
-                            else
-                            {
-                                target.CopyProp(propName, source, propName);
-                            }
-                        }
-                    }
-                }
-            }
-
-            return RunConverter(target, converterType, converterKey);
+            return Convert(componentSource, source, converterType, converterKey);
         }
 
-        private JsonNode RunConverter(JsonNode source, TemplateType converterType, string converterKey = null)
+        private JsonNode Convert(IModelConverterComponentSource componentSource, JsonNode source, TemplateType converterType, string converterKey = null)
         {
-            if (source == null || !source.HasProp("type"))
+            if (!source.IsBlock() || source.IsRefType)
                 return source;
 
-            JsonNode target = null;
-            var nodeType = source.Type;
-            var contentType = converterType == TemplateType.Route
-                ? ""
-                : converterKey ?? nodeType;
+            if (converterType == TemplateType.Route)
+                return RunConverter(componentSource, source, TemplateType.Route);
 
-            var converter = GetModelConverterSource().GetConverter(converterType, contentType);
+            var target = new JsonNode();
+            foreach (var propName in source.AllPropNames())
+            {
+                var convertedBlock = ConvertBlock(componentSource, source, propName);
+                if (convertedBlock != null)
+                {
+                    target.AddProp(propName, convertedBlock);
+                    continue;
+                }
+
+                var convertedBlocks = ConvertBlockList(componentSource, source, propName, ConvertBlocks(componentSource, source, propName));
+                if (convertedBlocks != null)
+                {
+                    target.AddProp(propName, convertedBlocks);
+                    continue;
+                }
+
+                target.CopyProp(source, propName);
+            }
+
+            return RunConverter(componentSource, target, converterType, converterKey);
+        }
+
+        private JsonNode ConvertBlock(IModelConverterComponentSource componentSource, JsonNode source, string propName)
+        {
+            var block = source.Node(propName);
+
+            return block != null
+                ? Convert(componentSource, block, TemplateType.Block)
+                : null;
+        }
+
+        private IEnumerable<JsonNode> ConvertBlocks(IModelConverterComponentSource componentSource, JsonNode source, string propName)
+        {
+            var blocks = source.Nodes(propName);
+
+            return blocks.Any()
+                ? blocks.Select(x => Convert(componentSource, x, TemplateType.Block))
+                : null;
+        }
+
+        private IEnumerable<JsonNode> ConvertBlockList(IModelConverterComponentSource componentSource, JsonNode source, string propName, IEnumerable<JsonNode> sourceList) 
+        {
+            if (source == null || sourceList == null)
+                return null;
+
+            if (!componentSource.HasListConverters())
+                return sourceList;
+
+            if (!sourceList.All(x => IsValidForListConverter(x)))
+                return sourceList;
+
+            var converter = componentSource.GetListConverter(source.Type, propName);
             if (converter == null)
-            {
-                target = source;
-            }
-            else
-            {
-                try
-                {
-                    target = new JsonNode();
-                    converter.Convert(target, source);
-                }
-                catch (Exception ex)
-                {
-                    _log.LogError(ex, $"{converter.GetType().Name ?? "[No Converter]"} threw an error for {converterType} {source.Id}:{nodeType}");
-                    throw;
-                }
-            }
+                return sourceList;
 
-            var nodeListProps = target.AllPropsOf<IEnumerable<JsonNode>>();
-            foreach (var kvp in nodeListProps.Where(x => x.Value.All(n => IsValidForListConverter(n))))
+            try
             {
-                var listConverter = GetModelConverterSource().GetListConverter(nodeType, kvp.Key);
-                if (listConverter != null)
-                {
-                    var res = new List<JsonNode>();
-                    listConverter.Convert(target, kvp.Key, res, kvp.Value.ToArray());
-                    target.AddProp(kvp.Key, res);
-                }
+                var target = new List<JsonNode>();
+                converter.Convert(source, propName, target, sourceList.ToArray());
+                return target;
             }
-
-            return target;
+            catch (Exception ex)
+            {
+                _log.LogError(ex, $"{converter.GetType().Name ?? "[No List Converter]"} threw an error for {source.Id}:{source.Type}:{propName}");
+                throw;
+            }
         }
 
-        private bool IsValidForListConverter(JsonNode node)
+        private JsonNode RunConverter(IModelConverterComponentSource componentSource, JsonNode source, TemplateType converterType, string converterKey = null)
         {
-            return node.Id != Guid.Empty 
-                && !string.IsNullOrEmpty(node.Type) 
-                && !ExcludeTypes.Contains(node.Type);
+            if (source == null)
+                return null;
+
+            var converter = componentSource.GetConverter(converterType, converterKey ?? source.Type);
+            if (converter == null)
+                return source;
+
+            try
+            {
+                var target = new JsonNode();
+                converter.Convert(target, source);
+                return target;
+            }
+            catch (Exception ex)
+            {
+                _log.LogError(ex, $"{converter.GetType().Name ?? "[No Converter]"} threw an error for {converterType} {source.Id}:{source.Type}");
+                throw;
+            }
         }
+
+        private bool IsValidForListConverter(JsonNode node) => node.IsBlock() && !ExcludeTypes.Contains(node.Type);
 
         private IModelConverterComponentSource GetModelConverterSource()
         {
             using (var scope = _serviceProvider.CreateScope())
             {
-                return scope.ServiceProvider.GetService<IModelConverterComponentSource>();
+                var componentSource = scope.ServiceProvider.GetService<IModelConverterComponentSource>();
+
+                return componentSource.HasConverters() || componentSource.HasListConverters()
+                    ? componentSource
+                    : null;
             }
         }
     }

@@ -37,7 +37,12 @@ namespace Kruso.Umbraco.Delivery.Json
             }
         }
 
-        private static bool IsBlock(this JsonNode node)
+        public static bool IsNodeProp(this JsonNode node, string prop)
+        {
+            return node?.Node(prop) != null || node?.Nodes(prop)?.Any() == true;
+        }
+
+        public static bool IsBlock(this JsonNode node)
         {
             return node != null
                 && node.Id != Guid.Empty

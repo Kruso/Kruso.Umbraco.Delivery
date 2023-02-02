@@ -12,11 +12,6 @@ namespace Kruso.Umbraco.Delivery.ModelConversion
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<ModelConverter> _log;
 
-        private static readonly string[] ExcludeTypes =
-        {
-            "Image"
-        };
-
         public ModelConverter(IServiceProvider serviceProvider, ILogger<ModelConverter> log)
         {
             _serviceProvider = serviceProvider;
@@ -103,7 +98,7 @@ namespace Kruso.Umbraco.Delivery.ModelConversion
             if (!componentSource.HasListConverters())
                 return sourceList;
 
-            if (!sourceList.All(x => IsValidForListConverter(x)))
+            if (!sourceList.All(x => x.IsBlock()))
                 return sourceList;
 
             var converter = componentSource.GetListConverter(source.Type, propName);
@@ -144,8 +139,6 @@ namespace Kruso.Umbraco.Delivery.ModelConversion
                 throw;
             }
         }
-
-        private bool IsValidForListConverter(JsonNode node) => node.IsBlock() && !ExcludeTypes.Contains(node.Type);
 
         private IModelConverterComponentSource GetModelConverterSource()
         {

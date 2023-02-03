@@ -25,7 +25,7 @@ As far as possible Umbraco.Delivery will work out of the box without further con
 <br>
 ### History
 
-This package is mainly the work of [@EdSoanes](https://github.com/EdSoanes). It has been used in several solutions during several years, from Umbraco v8 to the latest v11. This library have lately got several new features, but the core functionality is well battle tested.
+This package is mainly the work of [@EdSoanes](https://github.com/EdSoanes). It has been used in several solutions during several years, from Umbraco v8 to the latest v11. This library has recently received several new features, but the core functionality is well battle tested.
 It was made public as Kruso.Umbraco.Delivery because we at [Kruso](https://kruso.dk/en/) love open source, and want to contribute to the community. It also keeps us on our toes when we know others will look at our code 😉.
 <br>
 ## How to use

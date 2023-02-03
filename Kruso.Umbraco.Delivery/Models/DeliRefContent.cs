@@ -12,35 +12,35 @@ namespace Kruso.Umbraco.Delivery.Models
     {
         private class DeliRefContentType : IPublishedContentType
         {
-            public Guid Key => throw new NotImplementedException();
+            public Guid Key { get; private set; }
 
             public int Id => throw new NotImplementedException();
 
             public string Alias { get; private set; }
 
-            public PublishedItemType ItemType => throw new NotImplementedException();
+            public PublishedItemType ItemType => PublishedItemType.Element;
 
-            public HashSet<string> CompositionAliases => throw new NotImplementedException();
+            public HashSet<string> CompositionAliases => new HashSet<string>();
 
             public ContentVariation Variations => throw new NotImplementedException();
 
-            public bool IsElement => throw new NotImplementedException();
+            public bool IsElement => true;
 
-            public IEnumerable<IPublishedPropertyType> PropertyTypes => throw new NotImplementedException();
+            public IEnumerable<IPublishedPropertyType> PropertyTypes => Enumerable.Empty<IPublishedPropertyType>();
 
             public int GetPropertyIndex(string alias)
             {
-                throw new NotImplementedException();
+                return -1;
             }
 
             public IPublishedPropertyType GetPropertyType(string alias)
             {
-                throw new NotImplementedException();
+                return null;
             }
 
             public IPublishedPropertyType GetPropertyType(int index)
             {
-                throw new NotImplementedException();
+                return null;
             }
 
             internal DeliRefContentType(string alias)
@@ -48,9 +48,10 @@ namespace Kruso.Umbraco.Delivery.Models
                 Alias = alias;
             }
         }
-        public int Id => throw new NotImplementedException();
 
-        public string Name => throw new NotImplementedException();
+        public int Id { get; private set; }
+
+        public string Name => string.Empty;
 
         public string UrlSegment => throw new NotImplementedException();
 

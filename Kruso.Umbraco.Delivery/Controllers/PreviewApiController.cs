@@ -58,7 +58,7 @@ namespace Kruso.Umbraco.Delivery.Controllers
         {
             EnterPreview(id);
 
-            var content = _deliContent.PublishedContent(id);
+            var content = _deliContent.UnpublishedContent(id);
             if (content == null)
             {
                 _log.LogError($"Failed to find preview content for id = {id}, culture = {culture}");

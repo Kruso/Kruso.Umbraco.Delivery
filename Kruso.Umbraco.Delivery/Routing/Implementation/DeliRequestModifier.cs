@@ -28,6 +28,15 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             "umbraco/backoffice/umbracoapi/content/getbyid"
         };
 
+        private readonly string[] ExcludeExtensions = new string[]
+        {
+            ".js",
+            ".css",
+            ".jpg",
+            ".jpeg",
+            ".png"
+        };
+
         private readonly UmbracoRequestPaths _umbracoRequestPaths;
         private readonly IDeliConfig _deliConfig;
         private readonly ILogger<DeliRequestModifier> _logger;
@@ -52,8 +61,19 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
 
             var path = request.AbsoluteUri().CleanPath();
 
-            return (!IsBackendRequest(request) && !ExcludeRoutes.Any(r => path.InvariantStartsWith(r)))
-                || IncludeRoutes.Any(r => path.InvariantStartsWith(r));
+            if (ExcludeExtensions.Any(ext => path.EndsWith(ext)))
+                return false;
+
+            if (IncludeRoutes.Any(r => path.InvariantStartsWith(r)))
+                return true;
+
+            if (IsBackendRequest(request))
+                return false;
+
+            if (ExcludeRoutes.Any(r => path.InvariantStartsWith(r)))
+                return false;
+
+            return true;
         }
 
         public void Modify(HttpRequest request, Uri callingHost)

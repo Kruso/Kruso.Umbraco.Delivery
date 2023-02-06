@@ -1,0 +1,40 @@
+name: Release to nuget.org
+
+jobs:
+  # build:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-dotnet@v1
+  #       with:
+  #         dotnet-version: 5.0.x
+  #     - run: dotnet restore
+  #     - run: dotnet build --no-restore      
+
+  publish-gpr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v2
+        with:
+          ref: main
+          dotnet-version: 7.0.x
+          source-url: https://nuget.pkg.github.com/kruso/index.json
+        env:
+          NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      - name: Update version to ${{vars.NUGET_PKG_VERSION}}
+        shell: pwsh
+        run: |
+          .\Update-Nuget-Version.ps1 -proj "./Kruso.Umbraco.Delivery/Kruso.Umbraco.Delivery.csproj" -ver ${{vars.NUGET_PKG_VERSION}}
+      - run: dotnet pack ./Kruso.Umbraco.Delivery/Kruso.Umbraco.Delivery.csproj --configuration Release -o out
+      - run: dotnet nuget push "./out/*.nupkg" --api-key ${{secrets.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
+      - name: Update changes in GitHub repository
+        run:  |
+          git config --global user.name 'Gitub Actions' 
+          git config --global user.email 'noreply@kruso.se'
+          git add -A
+          git commit -m 'Release to nuget.org ${{vars.NUGET_PKG_VERSION}}'
+          git tag -a 'v${{vars.NUGET_PKG_VERSION}}' -m 'Release to nuget.org'
+          git push

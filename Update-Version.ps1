@@ -15,21 +15,25 @@ foreach($propGroup in $projFile.Project.PropertyGroup) {
   if ($propGroup.Version) {
     Write-Host "Old version :" $propGroup.Version
 
-    $fileVerParts = $propGroup.FileVersion.split(".")
+    $fileVerParts = $propGroup.Version.split(".")
     $fileVerMajor = $fileVerParts[0] -as [int]
     $fileVerMinor = $fileVerParts[1] -as [int]
-    $fileVerPatch = $fileVerParts[2] -as [int]
-    $fileVerBuild = ($fileVerParts[3] -as [int]) + 1
+    $fileVerOldPatch = $fileVerParts[2] -as [string]
 
-    $newVersion = "$fileVerMajor.$fileVerMinor.$fileVerBuild"
+    $fileVerPatch = 0;
+    $fileVerPreview = 0;
+    if ($fileVerOldPatch.Contains("-preview")) {
+      $parts = $fileVerOldPatch.Replace("-preview", ".").Split(".")
+      $fileVerPatch = $parts[0] -as [int]
+      $fileVerPreview = $parts[1] -as [int]
+    } else {
+      $fileVerPatch = ([int]$fileVerOldPatch) + 1
+    }
+    $fileVerPreview = $fileVerPreview + 1
+
+    $newVersion = "$fileVerMajor.$fileVerMinor.$fileVerPatch-preview$fileVerPreview"
     Write-Host "New Version: " $newVersion
     $propGroup.Version = $newVersion
-
-    $newFileVersion = "$fileVerMajor.$fileVerMinor.$fileVerPatch.$fileVerBuild"
-    Write-Host "New FileVersion: " $newFileVersion
-    $propGroup.FileVersion = $newFileVersion
-    Write-Host "New AssemblyVersion: " $newFileVersion
-    $propGroup.AssemblyVersion = $newFileVersion
 
     $projFile.Save((Resolve-Path $proj))
 

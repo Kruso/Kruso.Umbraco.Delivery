@@ -1,4 +1,4 @@
-name: v11 Kruso Umbraco Delivery
+name: Release preview to GitHub
 
 on:
   push:

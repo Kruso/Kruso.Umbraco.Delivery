@@ -33,15 +33,17 @@ jobs:
         env:
           NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
       - name: Update file version
+        id: UpdateFileVersion
         shell: pwsh
         run: |
           .\Update-Version.ps1 -proj "./Kruso.Umbraco.Delivery/Kruso.Umbraco.Delivery.csproj"
       - run: dotnet pack ./Kruso.Umbraco.Delivery/Kruso.Umbraco.Delivery.csproj --configuration Release -o out
       - run: dotnet nuget push "./out/*.nupkg" --api-key ${{github.token}} --skip-duplicate --no-symbols
-      - name: Update changes in GitHub repository
+      - name: Update version in GitHub repository
         run:  |
-          git config --global user.name 'Gitub Actions' 
+          git config --global user.name 'GitHub Actions' 
           git config --global user.email 'noreply@kruso.se'
           git add -A
-          git commit -m '[build] Updated file versions'
+          git commit -m 'Release preview to GitHub ${{steps.UpdateFileVersion.outputs.newVersion}}'
+          git tag -a 'v${{steps.UpdateFileVersion.outputs.newVersion}}' -m 'Release preview to GitHub'
           git push

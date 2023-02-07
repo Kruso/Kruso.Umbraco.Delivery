@@ -37,6 +37,7 @@ foreach($propGroup in $projFile.Project.PropertyGroup) {
 
     $projFile.Save((Resolve-Path $proj))
 
+    echo ::set-output name=newVersion::$( $newVersion)
     break
   }
 }

@@ -34,9 +34,9 @@ jobs:
       - run: dotnet nuget push "./out/*.nupkg" --api-key ${{secrets.NUGET_API_KEY}} --source https://api.nuget.org/v3/index.json
       - name: Update changes in GitHub repository
         run:  |
-          git config --global user.name 'Gitub Actions' 
+          git config --global user.name 'GitHub Actions' 
           git config --global user.email 'noreply@kruso.se'
           git add -A
-          git commit -m 'Release to nuget.org ${{vars.NUGET_PKG_VERSION}}'
-          git tag -a 'v${{vars.NUGET_PKG_VERSION}}' -m 'Release to nuget.org'
+          git commit -m 'Release to NuGet.org ${{vars.NUGET_PKG_VERSION}}'
+          git tag -a 'v${{vars.NUGET_PKG_VERSION}}' -m 'Release to NuGet.org'
           git push

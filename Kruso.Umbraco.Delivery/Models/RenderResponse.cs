@@ -3,11 +3,10 @@ using System.Net;
 
 namespace Kruso.Umbraco.Delivery.Models
 {
-    public class RenderResponse
+    public class RenderResponse<T> where T : class
     {
         public HttpStatusCode StatusCode { get; set; }
-        public string Data { get; set; }
-        public JsonNode Model { get; set; }
+        public T Model { get; set; }
         public string ContentType { get; set; }
         public string Message { get; set; }
 

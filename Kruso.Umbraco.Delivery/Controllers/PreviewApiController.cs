@@ -74,9 +74,9 @@ namespace Kruso.Umbraco.Delivery.Controllers
             return Redirect(url);
         }
 
-        public ActionResult? EnterPreview(int id)
+        public ActionResult EnterPreview(int id)
         {
-            IUser? user = _backofficeSecurityAccessor.BackOfficeSecurity?.CurrentUser;
+            var user = _backofficeSecurityAccessor.BackOfficeSecurity?.CurrentUser;
             _cookieManager.SetCookieValue(UmbCore.Constants.Web.PreviewCookieName, "preview");
 
             return new EmptyResult();

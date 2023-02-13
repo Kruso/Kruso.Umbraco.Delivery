@@ -6,6 +6,7 @@ using Kruso.Umbraco.Delivery.Routing;
 using Kruso.Umbraco.Delivery.Services;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Linq;
 using System.Net;
 
 namespace Kruso.Umbraco.Delivery.Controllers.Renderers
@@ -32,7 +33,17 @@ namespace Kruso.Umbraco.Delivery.Controllers.Renderers
             _log = log;
         }
 
-        public RenderResponse Render()
+        public RenderResponse<JsonNode> Render()
+        {
+            var res = CreatePage();
+
+            if (_deliRequest.ModelFactoryOptions.ModifyFields)
+                res.Model = res.Model.Clone(_deliRequest.ModelFactoryOptions.IncludeFields, _deliRequest.ModelFactoryOptions.ExcludeFields);
+
+            return res;
+        }
+
+        protected RenderResponse<JsonNode> CreatePage()
         {
             var statusCode = HttpStatusCode.OK;
             JsonNode jsonNode = null;
@@ -59,7 +70,7 @@ namespace Kruso.Umbraco.Delivery.Controllers.Renderers
                 ? errorMessage
                 : _deliRequest.ResponseMessage;
 
-            return new RenderResponse
+            return new RenderResponse<JsonNode>
             {
                 StatusCode = statusCode,
                 Model = jsonNode,

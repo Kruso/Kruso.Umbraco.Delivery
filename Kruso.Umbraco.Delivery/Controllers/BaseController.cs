@@ -5,78 +5,65 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
+using System.Linq;
 using System.Net;
 using Umbraco.Cms.Web.Common.Controllers;
 
 namespace Kruso.Umbraco.Delivery.Controllers
 {
-    public abstract class BaseController : UmbracoApiController
+    internal abstract class BaseController : UmbracoApiController
     {
         protected readonly IDeliCulture _deliCulture;
-        protected readonly ILogger _logger;
-        private static JsonSerializerSettings _serializerSettings = new JsonSerializerSettings
-        {
-            Formatting = Formatting.Indented
-        };
 
-        public BaseController(IDeliCulture deliCulture, ILogger logger)
+        protected readonly ILogger _logger;
+
+        internal BaseController(IDeliCulture deliCulture, ILogger logger)
         {
             _deliCulture = deliCulture;
             _logger = logger;
         }
 
-        protected IActionResult Execute(Func<ApiResponse> action)
+        protected bool IsStatusCode(ContentResult res, HttpStatusCode status)
+        {
+            return res != null 
+                && res.StatusCode.HasValue 
+                && res.StatusCode.Value == (int)status;
+        }
+
+        protected IActionResult Execute(Func<IActionResult> action)
         {
             return Execute(null, action);
         }
 
-        protected IActionResult Execute(string culture, Func<ApiResponse> action)
+        protected IActionResult Execute(string culture, Func<IActionResult> action)
         {
-            ApiResponse res = null;
-
             try
             {
-                if (!string.IsNullOrEmpty(culture))
+                if (!_deliCulture.IsCultureSupported(culture))
                 {
-                    if (!_deliCulture.IsCultureSupported(culture))
-                    {
-                        res = new ApiResponse
-                        {
-                            StatusCode = System.Net.HttpStatusCode.BadRequest,
-                            Payload = new
-                            {
-                                message = $"Unsupported language {culture}. Supported languages are {string.Join(", ", _deliCulture.SupportedCultures)}"
-                            }
-                        };
-                    }
+                    var msg = $"Unsupported language {culture}. Supported languages are {string.Join(", ", _deliCulture.SupportedCultures)}";
+
+                    _logger.LogError(msg);
+                    return BadRequest(msg);
                 }
 
-                res ??= action();
+                var res = action != null
+                    ? action.Invoke()
+                    : BadRequest("Action content returned null");
+
+                return res;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error executing request");
-                res = new ApiResponse
+
+                return new ContentResult
                 {
-                    StatusCode = HttpStatusCode.InternalServerError,
-                    Payload = ex.ToString()
+                    StatusCode = (int)HttpStatusCode.InternalServerError,
+                    ContentType = "text/plain",
+                    Content = ex.ToString()
                 };
             }
-
-            var formatter = new JsonSerializerSettings
-            {
-
-                Formatting = Formatting.Indented,
-                ContractResolver = new CamelCasePropertyNamesContractResolver()
-            };
-
-            var json = JsonConvert.SerializeObject(res.Payload, formatter);
-            return new ContentResult
-            {
-                Content = json,
-                StatusCode = (int)res.StatusCode,
-                ContentType = "application/json"
-            };
         }
     }
 }

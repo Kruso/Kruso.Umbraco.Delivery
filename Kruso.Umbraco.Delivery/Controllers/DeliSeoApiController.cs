@@ -5,20 +5,23 @@ using Microsoft.Extensions.Logging;
 
 namespace Kruso.Umbraco.Delivery.Controllers
 {
-    public class DeliSeoApiController : BaseController
+    internal class DeliSeoApiController : BaseController
     {
         private readonly SitemapRenderer _sitemapRenderer;
         private readonly RobotsRenderer _robotsRenderer;
+        private readonly ActionResultRenderer _actionResultRenderer;
 
-        public DeliSeoApiController(
-            SitemapRenderer sitemapRenderer, 
+        internal DeliSeoApiController(
+            SitemapRenderer sitemapRenderer,
             RobotsRenderer robotsRenderer,
+            ActionResultRenderer actionResultRenderer,
             IDeliCulture umbCulture,
             ILogger<DeliSeoApiController> logger)
             : base(umbCulture, logger)
         {
             _sitemapRenderer = sitemapRenderer;
             _robotsRenderer = robotsRenderer;
+            _actionResultRenderer = actionResultRenderer;
         }
 
         [HttpGet]

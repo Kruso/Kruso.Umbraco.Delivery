@@ -115,7 +115,7 @@ namespace Kruso.Umbraco.Delivery.Security
             if (backOfficeCookie != null)
             {
                 var unprotected = cookieOptions.TicketDataFormat.Unprotect(backOfficeCookie!);
-                return unprotected!.Principal.GetUmbracoIdentity();
+                return unprotected?.Principal?.GetUmbracoIdentity();
             }
 
             return null;

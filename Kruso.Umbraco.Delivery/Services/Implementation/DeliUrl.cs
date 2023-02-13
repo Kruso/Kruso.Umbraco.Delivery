@@ -45,8 +45,11 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
                     ? _deliDomain.GetDefaultDomainByRequest()
                     : _deliDomain.GetDomainByContent(content, culture);
 
-                if (domain != null && Uri.TryCreate(domain.Name, UriKind.Absolute, out var domainUri))
-                    frontendHostUri = domainUri;
+                if (domain != null)
+                {
+                    Uri.TryCreate(domain.Name, UriKind.Absolute, out var domainUri);
+                    frontendHostUri = domainUri ?? domain.Uri;
+                }
             }
 
             return frontendHostUri.HostUri();

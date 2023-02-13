@@ -1,7 +1,9 @@
 ﻿using Examine;
 using Kruso.Umbraco.Delivery.Extensions;
+using Kruso.Umbraco.Delivery.Json;
 using Kruso.Umbraco.Delivery.ModelConversion;
 using Kruso.Umbraco.Delivery.ModelGeneration;
+using Kruso.Umbraco.Delivery.Routing;
 using Kruso.Umbraco.Delivery.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -16,19 +18,22 @@ namespace Kruso.Umbraco.Delivery.Search
         private readonly IModelFactory _modelFactory;
         private readonly IModelConverter _modelConverter;
         private readonly IExamineManager _examineManager;
+        private readonly IDeliRequestAccessor _delRequestAccessor;
 
         public SearchQueryExecutor(
             IServiceProvider serviceProvider,
             IDeliContent deliContent, 
             IModelFactory modelFactory, 
             IModelConverter modelConverter, 
-            IExamineManager examineManager)
+            IExamineManager examineManager,
+            IDeliRequestAccessor delRequestAccessor)
         {
             _serviceProvider = serviceProvider;
             _deliContent = deliContent;
             _modelFactory = modelFactory;
             _modelConverter = modelConverter;
             _examineManager = examineManager;
+            _delRequestAccessor = delRequestAccessor;
         }
 
         public SearchResult Execute(SearchRequest searchRequest)
@@ -65,6 +70,10 @@ namespace Kruso.Umbraco.Delivery.Search
 
                     var pageModels = _modelConverter.Convert(_modelFactory.CreatePages(pages, searchRequest.Culture), TemplateType.Search)
                         .ToList();
+
+                    var modelFactoryOptions = _delRequestAccessor.Current?.ModelFactoryOptions;
+                    if ((modelFactoryOptions?.IncludeFields?.Any() ?? false) || (modelFactoryOptions?.ExcludeFields?.Any() ?? false))
+                        pageModels = pageModels.Select(x => x.Clone(modelFactoryOptions.IncludeFields, modelFactoryOptions.ExcludeFields)).ToList();
 
                     res.totalCount = searchResults.TotalItemCount;
                     res.pageResults = pageModels;

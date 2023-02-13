@@ -33,8 +33,8 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
 
         internal DeliRequest()
         {
-            ModelFactoryOptions = CreateModelFactoryOptions();
             RequestOrigin = GetRequestOrigin();
+            ModelFactoryOptions = CreateModelFactoryOptions();
         }
 
         internal DeliRequest(HttpRequest request)
@@ -43,6 +43,7 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             CallingUri =  request.AbsoluteUri();
             OriginalUri = request.AbsoluteUri();
             RequestOrigin = GetRequestOrigin();
+            ModelFactoryOptions = CreateModelFactoryOptions();
         }
 
         internal DeliRequest(HttpRequest request, Uri originalUri, string jwtToken)
@@ -52,6 +53,7 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             CallingUri = request.AbsoluteUri();
             OriginalUri = originalUri;
             RequestOrigin = GetRequestOrigin();
+            ModelFactoryOptions = CreateModelFactoryOptions();
         }
 
         public bool IsValidPreviewRequest()

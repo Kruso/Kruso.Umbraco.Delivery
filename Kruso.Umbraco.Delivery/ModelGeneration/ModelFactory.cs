@@ -152,11 +152,14 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
 
                 foreach (var item in items)
                 {
-                    var template = componentSource.GetTemplate(TemplateType.Route, item);
-                    var jsonNode = template.Create(context, new JsonNode(), item);
+                    var route = context.BlockWithDepth(item, culture, null, () =>
+                    {
+                        var template = componentSource.GetTemplate(TemplateType.Route, item);
+                        return template.Create(context, new JsonNode(), item);
+                    });
 
-                    if (jsonNode != null)
-                        res.Add(jsonNode);
+                    if (route != null)
+                        res.Add(route);
                 }
             }
 

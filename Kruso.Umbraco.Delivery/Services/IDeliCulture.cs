@@ -17,6 +17,7 @@ namespace Kruso.Umbraco.Delivery.Services
         string GetFallbackCulture(string culture);
         bool IsPublishedInCulture(IPublishedContent content, string culture);
         void WithCultureContext(string culture, Action action);
+        T WithCultureContext<T>(string culture, Func<T> func) where T : class;
         JsonNode GetCultureInfo(string culture);
     }
 }

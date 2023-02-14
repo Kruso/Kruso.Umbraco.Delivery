@@ -97,6 +97,33 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             return res.ToList();
         }
 
+        public T WithCultureContext<T>(string culture, Func<T> func)
+            where T : class
+        {
+            if (func != null)
+            {
+                var oldCulture = _variationContextAccessor.VariationContext?.Culture;
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(culture) && culture != oldCulture)
+                    {
+                        _variationContextAccessor.VariationContext = new VariationContext(culture);
+                    }
+
+                    return func();
+                }
+                finally
+                {
+                    if (!string.IsNullOrEmpty(culture) && culture != oldCulture)
+                    {
+                        _variationContextAccessor.VariationContext = new VariationContext(oldCulture);
+                    }
+                }
+            }
+
+            return default;
+        }
 
         public void WithCultureContext(string culture, Action action)
         {

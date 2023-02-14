@@ -26,7 +26,7 @@ namespace Kruso.Umbraco.Delivery
     {
         public static IApplicationBuilder UseUmbracoDelivery(this IApplicationBuilder app)
         {
-            app.UseMiddleware<XForwardedMiddleware>();
+            app.UseMiddleware<DeliRequestMiddleware>();
 
             return app;
         }
@@ -69,14 +69,15 @@ namespace Kruso.Umbraco.Delivery
                 .AddSingleton<IDeliUrl, DeliUrl>();
 
             services
-                .AddTransient<XForwardedMiddleware>()
-                .AddSingleton<IDeliRequestModifier, DeliRequestModifier>()
+                .AddTransient<DeliRequestMiddleware>()
                 .AddSingleton<IDeliRequestAccessor, DeliRequestAccessor>()
                 .AddScoped<IUserIdentity, DefaultIdentity>()
-                .AddScoped<PageRenderer>()
-                .AddScoped<ManifestRenderer>()
-                .AddScoped<SitemapRenderer>()
-                .AddScoped<RobotsRenderer>();
+                .AddTransient<PageRenderer>()
+                .AddTransient<BlockRenderer>()
+                .AddTransient<ChildPageRenderer>()
+                .AddTransient<ManifestRenderer>()
+                .AddTransient<SitemapRenderer>()
+                .AddTransient<RobotsRenderer>();
 
             services
                 .AddSingleton<IModelPropertyValueFactory, SliderPropertyValueFactory>()

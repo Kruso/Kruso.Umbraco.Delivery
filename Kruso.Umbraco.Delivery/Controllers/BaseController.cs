@@ -1,23 +1,19 @@
-﻿using Kruso.Umbraco.Delivery.Models;
-using Kruso.Umbraco.Delivery.Services;
+﻿using Kruso.Umbraco.Delivery.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using System;
-using System.Linq;
 using System.Net;
 using Umbraco.Cms.Web.Common.Controllers;
 
 namespace Kruso.Umbraco.Delivery.Controllers
 {
-    internal abstract class BaseController : UmbracoApiController
+    public abstract class BaseController : UmbracoApiController
     {
         protected readonly IDeliCulture _deliCulture;
 
         protected readonly ILogger _logger;
 
-        internal BaseController(IDeliCulture deliCulture, ILogger logger)
+        public BaseController(IDeliCulture deliCulture, ILogger logger)
         {
             _deliCulture = deliCulture;
             _logger = logger;

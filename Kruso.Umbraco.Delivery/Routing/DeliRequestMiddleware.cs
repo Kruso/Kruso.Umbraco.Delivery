@@ -1,16 +1,26 @@
 ﻿using Kruso.Umbraco.Delivery.Extensions;
+using Kruso.Umbraco.Delivery.Routing.Implementation;
+using Kruso.Umbraco.Delivery.Security;
 using Kruso.Umbraco.Delivery.Services;
+using Kruso.Umbraco.Delivery.Services.Implementation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using Umbraco.Cms.Core.Routing;
 using Umbraco.Extensions;
 
-namespace Kruso.Umbraco.Delivery.Routing.Implementation
+namespace Kruso.Umbraco.Delivery.Routing
 {
-    public class DeliRequestModifier : IDeliRequestModifier
+    public class DeliRequestMiddleware : IMiddleware
     {
+        private readonly UmbracoRequestPaths _umbracoRequestPaths;
+        private readonly IDeliConfig _deliConfig;
+        private readonly DeliRequestAccessor _deliRequestAccessor;
+        private readonly ILogger<DeliRequestMiddleware> _logger;
+
         public const string HostHeader = "X-Forwarded-Host";
         public const string ProtoHeader = "X-Forwarded-Proto";
         public const string PrefixHeader = "X-Forwarded-Prefix";
@@ -37,62 +47,25 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             ".png"
         };
 
-        private readonly UmbracoRequestPaths _umbracoRequestPaths;
-        private readonly IDeliConfig _deliConfig;
-        private readonly ILogger<DeliRequestModifier> _logger;
-
-        public DeliRequestModifier(UmbracoRequestPaths umbracoRequestPaths, IDeliConfig deliConfig, ILogger<DeliRequestModifier> logger)
+        public DeliRequestMiddleware(UmbracoRequestPaths umbracoRequestPaths, IDeliConfig deliConfig, IDeliRequestAccessor deliRequestAccessor, ILogger<DeliRequestMiddleware> logger)
         {
             _umbracoRequestPaths = umbracoRequestPaths;
             _deliConfig = deliConfig;
+            _deliRequestAccessor = deliRequestAccessor as DeliRequestAccessor;
             _logger = logger;
         }
 
-        public bool IsBackendRequest(HttpRequest request)
+        public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
-            var path = request.AbsoluteUri().CleanPath();
-            return _umbracoRequestPaths.IsBackOfficeRequest(path);
-        }
-
-        public bool ShouldModify(HttpRequest request)
-        {
-            if (request == null)
-                return false;
-
-            var path = request.AbsoluteUri().CleanPath();
-
-            if (ExcludeExtensions.Any(ext => path.EndsWith(ext)))
-                return false;
-
-            if (IncludeRoutes.Any(r => path.InvariantStartsWith(r)))
-                return true;
-
-            if (IsBackendRequest(request))
-                return false;
-
-            if (ExcludeRoutes.Any(r => path.InvariantStartsWith(r)))
-                return false;
-
-            return true;
-        }
-
-        public void Modify(HttpRequest request, Uri callingHost)
-        {
-            if (request == null)
+            if (ShouldInitializeDeliRequest(context.Request))
             {
-                _logger.LogWarning("Could not modify incoming request. No request object.");
-                return;
+                var callingHost = DetermineCallingHost(context.Request);
+                await _deliRequestAccessor.Initialize(context, next, callingHost);
             }
-
-            if (callingHost == null)
+            else
             {
-                _logger.LogWarning("Could not modify incoming request. No calling host specified.");
-                return;
+                await next(context);
             }
-
-            request.Host = new HostString(callingHost.Authority);
-            request.Scheme = callingHost.Scheme;
-            request.PathBase = callingHost.CleanPath();
         }
 
         public Uri DetermineCallingHost(HttpRequest request)
@@ -157,6 +130,34 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             request.Headers.TryGetValue(forwardedHeader, out var callingAuthority);
 
             return callingAuthority;
+        }
+
+        private bool ShouldInitializeDeliRequest(HttpRequest request)
+        {
+            if (request == null)
+                return false;
+
+            var path = request.AbsoluteUri().CleanPath();
+
+            if (ExcludeExtensions.Any(ext => path.EndsWith(ext)))
+                return false;
+
+            if (IncludeRoutes.Any(r => path.InvariantStartsWith(r)))
+                return true;
+
+            if (IsBackendRequest(request))
+                return false;
+
+            if (ExcludeRoutes.Any(r => path.InvariantStartsWith(r)))
+                return false;
+
+            return true;
+        }
+
+        private bool IsBackendRequest(HttpRequest request)
+        {
+            var path = request.AbsoluteUri().CleanPath();
+            return _umbracoRequestPaths.IsBackOfficeRequest(path);
         }
     }
 }

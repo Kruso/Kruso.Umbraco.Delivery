@@ -5,6 +5,7 @@ using Kruso.Umbraco.Delivery.ModelConversion;
 using Kruso.Umbraco.Delivery.ModelGeneration;
 using Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories;
 using Kruso.Umbraco.Delivery.ModelGeneration.Templates;
+using Kruso.Umbraco.Delivery.Publishing;
 using Kruso.Umbraco.Delivery.Routing;
 using Kruso.Umbraco.Delivery.Routing.Implementation;
 using Kruso.Umbraco.Delivery.Search;
@@ -16,6 +17,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Umbraco.Cms.Core.DependencyInjection;
+using Umbraco.Cms.Core.Notifications;
 using Umbraco.Cms.Core.Routing;
 using Umbraco.Cms.Web.Website.Controllers;
 using Umbraco.Extensions;
@@ -42,6 +44,11 @@ namespace Kruso.Umbraco.Delivery
                 .Remove<ContentFinderByIdPath>();
 
             builder.Components().Append<SearchIndexerComponent>();
+
+            builder
+                .AddNotificationHandler<ContentPublishedNotification, DeliPublishedNotificationHandler>()
+                .AddNotificationHandler<ContentDeletingNotification, DeliDeletedNotificationHandler>()
+                .AddNotificationHandler<ContentSavedNotification, DeliSavedNotificationHandler>();
 
             return builder;
         }
@@ -106,6 +113,9 @@ namespace Kruso.Umbraco.Delivery
                 .AddSingleton<IModelTemplate, RouteModelTemplate>()
                 .AddSingleton<IModelTemplate, RefModelTemplate>()
                 .AddSingleton<IPropertyModelTemplate, PropertyModelTemplate>();
+
+            services
+                .AddSingleton<IDeliEventHandlerSource, DeliEventHandlerSource>();
 
             services
                 .AddSingleton<IModelConverterComponentSource, ModelConverterComponentSource>()

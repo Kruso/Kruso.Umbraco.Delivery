@@ -35,7 +35,7 @@ namespace Kruso.Umbraco.Delivery.Controllers
         {
             try
             {
-                if (!_deliCulture.IsCultureSupported(culture))
+                if (!string.IsNullOrEmpty(culture) && !_deliCulture.IsCultureSupported(culture))
                 {
                     var msg = $"Unsupported language {culture}. Supported languages are {string.Join(", ", _deliCulture.SupportedCultures)}";
 

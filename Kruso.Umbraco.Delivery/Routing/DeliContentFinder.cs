@@ -60,7 +60,7 @@ namespace Kruso.Umbraco.Delivery.Routing
                 if (content != null)
                 {
                     frequest.SetPublishedContent(content);
-                    _deliRequestAccessor.FinalizeForContent(content, frequest.Domain.Culture);
+                    _deliRequestAccessor.Finalize(content, frequest.Domain.Culture);
 
                     return Task.FromResult(true);
                 }

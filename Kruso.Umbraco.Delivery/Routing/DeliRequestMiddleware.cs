@@ -1,13 +1,12 @@
 ﻿using Kruso.Umbraco.Delivery.Extensions;
 using Kruso.Umbraco.Delivery.Routing.Implementation;
-using Kruso.Umbraco.Delivery.Security;
 using Kruso.Umbraco.Delivery.Services;
-using Kruso.Umbraco.Delivery.Services.Implementation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Umbraco.Cms.Core.Routing;
 using Umbraco.Extensions;
@@ -24,6 +23,9 @@ namespace Kruso.Umbraco.Delivery.Routing
         public const string HostHeader = "X-Forwarded-Host";
         public const string ProtoHeader = "X-Forwarded-Proto";
         public const string PrefixHeader = "X-Forwarded-Prefix";
+
+        public const string CacheControlHeader = "Cache-Control";
+        public const string ETagHeader = "ETag";
 
         private readonly string[] ExcludeRoutes = new string[]
         {
@@ -57,10 +59,16 @@ namespace Kruso.Umbraco.Delivery.Routing
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
-            if (ShouldInitializeDeliRequest(context.Request))
+            if (IsDeliveryRequest(context.Request))
             {
+                var originalUri = context.Request.AbsoluteUri();
                 var callingHost = DetermineCallingHost(context.Request);
-                await _deliRequestAccessor.Initialize(context, next, callingHost);
+
+                ModifyRequest(context, callingHost);
+
+                _deliRequestAccessor.Initialize(context.Request, originalUri);
+
+                await WithResponseBody(context, next, (body) => ModifyResponse(context, body));
             }
             else
             {
@@ -68,7 +76,33 @@ namespace Kruso.Umbraco.Delivery.Routing
             }
         }
 
-        public Uri DetermineCallingHost(HttpRequest request)
+        private void ModifyResponse(HttpContext context, string body)
+        {
+            var cacheControl = _deliConfig.Get(context.Request.AbsoluteUri())?.GetCacheControl(context.Response.ContentType);
+            if (!string.IsNullOrEmpty(cacheControl) && !string.IsNullOrEmpty(body))
+            {
+                context.Response.Headers.Add(CacheControlHeader, cacheControl);
+
+                var etag = body.ToHashString();
+
+                if (context.Request.Headers.TryGetValue(ETagHeader, out var etagReq) && etag.Equals(etagReq, StringComparison.InvariantCultureIgnoreCase))
+                    context.Response.StatusCode = (int)HttpStatusCode.NotModified;
+
+                context.Response.Headers.Add("ETag", etag);
+            }
+        }
+
+        private void ModifyRequest(HttpContext context, Uri callingHost)
+        {
+            if (callingHost != null)
+            {
+                context.Request.Host = new HostString(callingHost.Authority);
+                context.Request.Scheme = callingHost.Scheme;
+                context.Request.PathBase = callingHost.CleanPath();
+            }
+        }
+
+        private Uri DetermineCallingHost(HttpRequest request)
         {
             var config = _deliConfig.Get();
 
@@ -132,7 +166,7 @@ namespace Kruso.Umbraco.Delivery.Routing
             return callingAuthority;
         }
 
-        private bool ShouldInitializeDeliRequest(HttpRequest request)
+        private bool IsDeliveryRequest(HttpRequest request)
         {
             if (request == null)
                 return false;
@@ -158,6 +192,39 @@ namespace Kruso.Umbraco.Delivery.Routing
         {
             var path = request.AbsoluteUri().CleanPath();
             return _umbracoRequestPaths.IsBackOfficeRequest(path);
+        }
+
+        private async Task WithResponseBody(HttpContext context, RequestDelegate next, Action<string> action)
+        {
+            if (action == null)
+                await next(context);
+
+            Stream originalBody = context.Response.Body;
+
+            try
+            {
+                using (var memStream = new MemoryStream())
+                {
+                    context.Response.Body = memStream;
+
+                    await next(context);
+
+                    memStream.Position = 0;
+                    string content = new StreamReader(memStream).ReadToEnd();
+
+                    action(content);
+
+                    if (context.Response.StatusCode != (int)HttpStatusCode.NotModified)
+                    {
+                        memStream.Position = 0;
+                        await memStream.CopyToAsync(originalBody);
+                    }
+                }
+            }
+            finally
+            {
+                context.Response.Body = originalBody;
+            }
         }
     }
 }

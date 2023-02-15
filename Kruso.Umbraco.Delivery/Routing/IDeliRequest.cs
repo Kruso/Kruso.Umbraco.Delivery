@@ -17,7 +17,6 @@ namespace Kruso.Umbraco.Delivery.Routing
 
         Uri CallingUri { get; }
         Uri OriginalUri { get; }
-        IQueryCollection Query { get; }
         JwtSecurityToken Token { get; }
 
         ModelFactoryOptions ModelFactoryOptions { get; }

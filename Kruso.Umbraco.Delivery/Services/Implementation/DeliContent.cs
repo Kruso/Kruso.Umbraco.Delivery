@@ -147,14 +147,27 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             return null;
         }
 
-        public IEnumerable<IPublishedContent> PublishedChildren(Guid id)
+        public IEnumerable<IPublishedContent> PublishedChildren(Guid id, params string[] documentTypeAliases)
         {
-            return PublishedContent(id)?.Children ?? Enumerable.Empty<IPublishedContent>();
+            return PublishedChildren(PublishedContent(id), documentTypeAliases);
+
         }
 
-        public IEnumerable<IPublishedContent> PublishedChildren(int id)
+        public IEnumerable<IPublishedContent> PublishedChildren(int id, params string[] documentTypeAliases)
         {
-            return PublishedContent(id)?.Children ?? Enumerable.Empty<IPublishedContent>();
+            return PublishedChildren(PublishedContent(id), documentTypeAliases);
+        }
+
+        public IEnumerable<IPublishedContent> PublishedChildren(IPublishedContent content, params string[] documentTypeAliases)
+        {
+            var res = content?.Children ?? Enumerable.Empty<IPublishedContent>();
+            if (documentTypeAliases?.Any() ?? false)
+            {
+                return res.Where(x =>
+                    documentTypeAliases.Any(a => a.Equals(x.ContentType.Alias, StringComparison.InvariantCultureIgnoreCase)));
+            }
+
+            return res;
         }
 
         public IPublishedContent UnpublishedContent(int id)

@@ -52,7 +52,7 @@ namespace Kruso.Umbraco.Delivery.Controllers.Renderers
 
                     foreach (var child in children)
                     {
-                        _deliRequestAccessor.FinalizeForContent(child, deliRequest.Culture);
+                        _deliRequestAccessor.Finalize(child, deliRequest.Culture);
                         var childRes = CreatePage();
                         if (childRes.Model != null)
                         {

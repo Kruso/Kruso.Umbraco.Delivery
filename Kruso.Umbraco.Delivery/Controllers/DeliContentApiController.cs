@@ -51,7 +51,7 @@ namespace Kruso.Umbraco.Delivery.Controllers
         public IActionResult Content(string culture, Guid pageId) => Execute(culture, () =>
         {
             var content = _deliContent.PublishedContent(pageId);
-            _deliRequestAccessor.FinalizeForContent(content, culture);
+            _deliRequestAccessor.Finalize(content, culture);
 
             var renderResponse = _deliCulture.WithCultureContext(_deliRequestAccessor.Current.Culture, 
                 () => _pageRenderer.Render());
@@ -64,7 +64,7 @@ namespace Kruso.Umbraco.Delivery.Controllers
         public IActionResult Content(string culture, Guid pageId, Guid blockId) => Execute(culture, () =>
         {
             var content = _deliContent.PublishedContent(pageId);
-            _deliRequestAccessor.FinalizeForContent(content, culture);
+            _deliRequestAccessor.Finalize(content, culture);
 
             var renderResponse = _deliCulture.WithCultureContext(_deliRequestAccessor.Current.Culture, 
                 () => _blockRenderer.Render(blockId));
@@ -77,7 +77,7 @@ namespace Kruso.Umbraco.Delivery.Controllers
         public IActionResult Children(string culture, Guid id, string type = null, int? skip = null, int? page = null, int? pageSize = null) => Execute(culture, () =>
         {
             var content = _deliContent.PublishedContent(id);
-            _deliRequestAccessor.FinalizeForContent(content, culture);
+            _deliRequestAccessor.Finalize(content, culture);
 
             var pagination = new Pagination(skip, page, pageSize);
             var renderResponse = _deliCulture.WithCultureContext(_deliRequestAccessor.Current.Culture, 

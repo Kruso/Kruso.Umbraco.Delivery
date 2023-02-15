@@ -63,7 +63,7 @@ namespace Kruso.Umbraco.Delivery.Routing
             }
 
             var callingUrl = _deliUrl.GetAbsoluteDeliveryUrl(content, culture);
-            var deliRequest = _deliRequestAccessor.FinalizeForPreview(content, culture, new Uri(callingUrl));
+            var deliRequest = _deliRequestAccessor.Finalize(content, culture, new Uri(callingUrl));
             if (!deliRequest.IsValidPreviewRequest())
             {
                 _logger.LogDebug("Request {path} is not a valid preview request", path);

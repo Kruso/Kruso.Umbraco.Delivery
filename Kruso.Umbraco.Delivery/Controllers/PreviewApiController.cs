@@ -66,7 +66,7 @@ namespace Kruso.Umbraco.Delivery.Controllers
             }
 
             var callingUrl = _deliUrl.GetAbsoluteDeliveryUrl(content, culture);
-            var deliRequest = _deliRequestAccessor.FinalizeForPreview(content, culture, new Uri(callingUrl));
+            var deliRequest = _deliRequestAccessor.Finalize(content, culture, new Uri(callingUrl));
 
             var jwt = _deliSecurity.CreateJwtPreviewToken(deliRequest.OriginalUri.Authority, deliRequest.CallingUri.Authority);
             var url = _deliUrl.GetPreviewPaneUrl(jwt);

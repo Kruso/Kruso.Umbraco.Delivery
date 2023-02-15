@@ -9,8 +9,7 @@ namespace Kruso.Umbraco.Delivery.Routing
         IUserIdentity Identity { get; }
         IDeliRequest Current { get; }
 
-        IDeliRequest FinalizeForContent(IPublishedContent content, string culture);
-        IDeliRequest FinalizeForPreview(IPublishedContent content, string culture, Uri callingUri);
+        IDeliRequest Finalize(IPublishedContent content, string culture, Uri callingUri = null);
         IDeliRequest Unfinalize();
     }
 }

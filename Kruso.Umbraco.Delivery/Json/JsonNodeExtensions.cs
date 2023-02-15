@@ -86,6 +86,9 @@ namespace Kruso.Umbraco.Delivery.Json
         {
             var val = Val(node, prop);
 
+            if (typeof(T) == typeof(string))
+                return (T)(val?.ToString() as object);
+
             if (val == null)
                 return default;
 
@@ -109,9 +112,6 @@ namespace Kruso.Umbraco.Delivery.Json
 
                 return (T)(IEnumerable<string>)res;
             }
-
-            if (typeof(T) == typeof(string))
-                return (T)((val?.ToString() ?? string.Empty) as object);
 
             return default;
         }
@@ -156,13 +156,10 @@ namespace Kruso.Umbraco.Delivery.Json
             var currNode = node;
             foreach (var seg in path)
             {
-                currNode = currNode.Node(seg);
-                if (currNode == null)
-                {
-                    var newNode = new JsonNode();
-                    currNode[seg] = newNode;
-                    currNode = newNode;
-                }
+                var nextNode = currNode.Node(seg);
+                currNode = nextNode == null
+                    ? (JsonNode)(currNode[seg] = new JsonNode())
+                    : nextNode;
             }
 
             return currNode;

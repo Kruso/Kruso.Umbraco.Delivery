@@ -4,6 +4,7 @@ using Kruso.Umbraco.Delivery.Json;
 using Kruso.Umbraco.Delivery.ModelConversion;
 using Kruso.Umbraco.Delivery.ModelGeneration;
 using Kruso.Umbraco.Delivery.Routing;
+using Kruso.Umbraco.Delivery.Routing.Implementation;
 using Kruso.Umbraco.Delivery.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -80,7 +81,7 @@ namespace Kruso.Umbraco.Delivery.Search
                                 using (var scope = _serviceProvider.CreateScope())
                                 {
                                     var umbCulture = scope.ServiceProvider.GetService<IDeliCulture>();
-                                    var deliRequestAccessor = scope.ServiceProvider.GetService<IDeliRequestAccessor>();
+                                    var deliRequestAccessor = scope.ServiceProvider.GetService<IDeliRequestAccessor>() as DeliRequestAccessor;
                                     var modelConverter = scope.ServiceProvider.GetService<IModelConverter>();
                                     var modelFactory = scope.ServiceProvider.GetService<IModelFactory>();
                                     var deliContent = scope.ServiceProvider.GetService<IDeliContent>();

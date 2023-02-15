@@ -28,18 +28,18 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             _serviceProvider = serviceProvider;
         }
 
-        public void InitializeIndexing(IPublishedContent content, string culture, Uri callingUri)
+        internal void Initialize(HttpRequest request, Uri originalUri)
+        {
+            var deliRequest = new DeliRequest(request, originalUri);
+            _deliCache.AddToRequest(CacheKey, deliRequest);
+        }
+
+        internal void InitializeIndexing(IPublishedContent content, string culture, Uri callingUri)
         {
             var deliRequest = new DeliRequest();
             deliRequest.Finalize(content, culture, callingUri);
 
             _deliCache.ReplaceOnRequest(CacheKey, deliRequest);
-        }
-
-        public void Initialize(HttpRequest request, Uri originalUri, string jwtToken)
-        {
-            var deliRequest = new DeliRequest(request, originalUri, jwtToken);
-            _deliCache.AddToRequest(CacheKey, deliRequest);
         }
 
         public IDeliRequest Finalize(IPublishedContent content, string culture, Uri callingUri = null)

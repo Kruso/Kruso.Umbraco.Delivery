@@ -1,5 +1,6 @@
 ﻿using Kruso.Umbraco.Delivery.Extensions;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
@@ -178,10 +179,13 @@ namespace Kruso.Umbraco.Delivery.Json
             return res;
         }
 
-        public void Remove(string prop)
+        public void Remove(params string[] props)
         {
-            if (_properties.ContainsKey(prop))
-                _properties.Remove(prop);
+            foreach (var prop in props)
+            {
+                if (_properties.ContainsKey(prop))
+                    _properties.Remove(prop);
+            }
         }
 
         #region Interfaces and Overrides
@@ -211,6 +215,8 @@ namespace Kruso.Umbraco.Delivery.Json
         {
             return JsonConvert.SerializeObject(this, Formatting.Indented, new JsonSerializerSettings
             {
+                Formatting = Formatting.Indented,
+                ContractResolver = new CamelCasePropertyNamesContractResolver(),
                 ObjectCreationHandling = ObjectCreationHandling.Replace,
                 NullValueHandling = NullValueHandling.Include
             });

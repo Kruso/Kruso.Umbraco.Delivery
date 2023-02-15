@@ -12,9 +12,10 @@ namespace Kruso.Umbraco.Delivery.Models
     {
         public int MaxDepth { get; set; }
         public bool LoadPreview { get; set; }
-        public string[] IncludeFields { get; set; }
-        public string[] ExcludeFields { get; set; }
+        public string[] IncludeFields { get; set; } = new string[0];
+        public string[] ExcludeFields { get; set; } = new string[0];
         public bool ApplyPublicAccessRights { get; set; }
         public IQueryCollection QueryString { get; set; }
+        public bool ModifyFields => (IncludeFields?.Any() ?? false) || (ExcludeFields?.Any() ?? false);
     }
 }

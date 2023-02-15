@@ -21,5 +21,19 @@ namespace Kruso.Umbraco.Delivery.Extensions
                 ? componentTypes.Select(c => $"{templateType}+{c}".ToLower()).ToArray()
                 : new string[] { templateType.ToString().ToLower() };
         }
+
+        public static string MakeKey(this EventType templateType, string componentType = null)
+        {
+            return string.IsNullOrEmpty(componentType)
+                ? templateType.ToString().ToLower()
+                : $"{templateType}+{componentType}".ToLower();
+        }
+
+        public static string[] MakeKeys(this EventType templateType, params string[] componentTypes)
+        {
+            return componentTypes?.Any() == true
+                ? componentTypes.Select(c => $"{templateType}+{c}".ToLower()).ToArray()
+                : new string[] { templateType.ToString().ToLower() };
+        }
     }
 }

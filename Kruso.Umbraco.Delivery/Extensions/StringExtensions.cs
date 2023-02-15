@@ -3,6 +3,8 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Kruso.Umbraco.Delivery.Extensions
 {
@@ -74,6 +76,27 @@ namespace Kruso.Umbraco.Delivery.Extensions
             }
 
             return nvc;
+        }
+
+        public static byte[] ToHash(this string inputString)
+        {
+            if (string.IsNullOrEmpty(inputString))
+                return null;
+
+            using (HashAlgorithm algorithm = MD5.Create())
+                return algorithm.ComputeHash(Encoding.UTF8.GetBytes(inputString));
+        }
+
+        public static string ToHashString(this string inputString)
+        {
+            if (string.IsNullOrEmpty(inputString))
+                return null;
+
+            StringBuilder sb = new StringBuilder();
+            foreach (byte b in ToHash(inputString))
+                sb.Append(b.ToString("X2"));
+
+            return sb.ToString();
         }
     }
 }

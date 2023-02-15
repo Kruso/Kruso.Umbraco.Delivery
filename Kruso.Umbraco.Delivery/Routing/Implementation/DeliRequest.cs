@@ -23,7 +23,6 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
         public Uri CallingUri { get; private set; }
 
         public Uri OriginalUri { get; private set; }
-        public IQueryCollection Query => Request?.Query;
         public string JwtToken { get; private set; }
         public JwtSecurityToken Token { get; internal set; }
 
@@ -37,23 +36,14 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             ModelFactoryOptions = CreateModelFactoryOptions();
         }
 
-        internal DeliRequest(HttpRequest request)
+        internal DeliRequest(HttpRequest request, Uri originalUri)
         {
             Request = request;
-            CallingUri =  request.AbsoluteUri();
-            OriginalUri = request.AbsoluteUri();
-            RequestOrigin = GetRequestOrigin();
-            ModelFactoryOptions = CreateModelFactoryOptions();
-        }
-
-        internal DeliRequest(HttpRequest request, Uri originalUri, string jwtToken)
-        {
-            Request = request;
-            JwtToken = jwtToken;
             CallingUri = request.AbsoluteUri();
             OriginalUri = originalUri;
             RequestOrigin = GetRequestOrigin();
             ModelFactoryOptions = CreateModelFactoryOptions();
+            JwtToken = request.GetJwtBearerToken();
         }
 
         public bool IsValidPreviewRequest()
@@ -68,12 +58,12 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             var res = new ModelFactoryOptions
             {
                 LoadPreview = IsValidPreviewRequest(),
-                QueryString = Query,
-                IncludeFields = Query.Strs("include"),
-                ExcludeFields = Query.Strs("exclude")
+                QueryString = Request?.Query,
+                IncludeFields = Request?.Query.Strs("include") ?? new string[0],
+                ExcludeFields = Request?.Query.Strs("exclude") ?? new string[0]
             };
 
-            var depth = Query.Int("depth");
+            var depth = Request?.Query.Int("depth") ?? 0;
             if (depth > 0)
                 res.MaxDepth = depth;
 
@@ -118,10 +108,12 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             if (!_finalized)
                 return RequestType.Initialized;
 
-            if (Content != null)
-                return RequestType.Content;
+            if (string.IsNullOrEmpty(Culture))
+                return RequestType.Failed;
 
-            return RequestType.Failed;
+            return Content != null
+                ? RequestType.Content
+                : RequestType.Search;
         }
 
         private RequestOrigin GetRequestOrigin()

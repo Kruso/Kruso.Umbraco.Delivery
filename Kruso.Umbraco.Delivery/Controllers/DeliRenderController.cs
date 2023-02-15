@@ -1,6 +1,5 @@
 ﻿using Kruso.Umbraco.Delivery.Controllers.Renderers;
-using Kruso.Umbraco.Delivery.Extensions;
-using Kruso.Umbraco.Delivery.Json;
+using Kruso.Umbraco.Delivery.Models;
 using Kruso.Umbraco.Delivery.Routing;
 using Kruso.Umbraco.Delivery.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -35,24 +34,10 @@ namespace Kruso.Umbraco.Delivery.Controllers
         public override IActionResult Index()
         {
             var deliRequest = _deliRequestAccessor.Current;
-            if (_deliTemplates.IsJsonTemplate(deliRequest?.Content))
-            {
-                var renderModel = _pageRenderer.Render();
 
-                if (renderModel == null)
-                    return NotFound();
-
-                Response.StatusCode = (int)renderModel.StatusCode;
-                var response = renderModel.Model != null
-                    ? renderModel.Model.Clone(deliRequest?.ModelFactoryOptions.IncludeFields, deliRequest?.ModelFactoryOptions.ExcludeFields).ToString()
-                    : renderModel.Data;
-                
-                return Content(response, renderModel.ContentType);
-            }
-            else
-            {
-                return base.Index();
-            }
+            return _deliTemplates.IsJsonTemplate(deliRequest?.Content)
+                ? _pageRenderer.Render().ToActionResult()
+                : base.Index();
         }
     }
 }

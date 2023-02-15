@@ -11,6 +11,7 @@ namespace Kruso.Umbraco.Delivery
         Initialized,
         Content,
         PreviewContent,
+        Search,
         Failed
     }
 
@@ -37,5 +38,12 @@ namespace Kruso.Umbraco.Delivery
         Content,
         Media,
         PublishedElement
+    }
+
+    public enum EventType
+    {
+        Published,
+        Saved,
+        Deleted
     }
 }

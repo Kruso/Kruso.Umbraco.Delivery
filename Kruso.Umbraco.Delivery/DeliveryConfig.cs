@@ -1,4 +1,5 @@
-﻿using Kruso.Umbraco.Delivery.Extensions;
+﻿using J2N.Collections.Generic;
+using Kruso.Umbraco.Delivery.Extensions;
 using System;
 using System.Linq;
 
@@ -21,6 +22,7 @@ namespace Kruso.Umbraco.Delivery
                 SettingsType = GetValue(siteValues?.SettingsType, SettingsType),
                 RobotsTxtProperty = GetValue(siteValues?.RobotsTxtProperty, RobotsTxtProperty),
                 MediaCdnUrl = GetValue(siteValues?.MediaCdnUrl, MediaCdnUrl),
+                CacheControls = GetCacheControls(siteValues?.CacheControls, CacheControls),
                 ForwardedHeader = ForwardedHeader,
                 CertificateThumbprint = CertificateThumbprint,
                 CertificateFileName = CertificateFileName,
@@ -32,12 +34,29 @@ namespace Kruso.Umbraco.Delivery
         }
 
         public bool IsMultiSite() => (Sites?.Length ?? 0) > 1;
-
         private string GetValue(string siteValue, string defaultValue)
         {
             return string.IsNullOrEmpty(siteValue)
                 ? defaultValue
                 : siteValue;
+        }
+
+        private DeliveryCacheControl[] GetCacheControls(DeliveryCacheControl[] siteValue, DeliveryCacheControl[] defaultValue)
+        {
+            var res = new List<DeliveryCacheControl>();
+            if (siteValue != null)
+                res.AddRange(siteValue);
+            
+            if (defaultValue != null)
+            {
+                foreach (var cacheControl in defaultValue)
+                {
+                    if (!res.Any(x => x.MimeType.Equals(cacheControl.MimeType, StringComparison.InvariantCultureIgnoreCase)))
+                        res.Add(cacheControl);
+                }
+            }
+
+            return res.ToArray();
         }
 
         private bool IsMatchingAuthority(string frontendHost, Uri callingUri)
@@ -68,5 +87,19 @@ namespace Kruso.Umbraco.Delivery
         public string FrontendHost { get; set; }
         public string RobotsTxtProperty { get; set; }
         public string MediaCdnUrl { get; set; }
+        public DeliveryCacheControl[] CacheControls { get; set; } = new DeliveryCacheControl[0];
+
+        public string GetCacheControl(string mimeType)
+        {
+            return CacheControls
+                .FirstOrDefault(x => x.MimeType.Equals(mimeType, StringComparison.InvariantCultureIgnoreCase))
+                ?.CacheControl;
+        }
+    }
+
+    public class DeliveryCacheControl
+    {
+        public string MimeType { get; set; }
+        public string CacheControl { get; set; }
     }
 }

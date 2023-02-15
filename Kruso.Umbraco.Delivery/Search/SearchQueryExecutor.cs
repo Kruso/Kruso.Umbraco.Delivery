@@ -4,6 +4,7 @@ using Kruso.Umbraco.Delivery.Json;
 using Kruso.Umbraco.Delivery.ModelConversion;
 using Kruso.Umbraco.Delivery.ModelGeneration;
 using Kruso.Umbraco.Delivery.Routing;
+using Kruso.Umbraco.Delivery.Routing.Implementation;
 using Kruso.Umbraco.Delivery.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -15,25 +16,25 @@ namespace Kruso.Umbraco.Delivery.Search
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IDeliContent _deliContent;
+        private readonly IDeliRequestAccessor _deliRequestAccessor;
         private readonly IModelFactory _modelFactory;
         private readonly IModelConverter _modelConverter;
         private readonly IExamineManager _examineManager;
-        private readonly IDeliRequestAccessor _delRequestAccessor;
 
         public SearchQueryExecutor(
             IServiceProvider serviceProvider,
-            IDeliContent deliContent, 
+            IDeliContent deliContent,
+            IDeliRequestAccessor deliRequestAccessor,
             IModelFactory modelFactory, 
             IModelConverter modelConverter, 
-            IExamineManager examineManager,
-            IDeliRequestAccessor delRequestAccessor)
+            IExamineManager examineManager)
         {
             _serviceProvider = serviceProvider;
             _deliContent = deliContent;
+            _deliRequestAccessor = deliRequestAccessor;
             _modelFactory = modelFactory;
             _modelConverter = modelConverter;
             _examineManager = examineManager;
-            _delRequestAccessor = delRequestAccessor;
         }
 
         public SearchResult Execute(SearchRequest searchRequest)
@@ -68,12 +69,11 @@ namespace Kruso.Umbraco.Delivery.Search
                     var pages = results
                         .Select(x => _deliContent.PublishedContent(Convert.ToInt32(x.Id)));
 
-                    var pageModels = _modelConverter.Convert(_modelFactory.CreatePages(pages, searchRequest.Culture), TemplateType.Search)
-                        .ToList();
+                    var deliRequest = _deliRequestAccessor.Current;
 
-                    var modelFactoryOptions = _delRequestAccessor.Current?.ModelFactoryOptions;
-                    if ((modelFactoryOptions?.IncludeFields?.Any() ?? false) || (modelFactoryOptions?.ExcludeFields?.Any() ?? false))
-                        pageModels = pageModels.Select(x => x.Clone(modelFactoryOptions.IncludeFields, modelFactoryOptions.ExcludeFields)).ToList();
+                    var pageModels = _modelConverter.Convert(_modelFactory.CreatePages(pages, searchRequest.Culture), TemplateType.Search)
+                        .Select(x => x.Clone(deliRequest.ModelFactoryOptions.IncludeFields, deliRequest.ModelFactoryOptions.ExcludeFields))
+                        .ToList();
 
                     res.totalCount = searchResults.TotalItemCount;
                     res.pageResults = pageModels;

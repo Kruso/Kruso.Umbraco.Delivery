@@ -25,5 +25,6 @@ namespace Kruso.Umbraco.Delivery.Services
         IEnumerable<IPublishedContent> PublishedChildren(int id);
         IPublishedContent UnpublishedContent(int id);
         IPublishedContent UnpublishedContent(Guid id);
+        List<IPublishedContent> RelatedPages(int id);
     }
 }

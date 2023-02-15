@@ -11,7 +11,7 @@ namespace Kruso.Umbraco.Delivery.Controllers
         private readonly RobotsRenderer _robotsRenderer;
 
         public DeliSeoApiController(
-            SitemapRenderer sitemapRenderer, 
+            SitemapRenderer sitemapRenderer,
             RobotsRenderer robotsRenderer,
             IDeliCulture umbCulture,
             ILogger<DeliSeoApiController> logger)

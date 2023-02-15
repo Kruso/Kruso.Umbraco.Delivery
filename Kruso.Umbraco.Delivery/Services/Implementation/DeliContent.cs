@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Umbraco.Cms.Core.Models.PublishedContent;
+using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Web;
 using Umbraco.Extensions;
 
@@ -11,23 +12,23 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
     public class DeliContent : IDeliContent
     {
         private readonly IDeliConfig _deliConfig;
-        private readonly IDeliContentTypes _deliContentTypes;
         private readonly IDeliCulture _deliCulture;
         private readonly ILogger<DeliContent> _log;
         private readonly IUmbracoContextAccessor _umbracoContextAccessor;
+        private readonly IRelationService _relationService;
 
         public DeliContent(
             IDeliConfig deliConfig,
-            IDeliContentTypes deliContentTypes,
             IDeliCulture deliCulture,
             IUmbracoContextAccessor umbracoContextAccessor,
-            ILogger<DeliContent> log)
+            ILogger<DeliContent> log,
+            IRelationService relationService)
         {
             _deliConfig = deliConfig;
-            _deliContentTypes = deliContentTypes;
             _deliCulture = deliCulture;
             _umbracoContextAccessor = umbracoContextAccessor;
             _log = log;
+            _relationService = relationService;
         }
 
         public IEnumerable<IPublishedContent> PublishedDescendants(IPublishedContent content)
@@ -174,6 +175,23 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             }
 
             return null;
+        }
+
+        public List<IPublishedContent> RelatedPages(int id)
+        {
+            var res = new List<IPublishedContent>();
+
+            var relations = _relationService.GetByChildId(id);
+            foreach (var relation in relations.Where(x => x.RelationType.Alias == "umbDocument"))
+            {
+                var content = PublishedContent(relation.ParentId);
+                if (IsRenderablePage(content))
+                    res.Add(content);
+                else
+                    res.AddRange(RelatedPages(relation.ParentId));
+            }
+
+            return res;
         }
     }
 }

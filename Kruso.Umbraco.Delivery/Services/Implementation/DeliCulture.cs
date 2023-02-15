@@ -56,7 +56,7 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
 
         public bool IsCultureSupported(string culture)
         {
-            return SupportedCultures.Any(sc => sc.Equals(culture, StringComparison.InvariantCultureIgnoreCase));
+            return !string.IsNullOrEmpty(culture) && SupportedCultures.Any(sc => sc.Equals(culture, StringComparison.InvariantCultureIgnoreCase));
         }
 
         public string GetFallbackCulture(string culture)
@@ -97,6 +97,33 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             return res.ToList();
         }
 
+        public T WithCultureContext<T>(string culture, Func<T> func)
+            where T : class
+        {
+            if (func != null)
+            {
+                var oldCulture = _variationContextAccessor.VariationContext?.Culture;
+
+                try
+                {
+                    if (!string.IsNullOrEmpty(culture) && culture != oldCulture)
+                    {
+                        _variationContextAccessor.VariationContext = new VariationContext(culture);
+                    }
+
+                    return func();
+                }
+                finally
+                {
+                    if (!string.IsNullOrEmpty(culture) && culture != oldCulture)
+                    {
+                        _variationContextAccessor.VariationContext = new VariationContext(oldCulture);
+                    }
+                }
+            }
+
+            return default;
+        }
 
         public void WithCultureContext(string culture, Action action)
         {

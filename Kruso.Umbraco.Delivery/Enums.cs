@@ -39,4 +39,11 @@ namespace Kruso.Umbraco.Delivery
         Media,
         PublishedElement
     }
+
+    public enum EventType
+    {
+        Published,
+        Saved,
+        Deleted
+    }
 }

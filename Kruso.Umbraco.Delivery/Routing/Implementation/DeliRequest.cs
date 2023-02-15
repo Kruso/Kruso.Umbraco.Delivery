@@ -118,10 +118,12 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             if (!_finalized)
                 return RequestType.Initialized;
 
-            if (Content != null)
-                return RequestType.Content;
+            if (string.IsNullOrEmpty(Culture))
+                return RequestType.Failed;
 
-            return RequestType.Failed;
+            return Content != null
+                ? RequestType.Content
+                : RequestType.Search;
         }
 
         private RequestOrigin GetRequestOrigin()

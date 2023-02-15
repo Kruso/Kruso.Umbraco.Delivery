@@ -42,7 +42,22 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
             _deliCache.AddToRequest(CacheKey, deliRequest);
         }
 
-        public IDeliRequest Finalize(IPublishedContent content, string culture, Uri callingUri = null)
+        public IDeliRequest FinalizeForSearch(string culture)
+        {
+            return Finalize(null, culture, null);
+        }
+
+        public IDeliRequest FinalizeForContent(IPublishedContent content, string culture)
+        {
+            return Finalize(content, culture, null);
+        }
+
+        public IDeliRequest FinalizeForPreview(IPublishedContent content, string culture, Uri callingUri)
+        {
+            return Finalize(content, culture, callingUri);
+        }
+
+        private IDeliRequest Finalize(IPublishedContent content, string culture, Uri callingUri)
         {
             var deliRequest = _deliCache.GetFromRequest<DeliRequest>(CacheKey);
             if (deliRequest != null)

@@ -178,10 +178,13 @@ namespace Kruso.Umbraco.Delivery.Json
             return res;
         }
 
-        public void Remove(string prop)
+        public void Remove(params string[] props)
         {
-            if (_properties.ContainsKey(prop))
-                _properties.Remove(prop);
+            foreach (var prop in props)
+            {
+                if (_properties.ContainsKey(prop))
+                    _properties.Remove(prop);
+            }
         }
 
         #region Interfaces and Overrides

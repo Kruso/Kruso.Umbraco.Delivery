@@ -11,6 +11,7 @@ namespace Kruso.Umbraco.Delivery
         Initialized,
         Content,
         PreviewContent,
+        Search,
         Failed
     }
 

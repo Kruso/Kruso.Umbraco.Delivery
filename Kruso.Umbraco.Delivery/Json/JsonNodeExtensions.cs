@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace Kruso.Umbraco.Delivery.Json
@@ -39,7 +41,7 @@ namespace Kruso.Umbraco.Delivery.Json
 
         public static bool IsNodeProp(this JsonNode node, string prop)
         {
-            return node?.Node(prop) != null || node?.Nodes(prop)?.Any() == true;
+            return Node(node, prop) != null;
         }
 
         public static bool IsBlock(this JsonNode node)
@@ -47,15 +49,6 @@ namespace Kruso.Umbraco.Delivery.Json
             return node != null
                 && node.Id != Guid.Empty
                 && !string.IsNullOrEmpty(node.Type);
-        }
-
-        public static bool IsNestedContentProp(this JsonNode node)
-        {
-            var val = node != null
-                ? node.Val<string>("fieldType")
-                : null;
-
-            return !string.IsNullOrEmpty(val) && (val == "Umbraco.NestedContent" || val == "Umbraco.MultiNodeTreePicker" || val == "Umbraco.ContentPicker");
         }
 
         public static T ValOrDefault<T>(this JsonNode node, string prop, T def)
@@ -81,38 +74,34 @@ namespace Kruso.Umbraco.Delivery.Json
 
         public static object Val(this JsonNode node, string prop)
         {
-            return node?.Val<object>(prop);
+            var parser = JsonNodePropertyParser.Create(node, prop);
+            if (!parser.IsValidForGet)
+                return null;
+
+            node = NodeFromPath(node, parser.SourcePath);
+            return node?[parser.Source];
         }
 
         public static T Val<T>(this JsonNode node, string prop)
         {
-            var propVal = node != null
-                ? node[prop]
-                : null;
+            var val = Val(node, prop);
 
-            if (propVal == null)
+            if (val == null)
                 return default;
 
-            if (propVal is T)
-            {
-                if (propVal is JsonNode && ((JsonNode)propVal).Val<string>("name") == prop)
-                {
-                    return ((JsonNode)propVal).Val<T>("value");
-                }
-
-                return (T)propVal;
-            }
+            if (val is T)
+                return (T)val;
 
             if (IsStringList<T>())
             {
                 List<string> res = null;
-                if (IsStringList(propVal))
+                if (IsStringList(val))
                 {
-                    res = ((IEnumerable<string>)propVal).ToList();
+                    res = ((IEnumerable<string>)val).ToList();
                 }
                 else
                 {
-                    var strVal = propVal?.ToString() ?? string.Empty;
+                    var strVal = val?.ToString() ?? string.Empty;
                     res = new List<string> { strVal };
                 }
                 if (typeof(T) == typeof(string[]))
@@ -122,79 +111,123 @@ namespace Kruso.Umbraco.Delivery.Json
             }
 
             if (typeof(T) == typeof(string))
-                return (T)((propVal?.ToString() ?? string.Empty) as object);
+                return (T)((val?.ToString() ?? string.Empty) as object);
 
             return default;
         }
 
         public static bool PropIs<T>(this JsonNode node, string prop)
         {
-            var propVal = node != null
-                ? node[prop]
-                : null;
+            var val = node.Val(prop);
 
-            return propVal == null
+            return val == null
                 ? false
-                : propVal is T;
+                : val is T;
+        }
+
+        public static bool PropExists(this JsonNode node, string prop)
+        {
+            var parser = JsonNodePropertyParser.Create(node, prop);
+            if (!parser.IsValidForGet) 
+                return false;
+
+            node = NodeFromPath(node, parser.SourcePath);
+            return node?.HasProp(parser.Source) ?? false;
         }
 
         public static JsonNode AddNode(this JsonNode node, string prop)
         {
-            node.AddProp(prop, new JsonNode());
-            return node.Node(prop);
+            var parser = JsonNodePropertyParser.Create(node, prop, null);
+            if (!parser.IsValidForUpdate)
+                return null;
+
+            var currNode = AddNodeFromPath(node, parser.TargetPath);
+            var newNode = new JsonNode();
+            currNode[parser.Target] = newNode;
+
+            return newNode;
+        }
+
+        private static JsonNode AddNodeFromPath(this JsonNode node, string[] path)
+        {
+            if (node == null) 
+                return null;
+
+            var currNode = node;
+            foreach (var seg in path)
+            {
+                currNode = currNode.Node(seg);
+                if (currNode == null)
+                {
+                    var newNode = new JsonNode();
+                    currNode[seg] = newNode;
+                    currNode = newNode;
+                }
+            }
+
+            return currNode;
         }
 
         public static JsonNode Node(this JsonNode node, string prop)
         {
-            return node?.Val<JsonNode>(prop);
+            var parser = JsonNodePropertyParser.Create(node, prop);
+            if (!parser.IsValidForGet)
+                return null;
+
+            node = NodeFromPath(node, parser.SourcePath);
+
+            return node.Val<JsonNode>(parser.Source);
+        }
+
+        private static JsonNode NodeFromPath(this JsonNode node, string[] path)
+        {
+            foreach (var seg in path)
+                node = node.Node(seg);
+
+            return node;
         }
 
         public static IEnumerable<JsonNode> Nodes(this JsonNode node, string prop)
         {
-            return node?.Val<IEnumerable<JsonNode>>(prop) ?? Enumerable.Empty<JsonNode>();
+            return ValOrDefault(node, prop, Enumerable.Empty<JsonNode>());
         }
 
         public static JsonNode AddProp(this JsonNode node, string prop, object value)
         {
-            if (node == null)
-                return null;
-
-            node[prop] = value;
+            var parser = JsonNodePropertyParser.Create(node, prop, null);
+            if (parser.IsValidForUpdate)
+            {
+                var currNode = AddNodeFromPath(node, parser.TargetPath);
+                currNode[parser.Target] = value;
+            }
 
             return node;
         }
 
         public static JsonNode AddProp<T>(this JsonNode node, string prop, Func<JsonNode, T> propValFunc)
         {
-            if (node == null)
-                return null;
-
-            if (propValFunc != null)
+            if (node != null && propValFunc != null)
             {
-                node[prop] = propValFunc(node);
+                var val = propValFunc(node);
+                AddProp(node, prop, val);
             }
-
 
             return node;
         }
+
         public static JsonNode AddPropIfNotExists(this JsonNode node, string prop, object value)
         {
-            if (node == null)
-                return null;
+            if (node == null || PropExists(node, prop))
+                return node;
 
-            if (!node.HasProp(prop))
-            {
-                node[prop] = value;
-            }
-
-            return node;
+            return AddProp(node, prop, value);
         }
 
         public static JsonNode AddPropIfNotNull(this JsonNode node, string prop, object value)
         {
             return value == null
                 ? node
-                : node.AddProp(prop, value);
+                : AddProp(node, prop, value);
         }
 
         public static JsonNode RemoveProp(this JsonNode node, string prop)
@@ -205,14 +238,7 @@ namespace Kruso.Umbraco.Delivery.Json
 
         public static JsonNode RemoveProps(this JsonNode node, params string[] parms)
         {
-            if (node != null)
-            {
-                foreach (var parm in parms)
-                {
-                    node.Remove(parm);
-                }
-            }
-
+            node?.Remove(parms);
             return node;
         }
 
@@ -230,15 +256,62 @@ namespace Kruso.Umbraco.Delivery.Json
             return node;
         }
 
-        public static JsonNode CopyProp(this JsonNode node, JsonNode source, string sourceProp)
+        public static JsonNode CopyProp(this JsonNode node, string targetProp, JsonNode source, string sourceProp)
         {
-            if (node != null && source != null && source.HasProp(sourceProp))
+            var sourceParser = JsonNodePropertyParser.Create(source, targetProp, sourceProp);
+            if (sourceParser.IsValidForCopy)
             {
-                var value = source.Val(sourceProp);
-                node.AddProp(sourceProp, value);
+                source = NodeFromPath(source, sourceParser.SourcePath);
+                if (source?.HasProp(sourceParser.Source) ?? false)
+                {
+                    var val = source[sourceParser.Source];
+                    var currNode = AddNodeFromPath(node, sourceParser.TargetPath);
+                    currNode[sourceParser.Target] = val;
+                }
             }
 
             return node;
+        }
+
+        public static JsonNode CopyProp(this JsonNode node, JsonNode source, string sourceProp)
+        {
+            return CopyProp(node, null, source, sourceProp);
+        }
+
+        public static JsonNode CopyProps(this JsonNode node, JsonNode source, params string[] parms)
+        {
+            if (node == null || source == null)
+                return node;
+
+            parms = parms?.Any() == true
+                ? parms
+                : source.AllPropNames();
+
+            foreach (var parm in parms)
+                node.CopyProp(source, parm);
+
+            return node;
+        }
+
+        public static JsonNode CopyAllProps(this JsonNode node, JsonNode source)
+        {
+            return CopyProps(node, source);
+        }
+
+        public static JsonNode CopyAllExceptProps(this JsonNode node, JsonNode source, params string[] parms)
+        {
+            if (node == null || source == null)
+                return node;
+
+            if (parms == null || !parms.Any())
+                return CopyAllProps(node, source);
+
+            var props = source
+                .AllPropNames()
+                .Where(x => !parms.Contains(x))
+                .ToArray();
+
+            return CopyProps(node, source, props);
         }
 
         public static JsonNode Clone(this JsonNode source, string[] include = null, string[] exclude = null)
@@ -255,69 +328,20 @@ namespace Kruso.Umbraco.Delivery.Json
             return res;
         }
 
-        public static JsonNode CopyProp(this JsonNode node, string targetProp, JsonNode source, string sourceProp)
-        {
-            if (node != null && source != null && !string.IsNullOrEmpty(targetProp) && source.HasProp(sourceProp))
-            {
-                var value = source.Val(sourceProp);
-                node.AddProp(targetProp, value);
-            }
-
-            return node;
-        }
-
-        public static JsonNode CopyProps(this JsonNode node, JsonNode source, params string[] parms)
-        {
-            if (node != null)
-            {
-                if (parms == null || !parms.Any())
-                    return node.CopyAllProps(source);
-
-                foreach (var parm in parms)
-                {
-                    node.CopyProp(parm, source, parm);
-                }
-            }
-
-            return node;
-        }
-
-        public static JsonNode CopyAllProps(this JsonNode node, JsonNode source)
-        {
-            if (node != null && source != null)
-            {
-                foreach (var prop in source.AllPropNames())
-                {
-                    node.CopyProp(prop, source, prop);
-                }
-            }
-
-            return node;
-        }
-
-        public static JsonNode CopyAllExceptProps(this JsonNode node, JsonNode source, params string[] parms)
-        {
-            if (node != null && source != null)
-            {
-                if (parms == null || parms.Length == 0)
-                    return node.CopyAllProps(source);
-
-                foreach (var prop in source.AllPropNames().Where(x => parms == null || !parms.Contains(x)))
-                {
-                    node.CopyProp(prop, source, prop);
-                }
-            }
-
-            return node;
-        }
-
         public static JsonNode RenameProp(this JsonNode node, string prop, string newProp)
         {
-            if (node != null && node.HasProp(prop))
+            var parser = JsonNodePropertyParser.Create(node, newProp, prop);
+            if (parser.IsValidForCopy)
             {
-                var val = node[prop];
-                node.Remove(prop);
-                node.AddProp(newProp, val);
+                var currNode = NodeFromPath(node, parser.SourcePath);
+                if (currNode?.HasProp(parser.Source) ?? false)
+                {
+                    var val = currNode[parser.Source];
+                    currNode.Remove(parser.Source);
+
+                    currNode = AddNodeFromPath(node, parser.TargetPath);
+                    currNode[parser.Target] = val;
+                }
             }
 
             return node;
@@ -337,5 +361,4 @@ namespace Kruso.Umbraco.Delivery.Json
                 || obj.GetType() == typeof(string[]);
         }
     }
-
 }

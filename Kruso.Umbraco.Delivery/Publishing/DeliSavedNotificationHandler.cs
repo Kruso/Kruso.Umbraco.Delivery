@@ -4,28 +4,18 @@ using Umbraco.Cms.Core.Notifications;
 
 namespace Kruso.Umbraco.Delivery.Publishing
 {
-    public class DeliSavedNotificationHandler : INotificationHandler<ContentSavedNotification>
+    public class DeliSavedNotificationHandler : DeliNotificationHandler, INotificationHandler<ContentSavedNotification>
     {
-        private readonly IDeliEventHandlerSource _deliEventHandlerSource;
-        private readonly IDeliContent _deliContent;
-
-        public DeliSavedNotificationHandler(IDeliEventHandlerSource deliEventHandlerSource, IDeliContent deliContent)
+        public DeliSavedNotificationHandler(
+            IDeliEventHandlerSource deliEventHandlerSource,
+            IDeliContent deliContent,
+            IDeliCulture deliCulture
+            )
+            : base(deliEventHandlerSource, deliContent, deliCulture)
         {
-            _deliEventHandlerSource = deliEventHandlerSource;
-            _deliContent = deliContent;
         }
 
-        public void Handle(ContentSavedNotification notification)
-        {
-            foreach (var content in notification.SavedEntities)
-            {
-                var eventHandler = _deliEventHandlerSource.Get(EventType.Saved, content.ContentType.Alias);
-                if (eventHandler != null)
-                {
-                    var publishedContent = _deliContent.UnpublishedContent(content.Key);
-                    eventHandler.Handle(publishedContent);
-                }
-            }
-        }
+        public void Handle(ContentSavedNotification notification) =>
+            base.Handle(notification.SavedEntities, notification.HasSavedCulture);
     }
 }

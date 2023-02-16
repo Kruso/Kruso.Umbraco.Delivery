@@ -4,28 +4,18 @@ using Umbraco.Cms.Core.Notifications;
 
 namespace Kruso.Umbraco.Delivery.Publishing
 {
-    public class DeliDeletedNotificationHandler : INotificationHandler<ContentDeletingNotification>
+    public class DeliDeletedNotificationHandler : DeliNotificationHandler, INotificationHandler<ContentDeletingNotification>
     {
-        private readonly IDeliEventHandlerSource _deliEventHandlerSource;
-        private readonly IDeliContent _deliContent;
-
-        public DeliDeletedNotificationHandler(IDeliEventHandlerSource deliEventHandlerSource, IDeliContent deliContent)
+        public DeliDeletedNotificationHandler(
+            IDeliEventHandlerSource deliEventHandlerSource,
+            IDeliContent deliContent,
+            IDeliCulture deliCulture
+            )
+            : base(deliEventHandlerSource, deliContent, deliCulture)
         {
-            _deliEventHandlerSource = deliEventHandlerSource;
-            _deliContent = deliContent;
         }
 
-        public void Handle(ContentDeletingNotification notification)
-        {
-            foreach (var content in notification.DeletedEntities)
-            {
-                var eventHandler = _deliEventHandlerSource.Get(EventType.Deleted, content.ContentType.Alias);
-                if (eventHandler != null)
-                {
-                    var publishedContent = _deliContent.PublishedContent(content.Key);
-                    eventHandler.Handle(publishedContent);
-                }
-            }
-        }
+        public void Handle(ContentDeletingNotification notification) =>
+            base.Handle(notification.DeletedEntities, (content, culture) => true);
     }
 }

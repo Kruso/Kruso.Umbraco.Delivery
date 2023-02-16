@@ -9,6 +9,6 @@ namespace Kruso.Umbraco.Delivery.Publishing
 {
     public interface IDeliEventHandler
     {
-        void Handle(IPublishedContent publishedContent);
+         bool Handle(EventType eventType, string[] cultures, IPublishedContent publishedContent);
     }
 }

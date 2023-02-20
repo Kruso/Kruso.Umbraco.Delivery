@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+using NPoco.ArrayExtensions;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -229,13 +230,18 @@ namespace Kruso.Umbraco.Delivery.Json
 
         public static JsonNode RemoveProp(this JsonNode node, string prop)
         {
-            node?.Remove(prop);
+            var parser = JsonNodePropertyParser.Create(node, prop, null);
+            if (parser.IsValidForUpdate)
+                NodeFromPath(node, parser.TargetPath)?.Remove(parser.Target);
+
             return node;
         }
 
         public static JsonNode RemoveProps(this JsonNode node, params string[] parms)
         {
-            node?.Remove(parms);
+            if (parms != null)
+                Array.ForEach(parms, prop => RemoveProp(node, prop));
+
             return node;
         }
 

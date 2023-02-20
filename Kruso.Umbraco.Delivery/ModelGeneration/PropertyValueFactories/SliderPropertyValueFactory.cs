@@ -1,4 +1,6 @@
-﻿using Kruso.Umbraco.Delivery.Services;
+﻿using Kruso.Umbraco.Delivery.Json;
+using Kruso.Umbraco.Delivery.Services;
+using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.PublishedContent;
 
 namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
@@ -17,9 +19,17 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
 
         public virtual object Create(IPublishedProperty property)
         {
-            var val = (_deliProperties.Value(property, _modelFactory.Context.Culture) ?? 0).ToString();
-            int.TryParse(val, out var res);
-            return res;
+            var value = _deliProperties.Value(property, _modelFactory.Context.Culture);
+            if (value is decimal num)
+                return num;
+
+            if (value is Range<decimal> range)
+                return new JsonNode()
+                    .AddProp("type", "NumberRange")
+                    .AddProp("maximum", range.Maximum)
+                    .AddProp("minimum", range.Minimum);
+
+            return null;
         }
     }
 }

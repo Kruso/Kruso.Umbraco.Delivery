@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Web;
@@ -57,6 +58,11 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
                 return false;
 
             return content.TemplateId > 0;
+        }
+
+        public bool IsRenderablePage(IContent content)
+        {
+            return content != null && content.TemplateId > 0;
         }
 
         public bool IsPage(IPublishedContent content)

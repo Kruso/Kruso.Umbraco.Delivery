@@ -1,6 +1,7 @@
 ﻿using Kruso.Umbraco.Delivery.Json;
 using Kruso.Umbraco.Delivery.Services;
 using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 using System.Linq;
 using Umbraco.Cms.Core.Models.PublishedContent;
 
@@ -24,23 +25,27 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
         {
             var preValues = _deliDataTypes.PreValues(property.PropertyType.DataType.Id);
             var val = _deliProperties.Value(property, _modelFactory.Context.Culture);
-            string[] selected = null;
-            if (val is string[])
-            {
-                selected = val as string[];
-            } 
-            else
-            {
-                var json = JArray.Parse(val.ToString());
-                if (json != null)
-                {
-                    selected = json.Select(x => x.Value<string>()).ToArray();
-                }
-            }
 
             return new JsonNode()
-                .AddProp("selected", selected.Where(x => preValues.Contains(x)).ToArray())
+                .AddProp("selected", GetSelectedValues(val, preValues))
                 .AddProp("values", preValues);
+        }
+
+        private string[] GetSelectedValues(object val, IEnumerable<string> preValues)
+        {
+            List<string> selected = new();
+
+            if (val != null)
+            {
+                if (val is string[])
+                    selected.AddRange(val as string[]);
+                else if (val is string)
+                    selected.AddRange(JArray.Parse(val.ToString()).Select(x => x.Value<string>()));
+            }
+
+            return selected
+                .Where(x => preValues.Contains(x))
+                .ToArray();
         }
     }
 }

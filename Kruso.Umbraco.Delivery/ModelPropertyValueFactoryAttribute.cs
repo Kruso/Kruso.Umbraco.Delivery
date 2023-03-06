@@ -1,9 +1,12 @@
-﻿namespace Kruso.Umbraco.Delivery
+﻿using System;
+
+namespace Kruso.Umbraco.Delivery
 {
     /// <summary>
     /// Mark your class as a ModelPropertyValueFactory (with the IPropertyModelValueFactory interface) to replace
     /// the default property value factory for a given property's editorAlias. 
     /// </summary>
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public class ModelPropertyValueFactoryAttribute : IdentifiableAttribute
     {
         public ModelPropertyValueFactoryAttribute()

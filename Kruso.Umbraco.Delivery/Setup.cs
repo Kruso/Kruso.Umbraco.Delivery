@@ -89,6 +89,7 @@ namespace Kruso.Umbraco.Delivery
             services
                 .AddSingleton<IModelPropertyValueFactory, SliderPropertyValueFactory>()
                 .AddSingleton<IModelPropertyValueFactory, CheckboxListPropertyValueFactory>()
+                .AddSingleton<IModelPropertyValueFactory, RadioButtonListPropertyValueFactory>()
                 .AddSingleton<IModelPropertyValueFactory, ColorPickerPropertyValueFactory>()
                 .AddSingleton<IModelPropertyValueFactory, ContentPickerPropertyValueFactory>()
                 .AddSingleton<IModelPropertyValueFactory, DefaultPropertyValueFactory>()

@@ -123,21 +123,42 @@ namespace Kruso.Umbraco.Delivery.ModelConversion
             if (source == null)
                 return null;
 
-            var converter = componentSource.GetConverter(converterType, converterKey ?? source.Type);
-            if (converter == null)
-                return source;
+            var types = GetJsonNodeTypes(converterType, source, converterKey);
+            foreach (var type in types)
+            {
 
-            try
-            {
-                var target = new JsonNode();
-                converter.Convert(target, source);
-                return target;
+                var converter = componentSource.GetConverter(converterType, type);
+                if (converter != null)
+                {
+                    try
+                    {
+                        var target = new JsonNode();
+                        converter.Convert(target, source);
+                        source = target;
+                    }
+                    catch (Exception ex)
+                    {
+                        _log.LogError(ex, $"{converter.GetType().Name ?? "[No Converter]"} threw an error for {converterType} {source.Id}:{source.Type}");
+                        throw;
+                    }
+                }
             }
-            catch (Exception ex)
+
+            return source;
+        }
+
+        private string[] GetJsonNodeTypes(TemplateType converterType, JsonNode source, string converterKey)
+        {
+            List<string> types = new();
+            if (!string.IsNullOrEmpty(converterKey))
+                types.Add(converterKey);
+            else
             {
-                _log.LogError(ex, $"{converter.GetType().Name ?? "[No Converter]"} threw an error for {converterType} {source.Id}:{source.Type}");
-                throw;
+                types.AddRange(source.CompositionTypes ?? new string[0]);
+                types.Add(source.Type);
             }
+
+            return types.ToArray();
         }
 
         private IModelConverterComponentSource GetModelConverterSource()

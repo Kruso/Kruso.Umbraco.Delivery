@@ -72,7 +72,7 @@ namespace Kruso.Umbraco.Delivery.Search
                     var deliRequest = _deliRequestAccessor.Current;
 
                     var pageModels = _modelConverter.Convert(_modelFactory.CreatePages(pages, searchRequest.Culture), TemplateType.Search)
-                        .Select(x => x.Clone(deliRequest.ModelFactoryOptions.IncludeFields, deliRequest.ModelFactoryOptions.ExcludeFields))
+                        .Select(x => x.Clone(deliRequest?.ModelFactoryOptions?.IncludeFields, deliRequest?.ModelFactoryOptions?.ExcludeFields))
                         .ToList();
 
                     res.totalCount = searchResults.TotalItemCount;

@@ -91,7 +91,9 @@ namespace Kruso.Umbraco.Delivery.Json
             && !Source.Name.Equals(Target.Name)
             && !Source.Path.Any();
 
-        internal bool Exists(JsonNode node) => CanRead(node) && (GetNodeFromPath(Source.Path, node)?.PropExists(Source.Name) ?? false);
+        internal bool Exists(JsonNode node) 
+            => CanRead(node) 
+            && (GetNodeFromPath(Source.Path, node)?.HasProp(Source.Name) ?? false);
 
         internal object Read(JsonNode source)
         {

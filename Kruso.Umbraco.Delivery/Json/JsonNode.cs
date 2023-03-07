@@ -1,16 +1,13 @@
 ﻿using Kruso.Umbraco.Delivery.Extensions;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Linq;
-using System.Runtime.Serialization;
-using Umbraco.Cms.Core.Models.PublishedContent;
+using Umbraco.Extensions;
 
 namespace Kruso.Umbraco.Delivery.Json
 {
-    public class JsonNode : DynamicObject, ISerializable
+    public class JsonNode : JObject
     {
         internal static class ReservedProps
         {
@@ -34,82 +31,48 @@ namespace Kruso.Umbraco.Delivery.Json
 
         internal static bool KeepEmptyProperties = true;
 
-        private Dictionary<string, object> _properties = new Dictionary<string, object>();
-
-        public JsonNode()
-            : base()
+        public new object this[string key]
         {
-        }
-
-        public object this[string key]
-        {
-            get
-            {
-                return _properties.ContainsKey(key)
-                    ? _properties[key]
-                    : null;
-            }
-            set
-            {
-                if (!string.IsNullOrEmpty(key))
-                {
-                    if (ReservedProps.All.Contains(key) && _properties.ContainsKey(key) && _properties[key] != null)
-                    {
-                        throw new InvalidOperationException($"Cannot update value of existing reserved property {key}");
-                    }
-
-                    if (!KeepEmptyProperties && IsValueEmpty(value))
-                    {
-                        Remove(key);
-                    }
-                    else if (_properties.ContainsKey(key))
-                    {
-                        _properties[key] = value;
-                    }
-                    else
-                    {
-                        _properties.Add(key, value);
-                    }
-                }
-            }
+            get { return Get(key); }
+            set { Set(key, value); }
         }
 
         public Guid Id
         {
-            get { return GetReserved<Guid>(ReservedProps.Id); }
-            set { SetReserved(ReservedProps.Id, value); }
+            get { return Get<Guid>(ReservedProps.Id); }
+            set { this[ReservedProps.Id] = value; }
         }
 
         public Guid? PageId
         {
-            get { return GetReserved<Guid?>(ReservedProps.PageId); }
-            set { SetReserved(ReservedProps.PageId, value); }
+            get { return Get<Guid?>(ReservedProps.PageId); }
+            set { this[ReservedProps.PageId] = value; }
         }
 
         public Guid? ParentPageId
         {
-            get { return GetReserved<Guid?>(ReservedProps.ParentPageId); }
-            set { SetReserved(ReservedProps.ParentPageId, value); }
+            get { return Get<Guid?>(ReservedProps.ParentPageId); }
+            set { this[ReservedProps.ParentPageId] = value; }
         }
 
         public string Culture
         {
-            get { return GetReserved<string>(ReservedProps.Culture); }
-            set { SetReserved(ReservedProps.Culture, value.ToLower()); }
+            get { return Get<string>(ReservedProps.Culture); }
+            set { this[ReservedProps.Culture] = value?.ToLower(); }
         }
 
-        public string Type
+        public new string Type
         {
-            get { return GetReserved<string>(ReservedProps.Type); }
-            set { SetReserved(ReservedProps.Type, value.Capitalize()); }
+            get { return Get<string>(ReservedProps.Type); }
+            set { this[ReservedProps.Type] = value?.Capitalize(); }
         }
 
         public bool IsRefType => Type == DeliConstants.RefTypeAlias;
 
         public string[] CompositionTypes
         {
-            get { return GetReserved<string[]>(ReservedProps.CompositionTypes); }
-            set { SetReserved(ReservedProps.CompositionTypes, value?.Select(x => x.Capitalize()).ToArray() ?? new string[0] ); }
+            get { return GetArray<string>(ReservedProps.CompositionTypes).ToArray(); }
+            set { this[ReservedProps.CompositionTypes] = value?.Select(x => x.Capitalize()).ToArray() ?? new string[0]; }
         }
 
         public static bool IsValueEmpty(object value)
@@ -126,14 +89,9 @@ namespace Kruso.Umbraco.Delivery.Json
             return false;
         }
 
-        public bool AnyProps()
-        {
-            return _properties.Keys.Any();
-        }
-
         public bool HasProp(string prop)
         {
-            return !string.IsNullOrEmpty(prop) && _properties.ContainsKey(prop);
+            return !string.IsNullOrEmpty(prop) && ContainsKey(prop);
         }
 
         public bool HasProps(params string[] props)
@@ -141,116 +99,135 @@ namespace Kruso.Umbraco.Delivery.Json
             return props.All(prop => HasProp(prop));
         }
 
-        public string[] AllPropNames()
-        {
-            return _properties.Keys.ToArray();
-        }
+        //public Dictionary<string, T> AllPropsOf<T>()
+        //{
+        //    var allProps = Properties()
+        //        .Where(x => x.Value<object>() != null && x.Value<object>() is T)
+        //        .ToDictionary(kvp => kvp.Name, kvp => (T)kvp.Value<object>());
 
-        public Dictionary<string, T> AllPropsOf<T>()
-        {
-            var allProps = _properties
-                .Where(x => x.Value != null && x.Value is T)
-                .ToDictionary(kvp => kvp.Key, kvp => (T)kvp.Value);
-
-            return allProps;
-        }
-
-        public IEnumerable<JsonNode> AllNodes()
-        {
-            var res = new List<JsonNode>();
-            foreach (var prop in _properties.Where(x => x.Value != null && (x.Value is JsonNode || x.Value is IEnumerable<JsonNode>)))
-            {
-                if (prop.Value is JsonNode)
-                {
-                    var dataNode = prop.Value as JsonNode;
-                    res.AddRange(dataNode.AllNodes());
-                    res.Add(dataNode);
-                }
-                else
-                {
-                    foreach (var dataNode in prop.Value as IEnumerable<JsonNode>)
-                    {
-                        res.AddRange(dataNode.AllNodes());
-                        res.Add(dataNode);
-                    }
-                }
-            }
-
-            return res;
-        }
+        //    return allProps;
+        //}
 
         public void Remove(params string[] props)
         {
             foreach (var prop in props)
             {
-                if (_properties.ContainsKey(prop))
-                    _properties.Remove(prop);
+                if (ContainsKey(prop))
+                    base.Remove(prop);
             }
         }
 
-        #region Interfaces and Overrides
+        //#region Interfaces and Overrides
 
-        public override bool TryGetMember(GetMemberBinder binder, out object result)
+        //public override bool TryGetMember(GetMemberBinder binder, out object result)
+        //{
+        //    return _properties.TryGetValue(binder.Name, out result);
+        //}
+
+        //public bool TryGetValue(string key, out object value)
+        //{
+        //    return _properties.TryGetValue(key, out value);
+        //}
+
+        //public override bool TrySetMember(SetMemberBinder binder, object value)
+        //{
+        //    _properties[binder.Name] = value;
+        //    return true;
+        //}
+
+        //public override IEnumerable<string> GetDynamicMemberNames()
+        //{
+        //    return base.GetDynamicMemberNames().Concat(_properties.Keys);
+        //}
+
+        //public override string ToString()
+        //{
+        //    return JsonConvert.SerializeObject(this, Formatting.Indented, new JsonSerializerSettings
+        //    {
+        //        Formatting = Formatting.Indented,
+        //        ContractResolver = new CamelCasePropertyNamesContractResolver(),
+        //        ObjectCreationHandling = ObjectCreationHandling.Replace,
+        //        NullValueHandling = NullValueHandling.Include
+        //    });
+        //}
+
+        //#endregion Interfaces and Overrides
+
+        //public void GetObjectData(SerializationInfo info, StreamingContext context)
+        //{
+        //    foreach (var kvp in Properties)
+        //    {
+        //        info.AddValue(kvp.Key, kvp.Value);
+        //    }
+        //}
+
+        internal object Get(string prop)
         {
-            return _properties.TryGetValue(binder.Name, out result);
+            if (!ContainsKey(prop))
+                return null;
+
+            if (base[prop].Type == JTokenType.Array)
+                return Values<object>();
+
+            return (object)base[prop];
         }
 
-        public bool TryGetValue(string key, out object value)
+        internal T Get<T>(string prop)
         {
-            return _properties.TryGetValue(key, out value);
-        }
+            var val = Get(prop);
+            if (val == null)
+                return default;
 
-        public override bool TrySetMember(SetMemberBinder binder, object value)
-        {
-            _properties[binder.Name] = value;
-            return true;
-        }
-
-        public override IEnumerable<string> GetDynamicMemberNames()
-        {
-            return base.GetDynamicMemberNames().Concat(_properties.Keys);
-        }
-
-        public override string ToString()
-        {
-            return JsonConvert.SerializeObject(this, Formatting.Indented, new JsonSerializerSettings
-            {
-                Formatting = Formatting.Indented,
-                ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                ObjectCreationHandling = ObjectCreationHandling.Replace,
-                NullValueHandling = NullValueHandling.Include
-            });
-        }
-
-        #endregion Interfaces and Overrides
-
-        public void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            foreach (var kvp in _properties)
-            {
-                info.AddValue(kvp.Key, kvp.Value);
-            }
-        }
-
-        private T GetReserved<T>(string prop)
-        {
-            var val = _properties.ContainsKey(prop)
-                ? _properties[prop]
-                : default(T);
+            if (typeof(T) == typeof(string))
+                return (T)(object)val.ToString();
 
             return val is T
                 ? (T)val
                 : default;
         }
 
-        private void SetReserved(string prop, object val)
+        internal IEnumerable<T> GetArray<T>(string prop)
         {
-            if (!_properties.ContainsKey(prop))
-            {
-                _properties.Add(prop, val);
-            }
+            var jVal = ContainsKey(prop)
+                ? base[prop]
+                : null;
+
+            return jVal != null && jVal.Type == JTokenType.Array
+                ? jVal.Values<T>()
+                : Enumerable.Empty<T>();
         }
 
+        private void Set(string prop, object value)
+        {
+            if (!string.IsNullOrEmpty(prop))
+            {
+                if (ReservedProps.All.Contains(prop) && ContainsKey(prop) && GetValue(prop) != null)
+                {
+                    throw new InvalidOperationException($"Cannot update value of existing reserved property {prop}");
+                }
+
+                if (!KeepEmptyProperties && IsValueEmpty(value))
+                {
+                    base.Remove(prop);
+                }
+                else
+                {
+                    if (ContainsKey(prop))
+                        base.Remove(prop);
+
+                    if (value is string)
+                        Add(prop, new JValue(value));
+                    else if (value == null)
+                        Add(prop, null);
+                    else if (value is JToken)
+                        Add(prop, (JToken)value);
+                    else if (value.GetType().IsEnumerable())
+                        Add(prop, new JArray(value));
+                    else
+                        Add(prop, new JValue(value));
+                }
+            }
+        }
         private bool CanAddProp(string prop)
         {
             return !ReservedProps.All.Contains(prop);

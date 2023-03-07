@@ -1,14 +1,39 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
-using NPoco.ArrayExtensions;
+﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 namespace Kruso.Umbraco.Delivery.Json
 {
-    public static class ContentNodeExtensions
+    public static class JsonNodeExtensions
     {
+        public static bool AnyProps(this JsonNode node) => node?.AllPropNames().Any() ?? false;
+        
+        public static string[] AllPropNames(this JsonNode node) => node?.Properties()?.Select(p => p.Name).ToArray() ?? new string[0];
+
+        public static IEnumerable<JsonNode> AllNodes(this JsonNode JsonNode)
+        {
+            var res = new List<JsonNode>();
+            foreach (var prop in JsonNode.Properties().Where(x => x.Value<JsonNode>() != null || x.Value<JArray>() != null))
+            {
+                if (prop.Value<object>() is JsonNode jObj)
+                {
+                    res.AddRange(jObj.AllNodes());
+                    res.Add(jObj);
+                }
+                else if (prop.Value<object>() is JArray jArr)
+                {
+                    foreach (var item in jArr.Where(x => x is JsonNode).Cast<JsonNode>())
+                    {
+                        res.AddRange(item.AllNodes());
+                        res.Add(item);
+                    }
+                }
+            }
+
+            return res;
+        }
+
         public static IEnumerable<JsonNode> Blocks(this JsonNode node)
         {
             if (node != null)
@@ -25,7 +50,7 @@ namespace Kruso.Umbraco.Delivery.Json
                     }
                     else
                     {
-                        if (node.PropIs<IEnumerable<JsonNode>>(propName))
+                        if (node.PropIs<JArray>(propName))
                         {
                             foreach (var block in node.Nodes(propName).Where(x => x.IsBlock()))
                             {
@@ -80,41 +105,16 @@ namespace Kruso.Umbraco.Delivery.Json
                 return null;
 
             node = NodeFromPath(node, parser.SourcePath);
-            return node?[parser.Source];
+            return node?.Get(parser.Source);
         }
 
         public static T Val<T>(this JsonNode node, string prop)
         {
-            var val = Val(node, prop);
+            var val = node != null
+                ? node.Get<T>(prop)
+                : default;
 
-            if (typeof(T) == typeof(string))
-                return (T)(val?.ToString() as object);
-
-            if (val == null)
-                return default;
-
-            if (val is T)
-                return (T)val;
-
-            if (IsStringList<T>())
-            {
-                List<string> res = null;
-                if (IsStringList(val))
-                {
-                    res = ((IEnumerable<string>)val).ToList();
-                }
-                else
-                {
-                    var strVal = val?.ToString() ?? string.Empty;
-                    res = new List<string> { strVal };
-                }
-                if (typeof(T) == typeof(string[]))
-                    return (T)(IEnumerable<string>)res.ToArray();
-
-                return (T)(IEnumerable<string>)res;
-            }
-
-            return default;
+            return val;
         }
 
         public static bool PropIs<T>(this JsonNode node, string prop)
@@ -133,7 +133,7 @@ namespace Kruso.Umbraco.Delivery.Json
                 return false;
 
             node = NodeFromPath(node, parser.SourcePath);
-            return node?.HasProp(parser.Source) ?? false;
+            return node?.ContainsKey(parser.Source) ?? false;
         }
 
         public static JsonNode AddNode(this JsonNode node, string prop)
@@ -267,7 +267,7 @@ namespace Kruso.Umbraco.Delivery.Json
                 source = NodeFromPath(source, sourceParser.SourcePath);
                 if (source?.HasProp(sourceParser.Source) ?? false)
                 {
-                    var val = source[sourceParser.Source];
+                    var val = source.Get(sourceParser.Source);
                     var currNode = AddNodeFromPath(node, sourceParser.TargetPath);
                     currNode[sourceParser.Target] = val;
                 }

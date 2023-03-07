@@ -154,8 +154,8 @@ namespace Kruso.Umbraco.Delivery.ModelConversion
                 types.Add(converterKey);
             else
             {
-                types.AddRange(source.CompositionTypes ?? new string[0]);
                 types.Add(source.Type);
+                types.AddRange(source.CompositionTypes ?? new string[0]);
             }
 
             return types.ToArray();

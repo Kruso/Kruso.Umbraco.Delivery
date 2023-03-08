@@ -1,11 +1,7 @@
 ﻿using Kruso.Umbraco.Delivery.Extensions;
 using Microsoft.Extensions.Logging;
-using Serilog;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Kruso.Umbraco.Delivery.ModelConversion
 {
@@ -51,23 +47,26 @@ namespace Kruso.Umbraco.Delivery.ModelConversion
             return null;
         }
 
-        public IModelNodeConverter GetConverter(TemplateType templateType, string type)
+        public IModelNodeConverter GetConverter(TemplateType templateType, string type, string context)
         {
             if (templateType == TemplateType.Route)
                 type = string.Empty;
 
             var key = templateType.MakeKey(type);
 
-            if (_modelNodeConverters.ContainsKey(key))
+            if (!string.IsNullOrEmpty(context))
             {
-                return _modelNodeConverters[key];
+                var contextKey = $"{key}@{context.ToLower()}";
+                if (_modelNodeConverters.ContainsKey(contextKey))
+                    return _modelNodeConverters[contextKey];
             }
+
+            if (_modelNodeConverters.ContainsKey(key))
+                return _modelNodeConverters[key];
 
             var defaultKey = templateType.MakeKey();
             if (_modelNodeConverters.ContainsKey(defaultKey))
-            {
                 return _modelNodeConverters[defaultKey];
-            }
 
             return null;
         }

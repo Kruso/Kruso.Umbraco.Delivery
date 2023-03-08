@@ -23,6 +23,7 @@ namespace Kruso.Umbraco.Delivery
                 RobotsTxtProperty = GetValue(siteValues?.RobotsTxtProperty, RobotsTxtProperty),
                 MediaCdnUrl = GetValue(siteValues?.MediaCdnUrl, MediaCdnUrl),
                 CacheControls = GetCacheControls(siteValues?.CacheControls, CacheControls),
+                Webhooks = GetWebhooks(siteValues?.Webhooks, Webhooks),
                 ForwardedHeader = ForwardedHeader,
                 CertificateThumbprint = CertificateThumbprint,
                 CertificateFileName = CertificateFileName,
@@ -59,6 +60,24 @@ namespace Kruso.Umbraco.Delivery
             return res.ToArray();
         }
 
+        private DeliveryWebhook[] GetWebhooks(DeliveryWebhook[] siteValue, DeliveryWebhook[] defaultValue)
+        {
+            var res = new List<DeliveryWebhook>();
+            if (siteValue != null)
+                res.AddRange(siteValue);
+
+            if (defaultValue != null)
+            {
+                foreach (var webhook in defaultValue)
+                {
+                    if (!res.Any(x => x.Url.Equals(webhook.Url, StringComparison.InvariantCultureIgnoreCase)))
+                        res.Add(webhook);
+                }
+            }
+
+            return res.ToArray();
+        }
+
         private bool IsMatchingAuthority(string frontendHost, Uri callingUri)
         {
             var frontendUri = frontendHost.AbsoluteUri();
@@ -88,6 +107,7 @@ namespace Kruso.Umbraco.Delivery
         public string RobotsTxtProperty { get; set; }
         public string MediaCdnUrl { get; set; }
         public DeliveryCacheControl[] CacheControls { get; set; } = new DeliveryCacheControl[0];
+        public DeliveryWebhook[] Webhooks { get; set; } = new DeliveryWebhook[0];
 
         public string GetCacheControl(string mimeType)
         {
@@ -101,5 +121,12 @@ namespace Kruso.Umbraco.Delivery
     {
         public string MimeType { get; set; }
         public string CacheControl { get; set; }
+    }
+
+    public class DeliveryWebhook
+    {
+        public string Name { get; set; }
+        public string Url { get; set; }
+        public Dictionary<string, string> Headers { get; } = new Dictionary<string, string>();
     }
 }

@@ -18,7 +18,7 @@ namespace Kruso.Umbraco.Delivery.ModelConversion
             _log = log;
         }
 
-        public IEnumerable<JsonNode> Convert(IEnumerable<JsonNode> source, TemplateType converterType, string converterKey = null)
+        public IEnumerable<JsonNode> Convert(IEnumerable<JsonNode> source, TemplateType converterType)
         {
             if (source == null || !source.Any())
                 return Enumerable.Empty<JsonNode>();
@@ -28,26 +28,26 @@ namespace Kruso.Umbraco.Delivery.ModelConversion
                 return source;
 
             return source
-                .Select(x => Convert(componentSource, x, converterType, converterKey))
+                .Select(x => Convert(componentSource, x, converterType, null))
                 .Where(x => x != null);
         }
 
-        public JsonNode Convert(JsonNode source, TemplateType converterType, string converterKey = null)
+        public JsonNode Convert(JsonNode source, TemplateType converterType)
         {
             var componentSource = GetModelConverterSource();
             if (componentSource == null)
                 return source;
 
-            return Convert(componentSource, source, converterType, converterKey);
+            return Convert(componentSource, source, converterType, null);
         }
 
-        private JsonNode Convert(IModelConverterComponentSource componentSource, JsonNode source, TemplateType converterType, string converterKey = null)
+        private JsonNode Convert(IModelConverterComponentSource componentSource, JsonNode source, TemplateType converterType, string context)
         {
             if (!source.IsBlock() || source.IsRefType)
                 return source;
 
             if (converterType == TemplateType.Route)
-                return RunConverter(componentSource, source, TemplateType.Route);
+                return RunConverter(componentSource, source, TemplateType.Route, context);
 
             var target = new JsonNode();
             foreach (var propName in source.AllPropNames())
@@ -69,7 +69,7 @@ namespace Kruso.Umbraco.Delivery.ModelConversion
                 target.CopyProp(source, propName);
             }
 
-            return RunConverter(componentSource, target, converterType, converterKey);
+            return RunConverter(componentSource, target, converterType, context);
         }
 
         private JsonNode ConvertBlock(IModelConverterComponentSource componentSource, JsonNode source, string propName)
@@ -77,7 +77,7 @@ namespace Kruso.Umbraco.Delivery.ModelConversion
             var block = source.Node(propName);
 
             return block != null
-                ? Convert(componentSource, block, TemplateType.Block)
+                ? Convert(componentSource, block, TemplateType.Block, $"{source.Type}.{propName}")
                 : null;
         }
 
@@ -86,7 +86,7 @@ namespace Kruso.Umbraco.Delivery.ModelConversion
             var blocks = source.Nodes(propName);
 
             return blocks.Any()
-                ? blocks.Select(x => Convert(componentSource, x, TemplateType.Block))
+                ? blocks.Select(x => Convert(componentSource, x, TemplateType.Block, $"{source.Type}.{propName}"))
                 : null;
         }
 
@@ -118,16 +118,16 @@ namespace Kruso.Umbraco.Delivery.ModelConversion
             }
         }
 
-        private JsonNode RunConverter(IModelConverterComponentSource componentSource, JsonNode source, TemplateType converterType, string converterKey = null)
+        private JsonNode RunConverter(IModelConverterComponentSource componentSource, JsonNode source, TemplateType converterType, string context)
         {
             if (source == null)
                 return null;
 
-            var types = GetJsonNodeTypes(converterType, source, converterKey);
+            var types = GetJsonNodeTypes(source);
             foreach (var type in types)
             {
 
-                var converter = componentSource.GetConverter(converterType, type);
+                var converter = componentSource.GetConverter(converterType, type, context);
                 if (converter != null)
                 {
                     try
@@ -147,16 +147,11 @@ namespace Kruso.Umbraco.Delivery.ModelConversion
             return source;
         }
 
-        private string[] GetJsonNodeTypes(TemplateType converterType, JsonNode source, string converterKey)
+        private string[] GetJsonNodeTypes(JsonNode source)
         {
             List<string> types = new();
-            if (!string.IsNullOrEmpty(converterKey))
-                types.Add(converterKey);
-            else
-            {
-                types.Add(source.Type);
-                types.AddRange(source.CompositionTypes ?? new string[0]);
-            }
+            types.Add(source.Type);
+            types.AddRange(source.CompositionTypes ?? new string[0]);
 
             return types.ToArray();
         }

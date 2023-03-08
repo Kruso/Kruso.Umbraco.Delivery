@@ -12,6 +12,7 @@ using Kruso.Umbraco.Delivery.Search;
 using Kruso.Umbraco.Delivery.Security;
 using Kruso.Umbraco.Delivery.Services;
 using Kruso.Umbraco.Delivery.Services.Implementation;
+using Kruso.Umbraco.Delivery.Webhooks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -73,7 +74,8 @@ namespace Kruso.Umbraco.Delivery
                 .AddSingleton<IDeliContentTypes, DeliContentTypes>()
                 .AddSingleton<IDeliMedia, DeliMedia>()
                 .AddSingleton<IDeliProperties, DeliProperties>()
-                .AddSingleton<IDeliUrl, DeliUrl>();
+                .AddSingleton<IDeliUrl, DeliUrl>()
+                .AddSingleton<IDeliWebhookService, DeliWebhookService>();
 
             services
                 .AddTransient<DeliRequestMiddleware>()
@@ -133,6 +135,8 @@ namespace Kruso.Umbraco.Delivery
             });
 
             services.AddConfig<DeliveryConfig>(configuration, "UmbracoDelivery");
+
+            var config = configuration.GetSection("UmbracoDelivery");
 
             VersionHelper.RegisterVersion(typeof(Setup).Assembly);
 

@@ -62,6 +62,9 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
 
         public string GetAbsoluteDeliveryUrl(IPublishedContent content, string culture)
         {
+            if (!_deliContent.IsPage(content))
+                return string.Empty;
+
             var path = GetDeliveryUrl(content, culture);
             return GetAbsoluteDeliveryUri(content, culture, path)?.ToString();
         }

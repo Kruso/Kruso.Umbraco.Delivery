@@ -55,7 +55,6 @@ namespace Kruso.Umbraco.Delivery.Routing
             }
 
             var content = _deliContentLoader.FindContentById(id, culture, true);
-
             if (content == null)
             {
                 _logger.LogDebug("Request {path} did not provide a valid content id", path);
@@ -63,6 +62,12 @@ namespace Kruso.Umbraco.Delivery.Routing
             }
 
             var callingUrl = _deliUrl.GetAbsoluteDeliveryUrl(content, culture);
+            if (string.IsNullOrEmpty(callingUrl))
+            {
+                _logger.LogDebug("Request {path} provided content did not have a valid url", path);
+                return Task.FromResult(false);
+            }
+
             var deliRequest = _deliRequestAccessor.Finalize(content, culture, new Uri(callingUrl));
             if (!deliRequest.IsValidPreviewRequest())
             {

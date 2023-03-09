@@ -61,11 +61,17 @@ namespace Kruso.Umbraco.Delivery.Controllers
             var content = _deliContent.UnpublishedContent(id);
             if (content == null)
             {
-                _log.LogError($"Failed to find preview content for id = {id}, culture = {culture}");
+                _log.LogError($"Failed to find preview content for id = {id}, culture = {culture}. No content.");
                 return NotFound();
             }
 
             var callingUrl = _deliUrl.GetAbsoluteDeliveryUrl(content, culture);
+            if (string.IsNullOrEmpty(callingUrl))
+            {
+                _log.LogError($"Failed to find preview content for id = {id}, culture = {culture}. No url.");
+                return NotFound();
+            }
+
             var deliRequest = _deliRequestAccessor.Finalize(content, culture, new Uri(callingUrl));
 
             var jwt = _deliSecurity.CreateJwtPreviewToken(deliRequest.OriginalUri.Authority, deliRequest.CallingUri.Authority);

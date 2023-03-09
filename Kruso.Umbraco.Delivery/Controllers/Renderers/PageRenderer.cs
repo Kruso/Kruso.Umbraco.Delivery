@@ -52,7 +52,9 @@ namespace Kruso.Umbraco.Delivery.Controllers.Renderers
             try
             {
                 var page = _modelFactory.CreatePage(_deliRequest.Content, _deliRequest.Culture, _deliRequest.ModelFactoryOptions);
-                jsonNode = _modelConverter.Convert(page, TemplateType.Page);
+                jsonNode = _deliRequest.ModelFactoryOptions.Convert
+                    ? _modelConverter.Convert(page, TemplateType.Page)
+                    : page;
 
                 statusCode = _deliContent.IsNotFoundType(_deliRequest.Content)
                     ? HttpStatusCode.NotFound

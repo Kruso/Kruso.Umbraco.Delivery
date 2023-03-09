@@ -13,10 +13,13 @@ using Kruso.Umbraco.Delivery.Security;
 using Kruso.Umbraco.Delivery.Services;
 using Kruso.Umbraco.Delivery.Services.Implementation;
 using Kruso.Umbraco.Delivery.Webhooks;
+using MessagePack.Formatters;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using System;
+using System.Linq;
 using Umbraco.Cms.Core.DependencyInjection;
 using Umbraco.Cms.Core.Notifications;
 using Umbraco.Cms.Core.Routing;
@@ -134,11 +137,44 @@ namespace Kruso.Umbraco.Delivery
                 c.DefaultControllerType = typeof(DeliRenderController);
             });
 
-            services.AddConfig<DeliveryConfig>(configuration, "UmbracoDelivery");
+            services
+                .AddConfig<DeliveryConfig>(configuration, "UmbracoDelivery")
+                .AddWebhooks(configuration);
 
-            var config = configuration.GetSection("UmbracoDelivery");
 
             VersionHelper.RegisterVersion(typeof(Setup).Assembly);
+
+            return services;
+        }
+
+        internal static IServiceCollection AddWebhooks(this IServiceCollection services, IConfiguration configuration)
+        {
+            var config = configuration.GetSection("UmbracoDelivery");
+            var deliveryConfig = config.Get<DeliveryConfig>();
+            
+            var sites = deliveryConfig.GetAllSites();
+            var webhooks = sites
+                .SelectMany(x => x.Webhooks)
+                .DistinctBy(x => x.Name);
+
+            if (webhooks.Any())
+            {
+                services
+                    .AddSingleton<IDeliWebhookService, DeliWebhookService>()
+                    .AddSingleton<IDeliEventHandler, OnWebhookNotificationHandler>();
+
+                foreach (var webhook in webhooks)
+                {
+                    services.AddHttpClient(webhook.Name, httpClient =>
+                    {
+                        httpClient.BaseAddress = new Uri(webhook.Url);
+                        foreach (var header in webhook.Headers)
+                        {
+                            httpClient.DefaultRequestHeaders.Add(header.Key, header.Value);
+                        }
+                    });
+                }
+            }
 
             return services;
         }

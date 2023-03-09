@@ -60,7 +60,8 @@ namespace Kruso.Umbraco.Delivery.Routing.Implementation
                 LoadPreview = IsValidPreviewRequest(),
                 QueryString = Request?.Query,
                 IncludeFields = Request?.Query.Strs("include") ?? new string[0],
-                ExcludeFields = Request?.Query.Strs("exclude") ?? new string[0]
+                ExcludeFields = Request?.Query.Strs("exclude") ?? new string[0],
+                Convert = Request?.Query.Str("convert").ToLower() is null or not ("false" or "0")
             };
 
             var depth = Request?.Query.Int("depth") ?? 0;

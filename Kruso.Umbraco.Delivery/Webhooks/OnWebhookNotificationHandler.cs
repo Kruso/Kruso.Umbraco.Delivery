@@ -1,18 +1,13 @@
 ﻿using Kruso.Umbraco.Delivery.Extensions;
-using Kruso.Umbraco.Delivery.Json;
 using Kruso.Umbraco.Delivery.Publishing;
 using Kruso.Umbraco.Delivery.Services;
-using System;
+using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Umbraco.Cms.Core.Models.PublishedContent;
-using static Umbraco.Cms.Core.Constants.HttpContext;
 
 namespace Kruso.Umbraco.Delivery.Webhooks
 {
@@ -24,6 +19,7 @@ namespace Kruso.Umbraco.Delivery.Webhooks
         private readonly IDeliCulture _deliCulture;
         private readonly IDeliUrl _deliUrl;
         private readonly IDeliWebhookService _deliWebhookService;
+        private readonly ILogger<OnWebhookNotificationHandler> _log;
 
         private static readonly BlockingCollection<DeliWebhookNotification> _items = new BlockingCollection<DeliWebhookNotification>();
         private static int NotificationDelayMilliseconds = 1000;
@@ -31,26 +27,33 @@ namespace Kruso.Umbraco.Delivery.Webhooks
         private static ManualResetEvent _consumerResetEvent = new ManualResetEvent(false);
         private static CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
-        public OnWebhookNotificationHandler(IDeliContent deliContent, IDeliCulture deliCulture, IDeliUrl deliUrl, IDeliWebhookService deliWebhookService)
+        public OnWebhookNotificationHandler(
+            IDeliContent deliContent, 
+            IDeliCulture deliCulture, 
+            IDeliUrl deliUrl, 
+            IDeliWebhookService deliWebhookService,
+            ILogger<OnWebhookNotificationHandler> log
+            )
         {
             _deliContent = deliContent;
             _deliCulture = deliCulture;
             _deliUrl = deliUrl;
             _deliWebhookService = deliWebhookService;
+            _log = log;
 
             Task.Run(async () => await Consumer(_cancellationTokenSource.Token), _cancellationTokenSource.Token);
         }
 
         public bool Handle(EventType eventType, string culture, IPublishedContent publishedContent)
         {
-            //NOT CORRECT. It can be a renderable page and still need to get related pages if it is a page used
-            // as a block.
-            var updatedPages = _deliContent.IsRenderablePage(publishedContent)
-                ? CreateNotifications(eventType, culture, publishedContent)
-                : CreateNotifications(EventType.Published, culture, _deliContent.RelatedPages(publishedContent.Id));
+            var updatedContent = GetUpdatedContent(publishedContent);
+            var notifications = CreateNotifications(EventType.Published, culture, updatedContent);
 
-            foreach (var updatedPage in updatedPages)
-                _items.Add(updatedPage);
+            foreach (var notification in notifications)
+            {
+                _items.Add(notification);
+                _log.LogDebug($"Queued notification {notification.Id}:{notification.Type}");
+            }
 
             _consumerResetEvent.Set();
 
@@ -63,28 +66,42 @@ namespace Kruso.Umbraco.Delivery.Webhooks
 
             while (!cancellationToken.IsCancellationRequested)
             {
+                _log.LogDebug("Waiting to consume queued notifications...");
                 _consumerResetEvent.WaitOne();
 
                 await Task.Delay(NotificationDelayMilliseconds);
+                _log.LogDebug("Starting to consume queued notifications...");
 
                 bool consumed = true;
                 while (consumed)
                 {
                     consumed = _items.TryTake(out var notification, NotificationDelayMilliseconds, cancellationToken);
-                    if (consumed)
+                    if (consumed && !items.Any(x => x.Id == notification.Id))
                         items.Add(notification);
                 }
 
+                _log.LogDebug($"Consumed {items.Count} queued notifications. Sending to webhook service...");
                 await _deliWebhookService.SendAsync(items);
 
                 items.Clear();
 
                 _consumerResetEvent.Reset();
+                _log.LogDebug("Completed consuming queued notifications.");
             } 
         }
 
-        private List<DeliWebhookNotification> CreateNotifications(EventType eventType, string culture, IPublishedContent updatedPage)
-            => CreateNotifications(eventType, culture, new List<IPublishedContent> { updatedPage });
+        private List<IPublishedContent> GetUpdatedContent(IPublishedContent publishedContent)
+        {
+            var res = new List<IPublishedContent>();
+            if (_deliContent.IsRenderablePage(publishedContent))
+                res.Add(publishedContent);
+
+            res.AddRange(_deliContent.RelatedPages(publishedContent.Id));
+
+            return res
+                .DistinctBy(x => x.Id)
+                .ToList();
+        }
 
         private List<DeliWebhookNotification> CreateNotifications(EventType eventType, string culture, IEnumerable<IPublishedContent> updatedPages)
         {

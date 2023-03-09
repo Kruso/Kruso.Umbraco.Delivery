@@ -17,7 +17,7 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
         public DeliveryConfigValues Get(Uri callingUri = null)
         {
             callingUri ??= _deliRequestAccessor.Current?.CallingUri;
-            return _deliveryConfig.GetConfigValues(callingUri);
+            return _deliveryConfig.GetSite(callingUri);
         }
 
         public bool IsMultiSite() => _deliveryConfig.IsMultiSite();

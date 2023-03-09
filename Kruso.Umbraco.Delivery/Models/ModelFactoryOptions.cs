@@ -14,6 +14,7 @@ namespace Kruso.Umbraco.Delivery.Models
         public bool LoadPreview { get; set; }
         public string[] IncludeFields { get; set; } = new string[0];
         public string[] ExcludeFields { get; set; } = new string[0];
+        public bool Convert { get; set; } = true;
         public bool ApplyPublicAccessRights { get; set; }
         public IQueryCollection QueryString { get; set; }
         public bool ModifyFields => (IncludeFields?.Any() ?? false) || (ExcludeFields?.Any() ?? false);

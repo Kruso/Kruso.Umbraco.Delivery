@@ -1,7 +1,9 @@
-﻿using J2N.Collections.Generic;
+﻿
 using Kruso.Umbraco.Delivery.Extensions;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Security.Policy;
 
 namespace Kruso.Umbraco.Delivery
 {
@@ -9,13 +11,37 @@ namespace Kruso.Umbraco.Delivery
     {
         public DeliveryConfigBase[] Sites { get; set; }
 
-        public DeliveryConfigValues GetConfigValues(Uri callingUri = null)
+        public DeliveryConfigValues GetSite(Uri callingUri = null)
         {
             var siteValues = !IsMultiSite()
                 ? Sites?.FirstOrDefault()
                 : Sites.FirstOrDefault(s => IsMatchingAuthority(FrontendHost, callingUri));
 
-            var values = new DeliveryConfigValues
+            return GetSiteValues(siteValues);
+        }
+
+        public DeliveryConfigValues[] GetAllSites()
+        {
+            var configValues = new List<DeliveryConfigValues>();
+            if (!IsMultiSite())
+                configValues.Add(GetSiteValues(Sites?.FirstOrDefault()));
+            else
+            {
+                foreach (var site in Sites)
+                {
+                    var siteValues = GetSiteValues(site);
+                    configValues.Add(siteValues);
+                }
+            }
+
+            return configValues.ToArray();
+        }
+
+        public bool IsMultiSite() => (Sites?.Length ?? 0) > 1;
+
+        private DeliveryConfigValues GetSiteValues(DeliveryConfigBase siteValues)
+        {
+            return new DeliveryConfigValues
             {
                 FrontendHost = GetValue(siteValues?.FrontendHost, FrontendHost),
                 NotFoundType = GetValue(siteValues?.NotFoundType, NotFoundType),
@@ -30,11 +56,8 @@ namespace Kruso.Umbraco.Delivery
                 CertificateResourceName = CertificateResourceName,
                 CertificatePassword = CertificatePassword,
             };
-
-            return values;
         }
 
-        public bool IsMultiSite() => (Sites?.Length ?? 0) > 1;
         private string GetValue(string siteValue, string defaultValue)
         {
             return string.IsNullOrEmpty(siteValue)
@@ -127,6 +150,12 @@ namespace Kruso.Umbraco.Delivery
     {
         public string Name { get; set; }
         public string Url { get; set; }
-        public Dictionary<string, string> Headers { get; } = new Dictionary<string, string>();
+        public DeliveryWebhookHeader[] Headers { get; set; } = new DeliveryWebhookHeader[0];
+    }
+
+    public class DeliveryWebhookHeader
+    {
+        public string Key { get; set; }
+        public string Value { get; set; }
     }
 }

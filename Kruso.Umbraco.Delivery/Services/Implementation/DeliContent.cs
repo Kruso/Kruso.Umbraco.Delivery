@@ -199,18 +199,49 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
         public List<IPublishedContent> RelatedPages(int id)
         {
             var res = new List<IPublishedContent>();
+            InternalRelatedPages(res, id, id);
+            return res
+                .Where(IsRenderablePage)
+                .ToList();
+        }
 
-            var relations = _relationService.GetByChildId(id);
-            foreach (var relation in relations.Where(x => x.RelationType.Alias == "umbDocument"))
+        private void InternalRelatedPages(List<IPublishedContent> pages, int id, int rootId)
+        {
+            if (id > 0)
             {
-                var content = PublishedContent(relation.ParentId);
-                if (IsRenderablePage(content))
-                    res.Add(content);
-                else
-                    res.AddRange(RelatedPages(relation.ParentId));
+                var relations = _relationService.GetByChildId(id);
+                foreach (var relation in relations.Where(x => x.RelationType.Alias == "umbDocument" && x.ParentId != rootId))
+                {
+                    var content = PublishedContent(relation.ParentId);
+                    if (IsRelatedPage(pages, content, id))
+                    {
+                        pages.Add(content);
+                        InternalRelatedPages(pages, relation.ParentId, rootId);
+                    }
+                }
+            }
+        }
+
+        private bool IsRelatedPage(IEnumerable<IPublishedContent> pages, IPublishedContent page, int id) 
+        {
+            return page != null
+                && !pages.Any(x => x.Id == page.Id)
+                && !PathIds(page).Contains(id);
+        }
+
+        private int[] PathIds(IPublishedContent content)
+        {
+            var res = new List<int>();
+            if (!string.IsNullOrEmpty(content?.Path))
+            {
+                foreach (var pid in content.Path.Split(','))
+                {
+                    if (int.TryParse(pid, out var id))
+                        res.Add(id);
+                }
             }
 
-            return res;
+            return res.ToArray();
         }
     }
 }

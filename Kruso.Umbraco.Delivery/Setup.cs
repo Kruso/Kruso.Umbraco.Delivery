@@ -53,7 +53,7 @@ namespace Kruso.Umbraco.Delivery
             return builder;
         }
 
-        public static IServiceCollection AddUmbracoDeliveryServices(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddUmbracoDeliveryServices(this IServiceCollection services, IConfiguration configuration, string sectionName = "UmbracoDelivery")
         {
             services
                 .AddMemoryCache()
@@ -132,7 +132,7 @@ namespace Kruso.Umbraco.Delivery
                 c.DefaultControllerType = typeof(DeliRenderController);
             });
 
-            services.AddConfig<DeliveryConfig>(configuration, "UmbracoDelivery");
+            services.AddConfig<DeliveryConfig>(configuration, sectionName);
 
             VersionHelper.RegisterVersion(typeof(Setup).Assembly);
 

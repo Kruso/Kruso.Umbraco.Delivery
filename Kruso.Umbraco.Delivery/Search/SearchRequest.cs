@@ -16,7 +16,7 @@ namespace Kruso.Umbraco.Delivery.Search
         public int PageSize { get; set; }
         public JsonNode Params { get; private set; } = new JsonNode();
 
-        public Func<ISearchResult, int> CustomSortOrderFunc;
+        public Func<IEnumerable<JsonNode>, List<JsonNode>> CustomSortOrderFunc;
         public Func<ISearchResult, bool> CustomFilterFunc;
 
         public int IntParam(string parm)

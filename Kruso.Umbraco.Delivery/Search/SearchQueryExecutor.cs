@@ -57,26 +57,24 @@ namespace Kruso.Umbraco.Delivery.Search
                 var searchResults = searchQuery?.Execute(index.Searcher, searchRequest);
                 if (searchResults?.Any() ?? false)
                 {
-                    var results = searchResults.Where(x => searchRequest.CustomFilterFunc?.Invoke(x) ?? true);
-
-                    results = searchRequest.CustomSortOrderFunc != null
-                        ? results.OrderBy(x => searchRequest.CustomSortOrderFunc(x)).Skip(skip)
-                        : results.Skip(skip);
-
-                    if (take > 0)
-                        results = results.Take(take);
-
-                    var pages = results
+                    var pages = searchResults
+                        .Where(x => searchRequest.CustomFilterFunc?.Invoke(x) ?? true)
                         .Select(x => _deliContent.PublishedContent(Convert.ToInt32(x.Id)));
 
                     var deliRequest = _deliRequestAccessor.Current;
 
                     var pageModels = _modelConverter.Convert(_modelFactory.CreatePages(pages, searchRequest.Culture), TemplateType.Search)
-                        .Select(x => x.Clone(deliRequest?.ModelFactoryOptions?.IncludeFields, deliRequest?.ModelFactoryOptions?.ExcludeFields))
-                        .ToList();
+                        .Select(x => x.Clone(deliRequest?.ModelFactoryOptions?.IncludeFields, deliRequest?.ModelFactoryOptions?.ExcludeFields));
 
-                    res.totalCount = searchResults.TotalItemCount;
-                    res.pageResults = pageModels;
+                    if (searchRequest.CustomSortOrderFunc != null)
+                        pageModels = searchRequest.CustomSortOrderFunc.Invoke(pageModels);
+
+                    pageModels = pageModels.Skip(skip); ;
+                    if (take > 0)
+                        pageModels = pageModels.Take(take);
+
+                    res.totalCount = pages.Count();
+                    res.pageResults = pageModels.ToList();
                     res.success = true;
                 }
             }

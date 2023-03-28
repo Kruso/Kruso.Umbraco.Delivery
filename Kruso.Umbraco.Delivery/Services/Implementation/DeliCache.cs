@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using System;
+using Umbraco.Extensions;
 
 namespace Kruso.Umbraco.Delivery.Services.Implementation
 {
@@ -20,7 +21,8 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
 
         public T GetFromRequest<T>(string cacheKey, Func<T> create)
         {
-            if (ValidForRequest(cacheKey) && _httpContextAccessor.HttpContext.Items.TryGetValue(cacheKey, out var val) && val is T)
+            var context = _httpContextAccessor.GetRequiredHttpContext();
+            if (ValidForRequest(cacheKey) && context.Items.TryGetValue(cacheKey, out var val) && val is T)
                 return (T)val;
 
             var def = create != null
@@ -34,7 +36,8 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
 
         public T GetFromRequest<T>(string cacheKey, T def = default(T))
         {
-            if (ValidForRequest(cacheKey) && _httpContextAccessor.HttpContext.Items.TryGetValue(cacheKey, out var val) && val is T)
+            var context = _httpContextAccessor.GetRequiredHttpContext();
+            if (ValidForRequest(cacheKey) && context.Items.TryGetValue(cacheKey, out var val) && val is T)
                 return (T)val;
 
             if (def != null)
@@ -45,21 +48,26 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
 
         public bool ExistsOnRequest(string cacheKey)
         {
-            return ValidForRequest(cacheKey) && _httpContextAccessor.HttpContext.Items.ContainsKey(cacheKey);
+            var context = _httpContextAccessor.GetRequiredHttpContext();
+            return ValidForRequest(cacheKey) && context.Items.ContainsKey(cacheKey);
         }
 
         public void AddToRequest(string cacheKey, object val)
         {
             if (ValidForRequest(cacheKey))
             {
-                _httpContextAccessor.HttpContext.Items.Add(cacheKey, val);
+                var context = _httpContextAccessor.GetRequiredHttpContext();
+                context.Items.Add(cacheKey, val);
             }
         }
 
         public void ReplaceOnRequest(string cacheKey, object val)
         {
             if (ExistsOnRequest(cacheKey))
-                _httpContextAccessor.HttpContext.Items.Remove(cacheKey);
+            {
+                var context = _httpContextAccessor.GetRequiredHttpContext();
+                context.Items.Remove(cacheKey);
+            }
 
             AddToRequest(cacheKey, val);
         }
@@ -109,10 +117,11 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
 
         private bool ValidForRequest(string cacheKey)
         {
-            var res = !string.IsNullOrEmpty(cacheKey) && _httpContextAccessor.HttpContext != null;
+            var context = _httpContextAccessor.GetRequiredHttpContext();
+            var res = !string.IsNullOrEmpty(cacheKey) && context != null;
 
             if (!res)
-                _logger.LogDebug($"Invalid for request cache. Cache key {cacheKey}, HttpContext: {_httpContextAccessor.HttpContext != null}");
+                _logger.LogDebug($"Invalid for request cache. Cache key {cacheKey}, HttpContext: {context != null}");
 
             return res;
         }

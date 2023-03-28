@@ -21,7 +21,7 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
 
         public T GetFromRequest<T>(string cacheKey, Func<T> create)
         {
-            var context = _httpContextAccessor.GetRequiredHttpContext();
+            var context = _httpContextAccessor.HttpContext;
             if (ValidForRequest(cacheKey) && context.Items.TryGetValue(cacheKey, out var val) && val is T)
                 return (T)val;
 
@@ -36,7 +36,7 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
 
         public T GetFromRequest<T>(string cacheKey, T def = default(T))
         {
-            var context = _httpContextAccessor.GetRequiredHttpContext();
+            var context = _httpContextAccessor.HttpContext;
             if (ValidForRequest(cacheKey) && context.Items.TryGetValue(cacheKey, out var val) && val is T)
                 return (T)val;
 
@@ -48,7 +48,7 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
 
         public bool ExistsOnRequest(string cacheKey)
         {
-            var context = _httpContextAccessor.GetRequiredHttpContext();
+            var context = _httpContextAccessor.HttpContext;
             return ValidForRequest(cacheKey) && context.Items.ContainsKey(cacheKey);
         }
 
@@ -56,7 +56,7 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
         {
             if (ValidForRequest(cacheKey))
             {
-                var context = _httpContextAccessor.GetRequiredHttpContext();
+                var context = _httpContextAccessor.HttpContext;
                 context.Items.Add(cacheKey, val);
             }
         }
@@ -65,7 +65,7 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
         {
             if (ExistsOnRequest(cacheKey))
             {
-                var context = _httpContextAccessor.GetRequiredHttpContext();
+                var context = _httpContextAccessor.HttpContext;
                 context.Items.Remove(cacheKey);
             }
 
@@ -117,7 +117,7 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
 
         private bool ValidForRequest(string cacheKey)
         {
-            var context = _httpContextAccessor.GetRequiredHttpContext();
+            var context = _httpContextAccessor.HttpContext;
             var res = !string.IsNullOrEmpty(cacheKey) && context != null;
 
             if (!res)

@@ -17,25 +17,25 @@ namespace Kruso.Umbraco.Delivery.Models
 
         public string Name => null;
 
-        public string UrlSegment => _page.UrlSegment;
+        public string UrlSegment => _page?.UrlSegment ?? string.Empty;
 
         public int SortOrder => -1;
 
         public int Level => -1;
 
-        public string Path => _page.Path;
+        public string Path => _page?.Path ?? string.Empty;
 
-        public int? TemplateId => _page.TemplateId;
+        public int? TemplateId => _page?.TemplateId ?? -1;
 
-        public int CreatorId => _page.CreatorId;
+        public int CreatorId => _page?.CreatorId ?? -1;
 
-        public DateTime CreateDate => _page.CreateDate;
+        public DateTime CreateDate => _page?.CreateDate ?? DateTime.MinValue;
 
-        public int WriterId => _page.WriterId;
+        public int WriterId => _page?.WriterId ?? -1;
 
-        public DateTime UpdateDate => _page.UpdateDate;
+        public DateTime UpdateDate => _page?.UpdateDate ?? DateTime.MinValue;
 
-        public IReadOnlyDictionary<string, PublishedCultureInfo> Cultures => _page.Cultures;
+        public IReadOnlyDictionary<string, PublishedCultureInfo> Cultures => _page?.Cultures ?? new Dictionary<string, PublishedCultureInfo>();
 
         public PublishedItemType ItemType => PublishedItemType.Element;
 
@@ -58,23 +58,17 @@ namespace Kruso.Umbraco.Delivery.Models
 
         public bool IsDraft(string culture = null)
         {
-            return _page.IsDraft(culture);
+            return _page?.IsDraft(culture) ?? false;
         }
 
         public bool IsPublished(string culture = null)
         {
-            return _page.IsPublished(culture);
-        }
-
-        public DeliPublishedElement(IPublishedContent page, IContentType contentType, List<IPublishedProperty> properties, IPublishedElement element)
-        {
-            _page = page ?? throw new ArgumentException("page is null");
-            _element = element ?? throw new ArgumentException("element is null");
+            return _page?.IsPublished(culture) ?? true;
         }
 
         public DeliPublishedElement(IPublishedContent page, IPublishedElement element)
         {
-            _page = page ?? throw new ArgumentException("page is null");
+            _page = page;
             _element = element ?? throw new ArgumentException("element is null");
         }
     }

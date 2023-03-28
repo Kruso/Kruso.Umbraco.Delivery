@@ -28,13 +28,14 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
 
         public Uri GetFrontendHostUri(IPublishedContent content, string culture)
         {
-            var deliRequest = _deliRequestAccessor.Current;
-            if (deliRequest == null)
-                return null;
-
             Uri frontendHostUri = null;
-            if (deliRequest.RequestOrigin == RequestOrigin.Frontend)
-                frontendHostUri = deliRequest.CallingUri;
+
+            var deliRequest = _deliRequestAccessor.Current;
+            if (deliRequest != null)
+            {
+                if (deliRequest.RequestOrigin == RequestOrigin.Frontend)
+                    frontendHostUri = deliRequest.CallingUri;
+            }
 
             if (frontendHostUri == null && !_deliConfig.IsMultiSite())
                 Uri.TryCreate(_deliConfig.Get().FrontendHost, UriKind.Absolute, out frontendHostUri);

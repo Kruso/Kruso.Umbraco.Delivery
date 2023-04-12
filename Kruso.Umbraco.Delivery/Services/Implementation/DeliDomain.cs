@@ -132,7 +132,7 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             var startPages = _deliContent.RootPublishedContent()
                 .Where(x => _deliContent.IsPage(x) && _deliCulture.IsPublishedInCulture(x, _deliCulture.DefaultCulture));
 
-            if (startPages.Count() == 1)
+            if (startPages.Count() == 1 && requestUri != null)
             {
                 var host = new Uri($"{requestUri.Scheme}://{requestUri.Authority}/");
                 var startPage = startPages.First();

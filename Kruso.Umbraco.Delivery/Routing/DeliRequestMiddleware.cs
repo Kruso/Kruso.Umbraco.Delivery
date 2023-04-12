@@ -106,7 +106,7 @@ namespace Kruso.Umbraco.Delivery.Routing
         {
             var config = _deliConfig.Get();
 
-            var callingHost = string.IsNullOrEmpty(config.ForwardedHeader)
+            var callingHost = !string.IsNullOrEmpty(config.ForwardedHeader)
                 ? GetCallingHostFromHeader(request, config.ForwardedHeader)
                 : null;
 

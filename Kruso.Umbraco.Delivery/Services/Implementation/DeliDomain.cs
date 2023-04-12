@@ -124,7 +124,7 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
                 }
             }
 
-            return domains;
+            return domains ?? Enumerable.Empty<DomainAndUri>();
         }
 
         private DomainAndUri CreateVirtualDomain(Uri requestUri)

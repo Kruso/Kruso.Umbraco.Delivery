@@ -1,12 +1,12 @@
 This package will add a REST-like content delivery API to Umbraco CMS. It provides a number of API endpoints to access content, search, and other functions.
 
-* Get your content as Json or Html
-* Customise your Json with pluggable components
-* Create Json search endpoints for Examine queries
-* Explore the `/api` endpoints
-* Filter your Json properties with query params
-* Get Sitemap.xml out of the box
-* Host multiple Headless sites on different domains
+* Get your content as _[Json or Html](https://github.com/Kruso/Kruso.Umbraco.Delivery/wiki/1.-Get-Started#the-umbraco-json-template)_
+* _[Customise](https://github.com/Kruso/Kruso.Umbraco.Delivery/wiki/6.-Customizing-the-Json-using-Converters)_ your Json with pluggable components
+* Create Json _[search endpoints](https://github.com/Kruso/Kruso.Umbraco.Delivery/wiki/9.-Search-Queries-and-Indexing)_ for Examine queries
+* Explore the `/api` _[endpoints](https://github.com/Kruso/Kruso.Umbraco.Delivery/wiki/2.-Using-Umbraco.Delivery)_
+* Filter your Json properties with _[query params](https://github.com/Kruso/Kruso.Umbraco.Delivery/wiki/2.-Using-Umbraco.Delivery#query-parameters)_
+* Get _[Sitemap.xml](https://github.com/Kruso/Kruso.Umbraco.Delivery/wiki/4.-SEO-Features)_ out of the box
+* Host _[multiple Headless sites](https://github.com/Kruso/Kruso.Umbraco.Delivery/wiki/3.-Configuration#multi-site-configuration)_ on different domains
 * and more...
 
 ## Works on

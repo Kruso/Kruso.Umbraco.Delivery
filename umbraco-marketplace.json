@@ -1,0 +1,18 @@
+{
+  "$schema": "https://marketplace.umbraco.com/umbraco-marketplace-schema.json",
+  "AuthorDetails": {
+    "Name": "Kruso",
+    "Description": "A Nordic tech agency.",
+    "Url": "https://kruso.dk/en/",
+    "ImageUrl": "https://github.com/Kruso.png"
+  },
+  "Category": "Headless",
+  "DocumentationUrl": "https://github.com/Kruso/Kruso.Umbraco.Delivery/wiki",
+  "LicenseTypes": [ "Free" ],
+  "PackageType": "Integration",
+  "Tags": [
+    "Headless",
+    "Content",
+    "Delivery"
+  ]
+}

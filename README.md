@@ -1,11 +1,60 @@
-# Umbraco Delivery API
-
-
-## Introduction to Umbraco.Delivery
-
 This package will add a REST-like content delivery API to Umbraco CMS. It provides a number of API endpoints to access content, search, and other functions.
 
-### Main features
+## Works on
+
+Umbraco v11+
+
+## Setup
+
+Find full setup details in the Wiki _[here](https://github.com/Kruso/Kruso.Umbraco.Delivery/wiki)_
+
+Run the following or or find the package on NuGet _[here](https://www.nuget.org/packages/Kruso.Umbraco.Delivery)_
+```
+dotnet add Kruso.Umbraco.Delivery
+```
+
+Configure Startup.ConfigureServices() like this:
+
+```
+    services.AddUmbracoDeliveryServices(_config);
+
+    services.AddUmbraco(_env, _config)
+        .AddBackOffice()
+        .AddWebsite()
+        .AddComposers()
+        .AddUmbracoDelivery()
+        .AddAzureBlobMediaFileSystem()
+        .Build();
+```
+
+And Startup.Configure() like this:
+
+```
+    app.UseUmbracoDelivery();
+    app.UseResponseCompression();
+
+    app.UseUmbraco()
+        .WithMiddleware(u =>
+        {
+            u.UseBackOffice();
+            u.UseWebsite();
+        })
+        .WithEndpoints(u =>
+        {
+            u.UseInstallerEndpoints();
+            u.UseBackOfficeEndpoints();
+            u.UseWebsiteEndpoints();
+        });
+```
+
+## Design Goals
+
+* **Minimal Installation and Configuration requirements**. As far as possible, you should be able to Install Kruso.Umbraco.Delivery and start developing.
+* **Respect how Umbraco works**. Use umbraco as you would expect as a content editor or developer. Kruso.Umbraco.Delivery will only return Json for a page if you want it to.
+* **Performance**. Json documents should be returned fast and Umbraco should continue to scale well.
+* **Support Small Sites and Large**. Many smaller sites use Umbraco as a place to implement other backend functions not related to the CMS, such as fetching data from external system. Allow developers to modify the Json data to include custom data.
+
+## Main features
 
 * [Get content](https://github.com/Kruso/Kruso.Umbraco.Delivery/wiki/2.-Using-Kruso.Umbraco.Delivery#get-content) in various ways. There are several ways to tweak the outputted JSON and how deep content structure that will be returned.
 * [Search](https://github.com/Kruso/Kruso.Umbraco.Delivery/wiki/9.-Search-Queries-and-Indexing) using Umbraco's Examine API and customize both the response and how content is indexed.
@@ -18,11 +67,6 @@ This package will add a REST-like content delivery API to Umbraco CMS. It provid
 
 As far as possible Umbraco.Delivery will work out of the box without further configuration, even for a multi-site and multi-language setup.
 
-
-### Demo site
-
-[TODO link to demo site]
-<br>
 ### History
 
 This package is mainly the work of [@EdSoanes](https://github.com/EdSoanes). It has been used in several solutions during several years, from Umbraco v8 to the latest v11. This library has recently received several new features, but the core functionality is well battle tested.

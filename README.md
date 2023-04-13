@@ -1,5 +1,14 @@
 This package will add a REST-like content delivery API to Umbraco CMS. It provides a number of API endpoints to access content, search, and other functions.
 
+* Get your content as Json or Html
+* Customise your Json with pluggable components
+* Create Json search endpoints for Examine queries
+* Explore the `/api` endpoints
+* Filter your Json properties with query params
+* Get Sitemap.xml out of the box
+* Host multiple Headless sites on different domains
+* and more...
+
 ## Works on
 
 Umbraco v11+

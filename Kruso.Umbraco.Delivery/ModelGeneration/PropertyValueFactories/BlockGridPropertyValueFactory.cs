@@ -14,7 +14,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
         private readonly IDeliProperties _deliProperties;
         private readonly IModelFactory _modelFactory;
 
-        private class BlockGridContext
+        public class BlockGridContext
         {
             private int Idx = 0;
 
@@ -48,7 +48,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
             return CreateBlockGridModel(new BlockGridContext(context.Page.Id * 10000), blockGridModel);
         }
 
-        private JsonNode CreateBlockGridModel(BlockGridContext context, BlockGridModel blockGridModel)
+        protected virtual JsonNode CreateBlockGridModel(BlockGridContext context, BlockGridModel blockGridModel)
         {
             if (blockGridModel == null)
                 return null;

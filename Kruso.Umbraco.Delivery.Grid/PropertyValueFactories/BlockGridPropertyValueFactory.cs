@@ -3,10 +3,10 @@ using Kruso.Umbraco.Delivery.ModelGeneration;
 using Kruso.Umbraco.Delivery.Services;
 using Umbraco.Cms.Core.Models.Blocks;
 
-namespace Kruso.Umbraco.Delivery.Grid
+namespace Kruso.Umbraco.Delivery.Grid.PropertyValueFactories
 {
     [ModelPropertyValueFactory("Umbraco.BlockGrid")]
-    public class BlockGridPropertyValueFactory : Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories.BlockGridPropertyValueFactory, IModelPropertyValueFactory
+    public class BlockGridPropertyValueFactory : ModelGeneration.PropertyValueFactories.BlockGridPropertyValueFactory, IModelPropertyValueFactory
     {
         public BlockGridPropertyValueFactory(IDeliProperties deliProperties, IModelFactory modelFactory)
             : base(deliProperties, modelFactory)

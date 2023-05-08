@@ -1,9 +1,11 @@
-﻿using Kruso.Umbraco.Delivery.ModelGeneration;
+﻿using Kruso.Umbraco.Delivery.Grid.Extensions;
+using Kruso.Umbraco.Delivery.Json;
+using Kruso.Umbraco.Delivery.ModelGeneration;
 using Kruso.Umbraco.Delivery.Services;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.PropertyEditors;
 
-namespace Kruso.Umbraco.Delivery.Grid
+namespace Kruso.Umbraco.Delivery.Grid.PropertyValueFactories
 {
     [ModelPropertyValueFactory("Umbraco.MultiNodeTreePicker")]
     public class MultiNodeTreePickerPropertyValueFactory : IModelPropertyValueFactory
@@ -22,12 +24,17 @@ namespace Kruso.Umbraco.Delivery.Grid
         public virtual object? Create(IPublishedProperty property)
         {
             var culture = _modelFactory.Context.Culture;
-            var contentItems = _modelFactory.CreateBlocks(_deliProperties.PublishedContentValue<IPublishedContent>(property, culture));
+            return _modelFactory.CreateGrid((grid) =>
+            {
+                var blocks = _modelFactory.CreateGridBlocks(_deliProperties.PublishedContentValue<IPublishedContent>(property, culture));
+                grid.AddProp("content", IsMaxOneBlock(property) && blocks.Any() ? blocks.First() : blocks);
+            });
+        }
 
+        private bool IsMaxOneBlock(IPublishedProperty property)
+        {
             var configuration = _deliDataTypes.EditorConfiguration<MultiNodePickerConfiguration>(property.PropertyType.DataType.Id);
-            return (configuration?.MaxNumber ?? 0) == 1
-                ? contentItems?.FirstOrDefault()
-                : contentItems;
+            return (configuration?.MaxNumber ?? 0) == 1;
         }
     }
 }

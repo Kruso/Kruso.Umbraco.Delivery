@@ -1,10 +1,14 @@
-﻿using Kruso.Umbraco.Delivery.ModelGeneration;
+﻿using Kruso.Umbraco.Delivery.Extensions;
+using Kruso.Umbraco.Delivery.Grid.Extensions;
+using Kruso.Umbraco.Delivery.Grid.Models;
+using Kruso.Umbraco.Delivery.Json;
+using Kruso.Umbraco.Delivery.ModelGeneration;
 using Kruso.Umbraco.Delivery.Services;
 using Umbraco.Cms.Core.Models.Blocks;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.PropertyEditors;
 
-namespace Kruso.Umbraco.Delivery.Grid
+namespace Kruso.Umbraco.Delivery.Grid.PropertyValueFactories
 {
     [ModelPropertyValueFactory("Umbraco.BlockList")]
     public class BlockListPropertyValueFactory : IModelPropertyValueFactory
@@ -22,20 +26,25 @@ namespace Kruso.Umbraco.Delivery.Grid
 
         public virtual object? Create(IPublishedProperty property)
         {
-            var value = _deliProperties.Value(property, _modelFactory.Context.Culture);
-            if (value is BlockListModel blockListModel)
+            return _modelFactory.CreateGrid((grid) =>
             {
-                var res = _modelFactory.CreateBlocks(blockListModel?.Select(x => x.Content));
-                return IsMaxOneBlock(property)
-                    ? res.FirstOrDefault()
-                    : res;
-            }
-            else if (value is BlockListItem blockListItem)
-            {
-                return _modelFactory.CreateBlock(blockListItem.Content);
-            }
+                var blocks = new List<JsonNode>();
 
-            return null;
+                var value = _deliProperties.Value(property, _modelFactory.Context.Culture);
+                if (value is BlockListModel blockListModel)
+                {
+                    var res = _modelFactory.CreateGridBlocks(blockListModel?.Select(x => x.Content));
+                    blocks.AddRange(res);
+                }
+                else if (value is BlockListItem blockListItem)
+                {
+                    var block = _modelFactory.CreateGridBlock(blockListItem.Content);
+                    if (block != null)
+                        blocks.Add(block);
+                }
+
+                grid.AddProp("content", IsMaxOneBlock(property) && blocks.Any() ? blocks.First() : blocks);
+            });
         }
 
         private bool IsMaxOneBlock(IPublishedProperty property)

@@ -1,8 +1,10 @@
-﻿using Kruso.Umbraco.Delivery.ModelGeneration;
+﻿using Kruso.Umbraco.Delivery.Grid.Extensions;
+using Kruso.Umbraco.Delivery.Json;
+using Kruso.Umbraco.Delivery.ModelGeneration;
 using Kruso.Umbraco.Delivery.Services;
 using Umbraco.Cms.Core.Models.PublishedContent;
 
-namespace Kruso.Umbraco.Delivery.Grid
+namespace Kruso.Umbraco.Delivery.Grid.PropertyValueFactories
 {
     [ModelPropertyValueFactory("Umbraco.NestedContent")]
     public class NestedContentPropertyValueFactory : IModelPropertyValueFactory
@@ -19,9 +21,11 @@ namespace Kruso.Umbraco.Delivery.Grid
         public virtual object Create(IPublishedProperty property)
         {
             var culture = _modelFactory.Context.Culture;
-            var contentItems = _modelFactory.CreateBlocks(_deliProperties.PublishedContentValue<IPublishedElement>(property, culture));
-
-            return contentItems;
+            return _modelFactory.CreateGrid((grid) =>
+            {
+                var blocks = _modelFactory.CreateGridBlocks(_deliProperties.PublishedContentValue<IPublishedContent>(property, culture));
+                grid.AddProp("content", blocks);
+            });
         }
     }
 }

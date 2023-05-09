@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Kruso.Umbraco.Delivery.Grid.Models.StylesGridItem;
 
 namespace Kruso.Umbraco.Delivery.Grid.Models
 {
@@ -250,6 +251,63 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
             set { _extraLargeJustifyItems = Validate(value, Aligns); }
         }
 
+        public StylesGrid SetColSpans(Breakpoint breakpoint, int colSpan) => SetColSpans(breakpoint, colSpan.ToString());
+        public StylesGrid SetColSpans(Breakpoint breakpoint, string colSpan)
+        {
+            switch (breakpoint)
+            {
+                case Breakpoint.Small:
+                    SmallTemplateColumns = colSpan;
+                    MediumTemplateColumns = colSpan;
+                    LargeTemplateColumns = colSpan;
+                    ExtraLargeTemplateColumns = colSpan;
+                    break;
+                case Breakpoint.Medium:
+                    MediumTemplateColumns = colSpan;
+                    LargeTemplateColumns = colSpan;
+                    ExtraLargeTemplateColumns = colSpan;
+                    break;
+                case Breakpoint.Large:
+                    LargeTemplateColumns = colSpan;
+                    ExtraLargeTemplateColumns = colSpan;
+                    break;
+                case Breakpoint.ExtraLarge:
+                    ExtraLargeTemplateColumns = colSpan;
+                    break;
+                default: break;
+            }
+
+            return this;
+        }
+
+        public StylesGrid SetRowSpans(Breakpoint breakpoint, int rowSpan) => SetRowSpans(breakpoint, rowSpan.ToString());
+        public StylesGrid SetRowSpans(Breakpoint breakpoint, string rowSpan)
+        {
+            switch (breakpoint)
+            {
+                case Breakpoint.Small:
+                    SmallTemplateRows = rowSpan;
+                    MediumTemplateRows = rowSpan;
+                    LargeTemplateRows = rowSpan;
+                    ExtraLargeTemplateRows = rowSpan;
+                    break;
+                case Breakpoint.Medium:
+                    MediumTemplateRows = rowSpan;
+                    LargeTemplateRows = rowSpan;
+                    ExtraLargeTemplateRows = rowSpan;
+                    break;
+                case Breakpoint.Large:
+                    LargeTemplateRows = rowSpan;
+                    ExtraLargeTemplateRows = rowSpan;
+                    break;
+                case Breakpoint.ExtraLarge:
+                    ExtraLargeTemplateRows = rowSpan;
+                    break;
+                default: break;
+            }
+
+            return this;
+        }
 
         private string Validate(string val, string[] allowedValues)
         {

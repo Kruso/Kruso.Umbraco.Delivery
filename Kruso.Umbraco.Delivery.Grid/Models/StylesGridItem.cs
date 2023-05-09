@@ -1,14 +1,24 @@
 ﻿using Newtonsoft.Json;
+using NUglify.JavaScript.Syntax;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Umbraco.Cms.Core.Models.PublishedContent;
 
 namespace Kruso.Umbraco.Delivery.Grid.Models
 {
     public class StylesGridItem
     {
+        public enum Breakpoint
+        {
+            Small,
+            Medium,
+            Large,
+            ExtraLarge
+        };
+
         private readonly string[] ColStarts = new[] 
         {
             "1",
@@ -275,6 +285,63 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
             set { _extraLargeJustifySelf = Validate(value, Aligns); }
         }
 
+        public StylesGridItem SetColSpans(Breakpoint breakpoint, int colSpan) => SetColSpans(breakpoint, colSpan.ToString());
+        public StylesGridItem SetColSpans(Breakpoint breakpoint, string colSpan)
+        {
+            switch (breakpoint)
+            {
+                case Breakpoint.Small: 
+                    SmallColumnSpan = colSpan;
+                    MediumColumnSpan = colSpan;
+                    LargeColumnSpan = colSpan;
+                    ExtraLargeColumnSpan = colSpan;
+                    break;
+                case Breakpoint.Medium:
+                    MediumColumnSpan = colSpan;
+                    LargeColumnSpan = colSpan;
+                    ExtraLargeColumnSpan = colSpan;
+                    break;
+                case Breakpoint.Large:
+                    LargeColumnSpan = colSpan;
+                    ExtraLargeColumnSpan = colSpan;
+                    break;
+                case Breakpoint.ExtraLarge:
+                    ExtraLargeColumnSpan = colSpan;
+                    break;
+                default: break;
+            }
+
+            return this;
+        }
+
+        public StylesGridItem SetRowSpans(Breakpoint breakpoint, int rowSpan) => SetRowSpans(breakpoint, rowSpan.ToString());
+        public StylesGridItem SetRowSpans(Breakpoint breakpoint, string rowSpan)
+        {
+            switch (breakpoint)
+            {
+                case Breakpoint.Small:
+                    SmallRowSpan = rowSpan;
+                    MediumRowSpan = rowSpan;
+                    LargeRowSpan = rowSpan;
+                    ExtraLargeRowSpan = rowSpan;
+                    break;
+                case Breakpoint.Medium:
+                    MediumRowSpan = rowSpan;
+                    LargeRowSpan = rowSpan;
+                    ExtraLargeRowSpan = rowSpan;
+                    break;
+                case Breakpoint.Large:
+                    LargeRowSpan = rowSpan;
+                    ExtraLargeRowSpan = rowSpan;
+                    break;
+                case Breakpoint.ExtraLarge:
+                    ExtraLargeRowSpan = rowSpan;
+                    break;
+                default: break;
+            }
+
+            return this;
+        }
 
         private string Validate(string val, string[] allowedValues)
         {

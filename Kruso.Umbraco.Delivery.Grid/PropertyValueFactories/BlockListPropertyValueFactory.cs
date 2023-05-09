@@ -26,7 +26,8 @@ namespace Kruso.Umbraco.Delivery.Grid.PropertyValueFactories
 
         public virtual object? Create(IPublishedProperty property)
         {
-            return _modelFactory.CreateGrid((grid) =>
+            var context = new BlockGridContext(_modelFactory.Context.Page.Id * 10000);
+            return _modelFactory.CreateGrid(context.GenerateUuid(), (grid) =>
             {
                 var blocks = new List<JsonNode>();
 

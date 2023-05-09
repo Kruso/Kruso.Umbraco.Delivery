@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Runtime.Serialization;
+using static Umbraco.Cms.Core.PropertyEditors.ImageCropperConfiguration;
 
 namespace Kruso.Umbraco.Delivery.Json
 {
@@ -109,6 +110,22 @@ namespace Kruso.Umbraco.Delivery.Json
         {
             get { return GetReserved<string[]>(ReservedProps.CompositionTypes); }
             set { SetReserved(ReservedProps.CompositionTypes, value?.Select(x => x.Capitalize()).ToArray() ?? new string[0] ); }
+        }
+
+        public JsonNode AddToCompositionTypes(string compositionType)
+        {
+            if (!CompositionTypes.Contains(compositionType))
+            {
+                var compositionTypes = CompositionTypes.ToList();
+                compositionTypes.Add(compositionType);
+
+                if (_properties.ContainsKey(ReservedProps.CompositionTypes))
+                    _properties[ReservedProps.CompositionTypes] = compositionTypes.ToArray();
+                else
+                    _properties.Add(ReservedProps.CompositionTypes, compositionTypes.ToArray());
+            }
+
+            return this;
         }
 
         public static bool IsValueEmpty(object value)

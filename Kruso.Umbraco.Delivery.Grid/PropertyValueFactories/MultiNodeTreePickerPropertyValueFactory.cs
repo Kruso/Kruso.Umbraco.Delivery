@@ -24,7 +24,8 @@ namespace Kruso.Umbraco.Delivery.Grid.PropertyValueFactories
         public virtual object? Create(IPublishedProperty property)
         {
             var culture = _modelFactory.Context.Culture;
-            return _modelFactory.CreateGrid((grid) =>
+            var blockGridContext = new BlockGridContext(_modelFactory.Context.Page.Id * 10000);
+            return _modelFactory.CreateGrid(blockGridContext.GenerateUuid(), (grid) =>
             {
                 var blocks = _modelFactory.CreateGridBlocks(_deliProperties.PublishedContentValue<IPublishedContent>(property, culture));
                 grid.AddProp("content", IsMaxOneBlock(property) && blocks.Any() ? blocks.First() : blocks);

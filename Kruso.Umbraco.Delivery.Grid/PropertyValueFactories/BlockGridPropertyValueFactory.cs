@@ -1,21 +1,108 @@
-﻿using Kruso.Umbraco.Delivery.Json;
+﻿using Kruso.Umbraco.Delivery.Grid.Extensions;
+using Kruso.Umbraco.Delivery.Grid.Models;
+using Kruso.Umbraco.Delivery.Json;
 using Kruso.Umbraco.Delivery.ModelGeneration;
 using Kruso.Umbraco.Delivery.Services;
 using Umbraco.Cms.Core.Models.Blocks;
+using Umbraco.Cms.Core.Models.PublishedContent;
 
 namespace Kruso.Umbraco.Delivery.Grid.PropertyValueFactories
 {
     [ModelPropertyValueFactory("Umbraco.BlockGrid")]
-    public class BlockGridPropertyValueFactory : ModelGeneration.PropertyValueFactories.BlockGridPropertyValueFactory, IModelPropertyValueFactory
+    public class BlockGridPropertyValueFactory : IModelPropertyValueFactory
     {
+        private readonly IDeliProperties _deliProperties;
+        private readonly IModelFactory _modelFactory;
+
         public BlockGridPropertyValueFactory(IDeliProperties deliProperties, IModelFactory modelFactory)
-            : base(deliProperties, modelFactory)
         {
+            _deliProperties = deliProperties;
+            _modelFactory = modelFactory;
         }
 
-        protected override JsonNode CreateBlockGridModel(BlockGridContext context, BlockGridModel blockGridModel)
+        public virtual object Create(IPublishedProperty property)
         {
-            return base.CreateBlockGridModel(context, blockGridModel);
+            var context = _modelFactory.Context;
+            var blockGridContext = new BlockGridContext(context.Page.Id * 10000);
+            var blockGridModel = _deliProperties.Value(property, context.Culture) as BlockGridModel;
+
+            return _modelFactory.CreateGrid(blockGridContext.GenerateUuid(), (grid) =>
+            {
+                var blocks = CreateBlocks(blockGridContext, blockGridModel);
+                grid.AddProp("content", blocks);
+            });
+        }
+
+        private JsonNode[] CreateBlocks(BlockGridContext context, IEnumerable<BlockGridItem>? items)
+        {
+            if (items == null)
+                return new JsonNode[0];
+
+            var res = new List<JsonNode>();
+            foreach (var item in items)
+            {
+                JsonNode? block = item.Areas.Any()
+                    ? CreateGrid(context, item)
+                    : _modelFactory.CreateGridBlock(item.Content, (block) =>
+                    {
+                        block.StylesGridItem()
+                            .SetColSpans(StylesGridItem.Breakpoint.Medium, item.ColumnSpan)
+                            .SetRowSpans(StylesGridItem.Breakpoint.Medium, item.RowSpan);
+                    });
+
+                if (block != null)
+                    res.Add(block);
+            }
+
+            return res.ToArray();
+        }
+
+        private JsonNode? CreateGrid(BlockGridContext context, BlockGridItem? item)
+        {
+            if (item?.Areas.Any() ?? false)
+            {
+                return _modelFactory.CreateGrid(item?.Content, (grid) =>
+                {
+                    grid.StylesGrid()
+                        .SetColSpans(StylesGridItem.Breakpoint.Medium, item?.AreaGridColumns ?? 12);
+
+                    grid.StylesGridItem()
+                        .SetColSpans(StylesGridItem.Breakpoint.Medium, item?.ColumnSpan ?? 12)
+                        .SetRowSpans(StylesGridItem.Breakpoint.Medium, item?.RowSpan ?? 1);
+
+                    grid.AddProp("content", CreateGrids(context, item?.Areas));
+                });
+            }
+
+            return null;
+        }
+
+        private JsonNode[] CreateGrids(BlockGridContext context, IEnumerable<BlockGridArea>? areas)
+        {
+            if (areas == null)
+                return new JsonNode[0];
+
+            return areas
+                .Select(x => CreateGrid(context, x))
+                .Where(x => x != null)
+                .ToArray()!;
+        }
+
+        private JsonNode? CreateGrid(BlockGridContext context, BlockGridArea area)
+        {
+            if (area == null)
+                return null;
+
+            var grid = _modelFactory.CreateGrid(context.GenerateUuid(), (grid) =>
+            {
+                grid.StylesGrid()
+                    .SetColSpans(StylesGridItem.Breakpoint.Medium, area.ColumnSpan)
+                    .SetRowSpans(StylesGridItem.Breakpoint.Medium, area.RowSpan); //TODO: We can set row spans here I think...
+
+                grid.AddProp("content", CreateBlocks(context, area));
+            });
+
+            return grid;
         }
     }
 }

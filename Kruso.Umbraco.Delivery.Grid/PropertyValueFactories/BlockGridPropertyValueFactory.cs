@@ -23,11 +23,14 @@ namespace Kruso.Umbraco.Delivery.Grid.PropertyValueFactories
         public virtual object Create(IPublishedProperty property)
         {
             var context = _modelFactory.Context;
-            var blockGridContext = new BlockGridContext(context.Page.Id * 10000);
             var blockGridModel = _deliProperties.Value(property, context.Culture) as BlockGridModel;
-
+            var blockGridContext = new BlockGridContext(context.Page.Id * 10000, blockGridModel?.GridColumns);
             return _modelFactory.CreateGrid(blockGridContext.GenerateUuid(), (grid) =>
             {
+                grid
+                    .StylesGrid()
+                    .SetColumns(Styles.Breakpoint.Medium, blockGridContext.DefaultGridColumns);
+
                 var blocks = CreateBlocks(blockGridContext, blockGridModel);
                 grid.AddProp("content", blocks);
             });
@@ -45,9 +48,11 @@ namespace Kruso.Umbraco.Delivery.Grid.PropertyValueFactories
                     ? CreateGrid(context, item)
                     : _modelFactory.CreateGridBlock(item.Content, (block) =>
                     {
-                        block.StylesGridItem()
-                            .SetColSpans(StylesGridItem.Breakpoint.Medium, item.ColumnSpan)
-                            .SetRowSpans(StylesGridItem.Breakpoint.Medium, item.RowSpan);
+                        block
+                            .AddProp("settings", _modelFactory.CreateBlock(item?.Settings))
+                            .StylesGridItem()
+                                .SetColSpans(Styles.Breakpoint.Medium, item.ColumnSpan)
+                                .SetRowSpans(Styles.Breakpoint.Medium, item.RowSpan);
                     });
 
                 if (block != null)
@@ -63,14 +68,16 @@ namespace Kruso.Umbraco.Delivery.Grid.PropertyValueFactories
             {
                 return _modelFactory.CreateGrid(item?.Content, (grid) =>
                 {
+                    grid
+                        .AddProp("content", CreateGrids(context, item?.Areas))
+                        .AddProp("settings", _modelFactory.CreateBlock(item?.Settings));
+
                     grid.StylesGrid()
-                        .SetColSpans(StylesGridItem.Breakpoint.Medium, item?.AreaGridColumns ?? 12);
+                        .SetColumns(Styles.Breakpoint.Medium, item?.AreaGridColumns ?? context.DefaultGridColumns);
 
                     grid.StylesGridItem()
-                        .SetColSpans(StylesGridItem.Breakpoint.Medium, item?.ColumnSpan ?? 12)
-                        .SetRowSpans(StylesGridItem.Breakpoint.Medium, item?.RowSpan ?? 1);
-
-                    grid.AddProp("content", CreateGrids(context, item?.Areas));
+                        .SetColSpans(Styles.Breakpoint.Medium, item?.ColumnSpan ?? context.DefaultGridColumns)
+                        .SetRowSpans(Styles.Breakpoint.Medium, item?.RowSpan ?? 1);
                 });
             }
 
@@ -95,11 +102,15 @@ namespace Kruso.Umbraco.Delivery.Grid.PropertyValueFactories
 
             var grid = _modelFactory.CreateGrid(context.GenerateUuid(), (grid) =>
             {
-                grid.StylesGrid()
-                    .SetColSpans(StylesGridItem.Breakpoint.Medium, area.ColumnSpan)
-                    .SetRowSpans(StylesGridItem.Breakpoint.Medium, area.RowSpan); //TODO: We can set row spans here I think...
+                grid
+                    .AddProp("content", CreateBlocks(context, area));
 
-                grid.AddProp("content", CreateBlocks(context, area));
+                grid.StylesGrid()
+                    .SetColumns(Styles.Breakpoint.Medium, context.DefaultGridColumns);
+                    
+                grid.StylesGridItem()
+                    .SetColSpans(Styles.Breakpoint.Medium, area.ColumnSpan)
+                    .SetRowSpans(Styles.Breakpoint.Medium, area.RowSpan); //TODO: We can set row spans here I think...
             });
 
             return grid;

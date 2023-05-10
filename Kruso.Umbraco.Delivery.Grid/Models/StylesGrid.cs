@@ -1,58 +1,9 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static Kruso.Umbraco.Delivery.Grid.Models.StylesGridItem;
 
 namespace Kruso.Umbraco.Delivery.Grid.Models
 {
     public class StylesGrid
     {
-        private readonly string[] TemplateCols = new[]
-        {
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9",
-            "10",
-            "11",
-            "12"
-        };
-
-        private readonly string[] TemplateRows = new[]
-        {
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6"
-        };
-
-        private readonly string[] Gaps = new[]
-        { 
-            "x-small",
-            "small",
-            "medium",
-            "large",
-            "x-large"
-        };
-
-        private readonly string[] Aligns = new[]
-{
-            "start",
-            "center",
-            "end",
-            "stretch"
-        };
-
         [JsonProperty("display_name")]
         public string? Name { get; set; }
 
@@ -61,7 +12,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string SmallTemplateColumns
         {
             get { return _smallTemplateColumns; }
-            set { _smallTemplateColumns = Validate(value, TemplateCols); }
+            set { _smallTemplateColumns = Styles.Validate(value, Styles.Columns); }
         }
 
         private string _smallTemplateRows = "6";
@@ -69,7 +20,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string SmallTemplateRows
         {
             get { return _smallTemplateRows; }
-            set { _smallTemplateRows = Validate(value, TemplateRows); }
+            set { _smallTemplateRows = Styles.Validate(value, Styles.Columns); }
         }
 
         private string _smallColumnGap = "medium";
@@ -77,7 +28,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string SmallColumnGap
         {
             get { return _smallColumnGap; }
-            set { _smallColumnGap = Validate(value, Gaps); }
+            set { _smallColumnGap = Styles.Validate(value, Styles.Gaps); }
         }
 
         private string _smallRowGap = "medium";
@@ -85,7 +36,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string SmallRowGap
         {
             get { return _smallRowGap; }
-            set { _smallRowGap = Validate(value, Gaps); }
+            set { _smallRowGap = Styles.Validate(value, Styles.Gaps); }
         }
 
         private string _smallAlignItems = "start";
@@ -93,7 +44,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string SmallAlignItems
         {
             get { return _smallAlignItems; }
-            set { _smallAlignItems = Validate(value, Aligns); }
+            set { _smallAlignItems = Styles.Validate(value, Styles.Aligns); }
         }
 
         private string _smallJustifyItems = "start";
@@ -101,7 +52,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string SmallJustifyItems
         {
             get { return _smallJustifyItems; }
-            set { _smallJustifyItems = Validate(value, Aligns); }
+            set { _smallJustifyItems = Styles.Validate(value, Styles.Aligns); }
         }
 
 
@@ -110,7 +61,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string MediumTemplateColumns
         {
             get { return _mediumTemplateColumns; }
-            set { _mediumTemplateColumns = Validate(value, TemplateCols); }
+            set { _mediumTemplateColumns = Styles.Validate(value, Styles.Columns); }
         }
 
         private string _mediumTemplateRows = "6";
@@ -118,7 +69,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string MediumTemplateRows
         {
             get { return _mediumTemplateRows; }
-            set { _mediumTemplateRows = Validate(value, TemplateRows); }
+            set { _mediumTemplateRows = Styles.Validate(value, Styles.Columns); }
         }
 
         private string _mediumColumnGap = "medium";
@@ -126,7 +77,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string MediumColumnGap
         {
             get { return _mediumColumnGap; }
-            set { _mediumColumnGap = Validate(value, Gaps); }
+            set { _mediumColumnGap = Styles.Validate(value, Styles.Gaps); }
         }
 
         private string _mediumRowGap = "medium";
@@ -134,7 +85,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string MediumRowGap
         {
             get { return _mediumRowGap; }
-            set { _mediumRowGap = Validate(value, Gaps); }
+            set { _mediumRowGap = Styles.Validate(value, Styles.Gaps); }
         }
 
         private string _mediumAlignItems = "start";
@@ -142,7 +93,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string MediumAlignItems
         {
             get { return _mediumAlignItems; }
-            set { _mediumAlignItems = Validate(value, Aligns); }
+            set { _mediumAlignItems = Styles.Validate(value, Styles.Aligns); }
         }
 
         private string _mediumJustifyItems = "start";
@@ -150,7 +101,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string MediumJustifyItems
         {
             get { return _mediumJustifyItems; }
-            set { _mediumJustifyItems = Validate(value, Aligns); }
+            set { _mediumJustifyItems = Styles.Validate(value, Styles.Aligns); }
         }
 
 
@@ -159,7 +110,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string LargeTemplateColumns
         {
             get { return _largeTemplateColumns; }
-            set { _largeTemplateColumns = Validate(value, TemplateCols); }
+            set { _largeTemplateColumns = Styles.Validate(value, Styles.Columns); }
         }
 
         private string _largeTemplateRows = "6";
@@ -167,7 +118,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string LargeTemplateRows
         {
             get { return _largeTemplateRows; }
-            set { _largeTemplateRows = Validate(value, TemplateRows); }
+            set { _largeTemplateRows = Styles.Validate(value, Styles.Columns); }
         }
 
         private string _largeColumnGap = "medium";
@@ -175,7 +126,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string LargeColumnGap
         {
             get { return _largeColumnGap; }
-            set { _largeColumnGap = Validate(value, Gaps); }
+            set { _largeColumnGap = Styles.Validate(value, Styles.Gaps); }
         }
 
         private string _largeRowGap = "medium";
@@ -183,7 +134,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string LargeRowGap
         {
             get { return _largeRowGap; }
-            set { _largeRowGap = Validate(value, Gaps); }
+            set { _largeRowGap = Styles.Validate(value, Styles.Gaps); }
         }
 
         private string _largeAlignItems = "start";
@@ -191,7 +142,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string LargeAlignItems
         {
             get { return _largeAlignItems; }
-            set { _largeAlignItems = Validate(value, Aligns); }
+            set { _largeAlignItems = Styles.Validate(value, Styles.Aligns); }
         }
 
         private string _largeJustifyItems = "start";
@@ -199,7 +150,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string LargeJustifyItems
         {
             get { return _largeJustifyItems; }
-            set { _largeJustifyItems = Validate(value, Aligns); }
+            set { _largeJustifyItems = Styles.Validate(value, Styles.Aligns); }
         }
 
 
@@ -208,7 +159,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string ExtraLargeTemplateColumns
         {
             get { return _extraLargeTemplateColumns; }
-            set { _extraLargeTemplateColumns = Validate(value, TemplateCols); }
+            set { _extraLargeTemplateColumns = Styles.Validate(value, Styles.Columns); }
         }
 
         private string _extraLargeTemplateRows = "6";
@@ -216,7 +167,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string ExtraLargeTemplateRows
         {
             get { return _extraLargeTemplateRows; }
-            set { _extraLargeTemplateRows = Validate(value, TemplateRows); }
+            set { _extraLargeTemplateRows = Styles.Validate(value, Styles.Columns); }
         }
 
         private string _extraLargeColumnGap = "medium";
@@ -224,7 +175,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string ExtraLargeColumnGap
         {
             get { return _extraLargeColumnGap; }
-            set { _extraLargeColumnGap = Validate(value, Gaps); }
+            set { _extraLargeColumnGap = Styles.Validate(value, Styles.Gaps); }
         }
 
         private string _extraLargeRowGap = "medium";
@@ -232,7 +183,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string ExtraLargeRowGap
         {
             get { return _extraLargeRowGap; }
-            set { _extraLargeRowGap = Validate(value, Gaps); }
+            set { _extraLargeRowGap = Styles.Validate(value, Styles.Gaps); }
         }
 
         private string _extraLargeAlignItems = "start";
@@ -240,7 +191,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string ExtraLargeAlignItems
         {
             get { return _extraLargeAlignItems; }
-            set { _extraLargeAlignItems = Validate(value, Aligns); }
+            set { _extraLargeAlignItems = Styles.Validate(value, Styles.Aligns); }
         }
 
         private string _extraLargeJustifyItems = "start";
@@ -248,30 +199,30 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string ExtraLargeJustifyItems
         {
             get { return _extraLargeJustifyItems; }
-            set { _extraLargeJustifyItems = Validate(value, Aligns); }
+            set { _extraLargeJustifyItems = Styles.Validate(value, Styles.Aligns); }
         }
 
-        public StylesGrid SetColSpans(Breakpoint breakpoint, int colSpan) => SetColSpans(breakpoint, colSpan.ToString());
-        public StylesGrid SetColSpans(Breakpoint breakpoint, string colSpan)
+        public StylesGrid SetColumns(Styles.Breakpoint breakpoint, int colSpan) => SetColumns(breakpoint, colSpan.ToString());
+        public StylesGrid SetColumns(Styles.Breakpoint breakpoint, string colSpan)
         {
             switch (breakpoint)
             {
-                case Breakpoint.Small:
+                case Styles.Breakpoint.Small:
                     SmallTemplateColumns = colSpan;
                     MediumTemplateColumns = colSpan;
                     LargeTemplateColumns = colSpan;
                     ExtraLargeTemplateColumns = colSpan;
                     break;
-                case Breakpoint.Medium:
+                case Styles.Breakpoint.Medium:
                     MediumTemplateColumns = colSpan;
                     LargeTemplateColumns = colSpan;
                     ExtraLargeTemplateColumns = colSpan;
                     break;
-                case Breakpoint.Large:
+                case Styles.Breakpoint.Large:
                     LargeTemplateColumns = colSpan;
                     ExtraLargeTemplateColumns = colSpan;
                     break;
-                case Breakpoint.ExtraLarge:
+                case Styles.Breakpoint.ExtraLarge:
                     ExtraLargeTemplateColumns = colSpan;
                     break;
                 default: break;
@@ -280,41 +231,33 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
             return this;
         }
 
-        public StylesGrid SetRowSpans(Breakpoint breakpoint, int rowSpan) => SetRowSpans(breakpoint, rowSpan.ToString());
-        public StylesGrid SetRowSpans(Breakpoint breakpoint, string rowSpan)
+        public StylesGrid SetRows(Styles.Breakpoint breakpoint, int rowSpan) => SetRows(breakpoint, rowSpan.ToString());
+        public StylesGrid SetRows(Styles.Breakpoint breakpoint, string rowSpan)
         {
             switch (breakpoint)
             {
-                case Breakpoint.Small:
+                case Styles.Breakpoint.Small:
                     SmallTemplateRows = rowSpan;
                     MediumTemplateRows = rowSpan;
                     LargeTemplateRows = rowSpan;
                     ExtraLargeTemplateRows = rowSpan;
                     break;
-                case Breakpoint.Medium:
+                case Styles.Breakpoint.Medium:
                     MediumTemplateRows = rowSpan;
                     LargeTemplateRows = rowSpan;
                     ExtraLargeTemplateRows = rowSpan;
                     break;
-                case Breakpoint.Large:
+                case Styles.Breakpoint.Large:
                     LargeTemplateRows = rowSpan;
                     ExtraLargeTemplateRows = rowSpan;
                     break;
-                case Breakpoint.ExtraLarge:
+                case Styles.Breakpoint.ExtraLarge:
                     ExtraLargeTemplateRows = rowSpan;
                     break;
                 default: break;
             }
 
             return this;
-        }
-
-        private string Validate(string val, string[] allowedValues)
-        {
-            if (allowedValues.Contains(val))
-                return val;
-
-            throw new JsonException("Invalid value " + val);
         }
     }
 }

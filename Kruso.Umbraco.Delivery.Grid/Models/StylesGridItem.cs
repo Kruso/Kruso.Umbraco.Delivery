@@ -1,92 +1,9 @@
 ﻿using Newtonsoft.Json;
-using NUglify.JavaScript.Syntax;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Umbraco.Cms.Core.Models.PublishedContent;
 
 namespace Kruso.Umbraco.Delivery.Grid.Models
 {
     public class StylesGridItem
     {
-        public enum Breakpoint
-        {
-            Small,
-            Medium,
-            Large,
-            ExtraLarge
-        };
-
-        private readonly string[] ColStarts = new[] 
-        {
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9",
-            "10",
-            "11",
-            "12",
-            "13",
-            "auto"
-        };
-
-        private readonly string[] ColSpans = new[]
-        {
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9",
-            "10",
-            "11",
-            "12",
-            "full"
-        };
-
-        private readonly string[] RowStarts = new[]
-        {
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "auto"
-        };
-
-        private readonly string[] RowSpans = new[]
-        {
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "full",
-            "auto"
-        };
-
-        private readonly string[] Aligns = new[]
-        {
-            "start",
-            "center",
-            "end",
-            "stretch",
-            "auto"
-        };
-
         [JsonProperty("display_name")]
         public string? Name { get; set; }
 
@@ -95,7 +12,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string SmallColumnStart 
         {
             get { return _smallColumnStart; }
-            set { _smallColumnStart = Validate(value, ColStarts); }
+            set { _smallColumnStart = Styles.Validate(value, Styles.ColStarts); }
         }
 
         private string _smallColumnSpan = "full";
@@ -103,7 +20,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string SmallColumnSpan
         {
             get { return _smallColumnSpan; }
-            set { _smallColumnSpan = Validate(value, ColSpans); }
+            set { _smallColumnSpan = Styles.Validate(value, Styles.ColSpans); }
         }
 
         private string _smallRowStart = "auto";
@@ -111,7 +28,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string SmallRowStart
         {
             get { return _smallRowStart; }
-            set { _smallRowStart = Validate(value, RowStarts); }
+            set { _smallRowStart = Styles.Validate(value, Styles.RowStarts); }
         }
 
         private string _smallRowSpan = "auto";
@@ -119,7 +36,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string SmallRowSpan
         {
             get { return _smallRowSpan; }
-            set { _smallRowSpan = Validate(value, RowSpans); }
+            set { _smallRowSpan = Styles.Validate(value, Styles.RowSpans); }
         }
 
         private string _smallAlignSelf = "auto";
@@ -127,7 +44,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string SmallAlignSelf
         {
             get { return _smallAlignSelf; }
-            set { _smallAlignSelf = Validate(value, Aligns); }
+            set { _smallAlignSelf = Styles.Validate(value, Styles.Aligns); }
         }
 
         private string _smallJustifySelf = "auto";
@@ -135,7 +52,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string SmallJustifySelf
         {
             get { return _smallJustifySelf; }
-            set { _smallJustifySelf = Validate(value, Aligns); }
+            set { _smallJustifySelf = Styles.Validate(value, Styles.Aligns); }
         }
 
 
@@ -144,7 +61,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string MediumColumnStart
         {
             get { return _mediumColumnStart; }
-            set { _mediumColumnStart = Validate(value, ColStarts); }
+            set { _mediumColumnStart = Styles.Validate(value, Styles.ColStarts); }
         }
 
         private string _mediumColumnSpan = "full";
@@ -152,7 +69,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string MediumColumnSpan
         {
             get { return _mediumColumnSpan; }
-            set { _mediumColumnSpan = Validate(value, ColSpans); }
+            set { _mediumColumnSpan = Styles.Validate(value, Styles.ColSpans); }
         }
 
         private string _mediumRowStart = "auto";
@@ -160,7 +77,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string MediumRowStart
         {
             get { return _mediumRowStart; }
-            set { _mediumRowStart = Validate(value, RowStarts); }
+            set { _mediumRowStart = Styles.Validate(value, Styles.RowStarts); }
         }
 
         private string _mediumRowSpan = "auto";
@@ -168,7 +85,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string MediumRowSpan
         {
             get { return _mediumRowSpan; }
-            set { _mediumRowSpan = Validate(value, RowSpans); }
+            set { _mediumRowSpan = Styles.Validate(value, Styles.RowSpans); }
         }
 
         private string _mediumAlignSelf = "auto";
@@ -176,7 +93,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string MediumAlignSelf
         {
             get { return _mediumAlignSelf; }
-            set { _mediumAlignSelf = Validate(value, Aligns); }
+            set { _mediumAlignSelf = Styles.Validate(value, Styles.Aligns); }
         }
 
         private string _mediumJustifySelf = "auto";
@@ -184,7 +101,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string MediumJustifySelf
         {
             get { return _mediumJustifySelf; }
-            set { _mediumJustifySelf = Validate(value, Aligns); }
+            set { _mediumJustifySelf = Styles.Validate(value, Styles.Aligns); }
         }
 
 
@@ -193,7 +110,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string LargeColumnStart
         {
             get { return _largeColumnStart; }
-            set { _largeColumnStart = Validate(value, ColStarts); }
+            set { _largeColumnStart = Styles.Validate(value, Styles.ColStarts); }
         }
 
         private string _largeColumnSpan = "full";
@@ -201,7 +118,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string LargeColumnSpan
         {
             get { return _largeColumnSpan; }
-            set { _largeColumnSpan = Validate(value, ColSpans); }
+            set { _largeColumnSpan = Styles.Validate(value, Styles.ColSpans); }
         }
 
         private string _largeRowStart = "auto";
@@ -209,7 +126,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string LargeRowStart
         {
             get { return _largeRowStart; }
-            set { _largeRowStart = Validate(value, RowStarts); }
+            set { _largeRowStart = Styles.Validate(value, Styles.RowStarts); }
         }
 
         private string _largeRowSpan = "auto";
@@ -217,7 +134,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string LargeRowSpan
         {
             get { return _largeRowSpan; }
-            set { _largeRowSpan = Validate(value, RowSpans); }
+            set { _largeRowSpan = Styles.Validate(value, Styles.RowSpans); }
         }
 
         private string _largeAlignSelf = "auto";
@@ -225,7 +142,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string LargeAlignSelf
         {
             get { return _largeAlignSelf; }
-            set { _largeAlignSelf = Validate(value, Aligns); }
+            set { _largeAlignSelf = Styles.Validate(value, Styles.Aligns); }
         }
 
         private string _largeJustifySelf = "auto";
@@ -233,7 +150,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string LargeJustifySelf
         {
             get { return _largeJustifySelf; }
-            set { _largeJustifySelf = Validate(value, Aligns); }
+            set { _largeJustifySelf = Styles.Validate(value, Styles.Aligns); }
         }
 
 
@@ -242,7 +159,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string ExtraLargeColumnStart
         {
             get { return _extraLargeColumnStart; }
-            set { _extraLargeColumnStart = Validate(value, ColStarts); }
+            set { _extraLargeColumnStart = Styles.Validate(value, Styles.ColStarts); }
         }
 
         private string _extraLargeColumnSpan = "full";
@@ -250,7 +167,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string ExtraLargeColumnSpan
         {
             get { return _extraLargeColumnSpan; }
-            set { _extraLargeColumnSpan = Validate(value, ColSpans); }
+            set { _extraLargeColumnSpan = Styles.Validate(value, Styles.ColSpans); }
         }
 
         private string _extraLargeRowStart = "auto";
@@ -258,7 +175,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string ExtraLargeRowStart
         {
             get { return _extraLargeRowStart; }
-            set { _extraLargeRowStart = Validate(value, RowStarts); }
+            set { _extraLargeRowStart = Styles.Validate(value, Styles.RowStarts); }
         }
 
         private string _extraLargeRowSpan = "auto";
@@ -266,7 +183,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string ExtraLargeRowSpan
         {
             get { return _extraLargeRowSpan; }
-            set { _extraLargeRowSpan = Validate(value, RowSpans); }
+            set { _extraLargeRowSpan = Styles.Validate(value, Styles.RowSpans); }
         }
 
         private string _extraLargeAlignSelf = "auto";
@@ -274,7 +191,7 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string ExtraLargeAlignSelf
         {
             get { return _extraLargeAlignSelf; }
-            set { _extraLargeAlignSelf = Validate(value, Aligns); }
+            set { _extraLargeAlignSelf = Styles.Validate(value, Styles.Aligns); }
         }
 
         private string _extraLargeJustifySelf = "auto";
@@ -282,30 +199,30 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
         public string ExtraLargeJustifySelf
         {
             get { return _extraLargeJustifySelf; }
-            set { _extraLargeJustifySelf = Validate(value, Aligns); }
+            set { _extraLargeJustifySelf = Styles.Validate(value, Styles.Aligns); }
         }
 
-        public StylesGridItem SetColSpans(Breakpoint breakpoint, int colSpan) => SetColSpans(breakpoint, colSpan.ToString());
-        public StylesGridItem SetColSpans(Breakpoint breakpoint, string colSpan)
+        public StylesGridItem SetColSpans(Styles.Breakpoint breakpoint, int colSpan) => SetColSpans(breakpoint, colSpan.ToString());
+        public StylesGridItem SetColSpans(Styles.Breakpoint breakpoint, string colSpan)
         {
             switch (breakpoint)
             {
-                case Breakpoint.Small: 
+                case Styles.Breakpoint.Small: 
                     SmallColumnSpan = colSpan;
                     MediumColumnSpan = colSpan;
                     LargeColumnSpan = colSpan;
                     ExtraLargeColumnSpan = colSpan;
                     break;
-                case Breakpoint.Medium:
+                case Styles.Breakpoint.Medium:
                     MediumColumnSpan = colSpan;
                     LargeColumnSpan = colSpan;
                     ExtraLargeColumnSpan = colSpan;
                     break;
-                case Breakpoint.Large:
+                case Styles.Breakpoint.Large:
                     LargeColumnSpan = colSpan;
                     ExtraLargeColumnSpan = colSpan;
                     break;
-                case Breakpoint.ExtraLarge:
+                case Styles.Breakpoint.ExtraLarge:
                     ExtraLargeColumnSpan = colSpan;
                     break;
                 default: break;
@@ -314,41 +231,33 @@ namespace Kruso.Umbraco.Delivery.Grid.Models
             return this;
         }
 
-        public StylesGridItem SetRowSpans(Breakpoint breakpoint, int rowSpan) => SetRowSpans(breakpoint, rowSpan.ToString());
-        public StylesGridItem SetRowSpans(Breakpoint breakpoint, string rowSpan)
+        public StylesGridItem SetRowSpans(Styles.Breakpoint breakpoint, int rowSpan) => SetRowSpans(breakpoint, rowSpan.ToString());
+        public StylesGridItem SetRowSpans(Styles.Breakpoint breakpoint, string rowSpan)
         {
             switch (breakpoint)
             {
-                case Breakpoint.Small:
+                case Styles.Breakpoint.Small:
                     SmallRowSpan = rowSpan;
                     MediumRowSpan = rowSpan;
                     LargeRowSpan = rowSpan;
                     ExtraLargeRowSpan = rowSpan;
                     break;
-                case Breakpoint.Medium:
+                case Styles.Breakpoint.Medium:
                     MediumRowSpan = rowSpan;
                     LargeRowSpan = rowSpan;
                     ExtraLargeRowSpan = rowSpan;
                     break;
-                case Breakpoint.Large:
+                case Styles.Breakpoint.Large:
                     LargeRowSpan = rowSpan;
                     ExtraLargeRowSpan = rowSpan;
                     break;
-                case Breakpoint.ExtraLarge:
+                case Styles.Breakpoint.ExtraLarge:
                     ExtraLargeRowSpan = rowSpan;
                     break;
                 default: break;
             }
 
             return this;
-        }
-
-        private string Validate(string val, string[] allowedValues)
-        {
-            if (allowedValues.Contains(val)) 
-                return val;
-
-            throw new JsonException("Invalid value " + val);
         }
     }
 }

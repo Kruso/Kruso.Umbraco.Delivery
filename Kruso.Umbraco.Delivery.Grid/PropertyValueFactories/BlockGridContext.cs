@@ -9,8 +9,13 @@ namespace Kruso.Umbraco.Delivery.Grid.PropertyValueFactories
     internal class BlockGridContext
     {
         private int Idx = 0;
+        public readonly int DefaultGridColumns = 12;
 
-        public BlockGridContext(int idx) => Idx = idx;
+        public BlockGridContext(int idx, int? defaultGridColumns = null)
+        {
+            Idx = idx;
+            DefaultGridColumns = defaultGridColumns ?? 12;
+        }
 
         public Guid GenerateUuid()
         {

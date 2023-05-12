@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Runtime.Serialization;
-using static Umbraco.Cms.Core.PropertyEditors.ImageCropperConfiguration;
 
 namespace Kruso.Umbraco.Delivery.Json
 {
@@ -229,16 +228,8 @@ namespace Kruso.Umbraco.Delivery.Json
 
         public override string ToString()
         {
-            return JsonConvert.SerializeObject(this, Formatting.Indented, new JsonSerializerSettings
-            {
-                Formatting = Formatting.Indented,
-                ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                ObjectCreationHandling = ObjectCreationHandling.Replace,
-                NullValueHandling = NullValueHandling.Include
-            });
+            return JsonConvert.SerializeObject(this, JsonSerializationConfig.DeliverySerializationSettings);
         }
-
-        #endregion Interfaces and Overrides
 
         public void GetObjectData(SerializationInfo info, StreamingContext context)
         {
@@ -247,6 +238,8 @@ namespace Kruso.Umbraco.Delivery.Json
                 info.AddValue(kvp.Key, kvp.Value);
             }
         }
+
+        #endregion Interfaces and Overrides
 
         private T GetReserved<T>(string prop)
         {

@@ -1,12 +1,5 @@
 ﻿using Kruso.Umbraco.Delivery.Grid.Models;
 using Kruso.Umbraco.Delivery.Json;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Umbraco.Cms.Core.PropertyEditors;
 
 namespace Kruso.Umbraco.Delivery.Grid.Extensions
 {

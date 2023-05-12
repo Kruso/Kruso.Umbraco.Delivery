@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Kruso.Umbraco.Delivery.Grid.Json;
 
 namespace Kruso.Umbraco.Delivery.Grid
 {
@@ -10,6 +6,9 @@ namespace Kruso.Umbraco.Delivery.Grid
     {
         public static void AddGridComponents(this UmbracoDeliveryOptions options)
         {
+            options.JsonConverters.Add(new StylesGridJsonConverter());
+            options.JsonConverters.Add(new StylesSpacingsJsonConverter());
+            options.JsonConverters.Add(new StylesGridItemJsonConverter());
             options?.AddComponentsFrom(typeof(Setup).Assembly);
         }
     }

@@ -29,7 +29,7 @@ namespace Kruso.Umbraco.Delivery.Grid.PropertyValueFactories
             {
                 grid
                     .StylesGrid()
-                    .SetColumns(Styles.Breakpoint.Medium, blockGridContext.DefaultGridColumns);
+                    .SetColumns(StylesConstants.Breakpoint.Medium, blockGridContext.DefaultGridColumns);
 
                 var blocks = CreateBlocks(blockGridContext, blockGridModel);
                 grid.AddProp("content", blocks);
@@ -51,8 +51,8 @@ namespace Kruso.Umbraco.Delivery.Grid.PropertyValueFactories
                         block
                             .AddProp("settings", _modelFactory.CreateBlock(item?.Settings))
                             .StylesGridItem()
-                                .SetColSpans(Styles.Breakpoint.Medium, item.ColumnSpan)
-                                .SetRowSpans(Styles.Breakpoint.Medium, item.RowSpan);
+                                .SetColSpans(StylesConstants.Breakpoint.Medium, item.ColumnSpan)
+                                .SetRowSpans(StylesConstants.Breakpoint.Medium, item.RowSpan);
                     });
 
                 if (block != null)
@@ -73,11 +73,11 @@ namespace Kruso.Umbraco.Delivery.Grid.PropertyValueFactories
                         .AddProp("settings", _modelFactory.CreateBlock(item?.Settings));
 
                     grid.StylesGrid()
-                        .SetColumns(Styles.Breakpoint.Medium, item?.AreaGridColumns ?? context.DefaultGridColumns);
+                        .SetColumns(StylesConstants.Breakpoint.Medium, item?.AreaGridColumns ?? context.DefaultGridColumns);
 
                     grid.StylesGridItem()
-                        .SetColSpans(Styles.Breakpoint.Medium, item?.ColumnSpan ?? context.DefaultGridColumns)
-                        .SetRowSpans(Styles.Breakpoint.Medium, item?.RowSpan ?? 1);
+                        .SetColSpans(StylesConstants.Breakpoint.Medium, item?.ColumnSpan ?? context.DefaultGridColumns)
+                        .SetRowSpans(StylesConstants.Breakpoint.Medium, item?.RowSpan ?? 1);
                 });
             }
 
@@ -106,11 +106,11 @@ namespace Kruso.Umbraco.Delivery.Grid.PropertyValueFactories
                     .AddProp("content", CreateBlocks(context, area));
 
                 grid.StylesGrid()
-                    .SetColumns(Styles.Breakpoint.Medium, context.DefaultGridColumns);
+                    .SetColumns(StylesConstants.Breakpoint.Medium, context.DefaultGridColumns);
                     
                 grid.StylesGridItem()
-                    .SetColSpans(Styles.Breakpoint.Medium, area.ColumnSpan)
-                    .SetRowSpans(Styles.Breakpoint.Medium, area.RowSpan); //TODO: We can set row spans here I think...
+                    .SetColSpans(StylesConstants.Breakpoint.Medium, area.ColumnSpan)
+                    .SetRowSpans(StylesConstants.Breakpoint.Medium, area.RowSpan); //TODO: We can set row spans here I think...
             });
 
             return grid;

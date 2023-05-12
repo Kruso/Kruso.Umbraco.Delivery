@@ -1,126 +1,49 @@
-﻿using Newtonsoft.Json;
+﻿using Newtonsoft.Json.Linq;
+using NPoco.fastJSON;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Text.Json.Serialization;
+using System.Threading.Tasks;
+using static Lucene.Net.Queries.Function.ValueSources.MultiFunction;
 
 namespace Kruso.Umbraco.Delivery.Grid.Models
 {
-    public static class Styles
+    public abstract class Styles<T> where T : Settings, new()
     {
-        public enum Breakpoint
+        [JsonIgnore]
+        public T Small { get; private set; } = new T();
+        [JsonIgnore]
+        public T Medium { get; private set; } = new T();
+        [JsonIgnore]
+        public T Large { get; private set; } = new T();
+        [JsonIgnore]
+        public T ExtraLarge { get; private set; } = new T();
+
+        public T? GetSettings(string propName)
         {
-            Small,
-            Medium,
-            Large,
-            ExtraLarge
-        };
+            var breakpoint = propName.Split('_').FirstOrDefault();
+            switch (breakpoint)
+            {
+                case "small": return Small;
+                case "medium": return Medium;
+                case "large": return Large;
+                case "extra": return ExtraLarge;
+                default: return null;
+            }
+        }
 
-        public static string[] Gaps = new[]
-{
-            "x-small",
-            "small",
-            "medium",
-            "large",
-            "x-large"
-        };
-
-        public static string[] Aligns = new[]
-{
-            "start",
-            "center",
-            "end",
-            "stretch",
-            "auto"
-        };
-
-        public static string[] Columns = new[]
-{
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9",
-            "10",
-            "11",
-            "12"
-        };
-
-        public static string[] Rows = new[]
+        public JObject ToJObject()
         {
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6"
-        };
+            var json = new JObject();
 
-        public static string[] ColStarts = new[]
-        {
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9",
-            "10",
-            "11",
-            "12",
-            "13",
-            "auto"
-        };
+            Small.AddProps(json, "small");
+            Medium.AddProps(json, "medium");
+            Large.AddProps(json, "large");
+            ExtraLarge.AddProps(json, "extra_large");
 
-        public static string[] ColSpans = new[]
-        {
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9",
-            "10",
-            "11",
-            "12",
-            "full"
-        };
-
-        public static string[] RowStarts = new[]
-        {
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "auto"
-        };
-
-        public static string[] RowSpans = new[]
-        {
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "full",
-            "auto"
-        };
-
-        public static string Validate(string val, string[] allowedValues)
-        {
-            if (allowedValues.Contains(val))
-                return val;
-
-            throw new JsonException("Invalid value " + val);
+            return json;
         }
     }
 }

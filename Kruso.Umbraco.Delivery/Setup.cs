@@ -1,6 +1,7 @@
 ﻿using Kruso.Umbraco.Delivery.Controllers;
 using Kruso.Umbraco.Delivery.Controllers.Renderers;
 using Kruso.Umbraco.Delivery.Helper;
+using Kruso.Umbraco.Delivery.Json;
 using Kruso.Umbraco.Delivery.ModelConversion;
 using Kruso.Umbraco.Delivery.ModelGeneration;
 using Kruso.Umbraco.Delivery.ModelGeneration.Templates;
@@ -15,6 +16,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,6 +40,8 @@ namespace Kruso.Umbraco.Delivery
         internal List<Type> SearchIndexers = new List<Type>();
 
         public string ConfigSection = "UmbracoDelivery";
+
+        public List<JsonConverter> JsonConverters { get; private set; } = new List<JsonConverter>();
 
         public void AddComponentsFrom<T>()
         {
@@ -224,6 +228,9 @@ namespace Kruso.Umbraco.Delivery
 
             foreach (var searchIndexer in options.SearchIndexers)
                 services.AddSingleton(typeof(ISearchIndexer), searchIndexer);
+
+            JsonSerializationConfig.AddJsonConverters(options.JsonConverters);
+            JsonSerializationConfig.Init();
 
             VersionHelper.RegisterVersion(typeof(Setup).Assembly);
 

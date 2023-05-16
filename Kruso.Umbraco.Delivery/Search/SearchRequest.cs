@@ -43,7 +43,8 @@ namespace Kruso.Umbraco.Delivery.Search
 
         public string[] StringParams(string parm)
         {
-            return Params.Val<string[]>(parm) ?? new string[0];
+            return Params.Val<string[]>(parm)?.Where(x => !string.IsNullOrEmpty(x))?.ToArray() 
+                ?? new string[0];
         }
 
         public static SearchRequest Create(string culture, string queryName, IQueryCollection query)

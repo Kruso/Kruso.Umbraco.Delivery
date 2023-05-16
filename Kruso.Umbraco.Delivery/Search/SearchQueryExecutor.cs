@@ -4,7 +4,6 @@ using Kruso.Umbraco.Delivery.Json;
 using Kruso.Umbraco.Delivery.ModelConversion;
 using Kruso.Umbraco.Delivery.ModelGeneration;
 using Kruso.Umbraco.Delivery.Routing;
-using Kruso.Umbraco.Delivery.Routing.Implementation;
 using Kruso.Umbraco.Delivery.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -37,47 +36,52 @@ namespace Kruso.Umbraco.Delivery.Search
             _examineManager = examineManager;
         }
 
-        public SearchResult Execute(SearchRequest searchRequest)
+        public ISearchResults? ExecuteInternal(SearchRequest searchRequest)
         {
             var searchQuery = GetSearchQuery(searchRequest.QueryName);
             var indexName = searchQuery.Index();
 
-            var skip = (searchRequest.Page * searchRequest.PageSize) + searchRequest.Skip;
-            var take = searchRequest.PageSize;
+            if (searchQuery != null && indexName != null && _examineManager.TryGetIndex(indexName, out var index))
+            {
+                var searchResults = searchQuery?.Execute(index.Searcher, searchRequest);
+                return searchResults;
+            }
+
+            return null;
+        }
+
+        public SearchResult Execute(SearchRequest searchRequest)
+        {
+            var searchResults = ExecuteInternal(searchRequest);
+            if (searchResults == null)
+                return null;
 
             var res = new SearchResult
             {
-                skip = skip,
+                skip = (searchRequest.Page * searchRequest.PageSize) + searchRequest.Skip,
                 pageNo = searchRequest.Page,
                 pageSize = searchRequest.PageSize
             };
 
-            if (searchQuery != null && indexName != null && _examineManager.TryGetIndex(indexName, out var index))
-            {
-                var searchResults = searchQuery?.Execute(index.Searcher, searchRequest);
-                if (searchResults?.Any() ?? false)
-                {
-                    var pages = searchResults
-                        .Where(x => searchRequest.CustomFilterFunc?.Invoke(x) ?? true)
-                        .Select(x => _deliContent.PublishedContent(Convert.ToInt32(x.Id)));
+            var pages = searchResults
+                .Where(x => searchRequest.CustomFilterFunc?.Invoke(x) ?? true)
+                .Select(x => _deliContent.PublishedContent(Convert.ToInt32(x.Id)));
 
-                    var deliRequest = _deliRequestAccessor.Current;
+            var deliRequest = _deliRequestAccessor.Current;
 
-                    var pageModels = _modelConverter.Convert(_modelFactory.CreatePages(pages, searchRequest.Culture), TemplateType.Search)
-                        .Select(x => x.Clone(deliRequest?.ModelFactoryOptions?.IncludeFields, deliRequest?.ModelFactoryOptions?.ExcludeFields));
+            var pageModels = _modelConverter.Convert(_modelFactory.CreatePages(pages, searchRequest.Culture), TemplateType.Search)
+                .Select(x => x.Clone(deliRequest?.ModelFactoryOptions?.IncludeFields, deliRequest?.ModelFactoryOptions?.ExcludeFields));
 
-                    if (searchRequest.CustomSortOrderFunc != null)
-                        pageModels = searchRequest.CustomSortOrderFunc.Invoke(pageModels);
+            if (searchRequest.CustomSortOrderFunc != null)
+                pageModels = searchRequest.CustomSortOrderFunc.Invoke(pageModels);
 
-                    pageModels = pageModels.Skip(skip); ;
-                    if (take > 0)
-                        pageModels = pageModels.Take(take);
+            pageModels = pageModels.Skip(res.skip);
+            if (searchRequest.PageSize > 0)
+                pageModels = pageModels.Take(searchRequest.PageSize);
 
-                    res.totalCount = pages.Count();
-                    res.pageResults = pageModels.ToList();
-                    res.success = true;
-                }
-            }
+            res.totalCount = pages.Count();
+            res.pageResults = pageModels.ToList();
+            res.success = true;
 
             return res;
         }

@@ -18,6 +18,7 @@ namespace Kruso.Umbraco.Delivery.Search
 
         public void Add<T>(string prop, T val)
         {
+            Remove(prop);
             _valueSet.Add(prop, new List<object> { val });
         }
 

@@ -42,6 +42,36 @@ namespace Kruso.Umbraco.Delivery.Extensions
             }
         }
 
+        public static bool IsJson(this string json)
+        {
+            if (string.IsNullOrWhiteSpace(json)) { return false; }
+            json = json.Trim();
+            if ((json.StartsWith("{") && json.EndsWith("}")) || //For object
+                (json.StartsWith("[") && json.EndsWith("]"))) //For array
+            {
+                try
+                {
+                    var obj = JToken.Parse(json);
+                    return true;
+                }
+                catch (JsonReaderException jex)
+                {
+                    //Exception in parsing json
+                    Console.WriteLine(jex.Message);
+                    return false;
+                }
+                catch (Exception ex) //some other exception
+                {
+                    Console.WriteLine(ex.ToString());
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         public static string Capitalize(this string text)
         {
             return string.IsNullOrEmpty(text)

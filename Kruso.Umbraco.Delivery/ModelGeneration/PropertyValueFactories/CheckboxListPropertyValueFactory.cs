@@ -1,4 +1,5 @@
-﻿using Kruso.Umbraco.Delivery.Json;
+﻿using Kruso.Umbraco.Delivery.Extensions;
+using Kruso.Umbraco.Delivery.Json;
 using Kruso.Umbraco.Delivery.Services;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
@@ -40,7 +41,18 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
                 if (val is string[])
                     selected.AddRange(val as string[]);
                 else if (val is string)
-                    selected.AddRange(JArray.Parse(val.ToString()).Select(x => x.Value<string>()));
+                {
+                    var valStr = val.ToString();
+                    if (preValues.Contains(valStr))
+                        selected.Add(valStr);
+                    else if (valStr.IsJson())
+                    {
+                        var res = JArray.Parse(valStr).Select(x => x.Value<string>());
+                        selected.AddRange(res);
+                    }
+
+                }
+                   
             }
 
             return selected

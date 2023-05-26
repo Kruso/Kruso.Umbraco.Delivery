@@ -6,6 +6,12 @@ using System.Threading.Tasks;
 
 namespace Kruso.Umbraco.Delivery
 {
+    public enum PublishEventResponse
+    {
+        Continue,
+        Cancel
+    }
+
     public enum RequestType
     {
         Initialized,
@@ -44,6 +50,7 @@ namespace Kruso.Umbraco.Delivery
     {
         Published,
         Saved,
-        Deleted
+        Deleted,
+        Moved
     }
 }

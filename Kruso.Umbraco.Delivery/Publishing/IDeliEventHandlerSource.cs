@@ -2,6 +2,6 @@
 {
     public interface IDeliEventHandlerSource
     {
-        IDeliEventHandler Get(EventType eventType, string documentType);
+        IDeliEventHandler Get(EventType eventType, string[] documentTypes);
     }
 }

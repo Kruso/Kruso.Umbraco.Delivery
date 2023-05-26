@@ -52,10 +52,6 @@ namespace Kruso.Umbraco.Delivery.Search
 
         public SearchResult Execute(SearchRequest searchRequest)
         {
-            var searchResults = ExecuteInternal(searchRequest);
-            if (searchResults == null)
-                return null;
-
             var res = new SearchResult
             {
                 skip = (searchRequest.Page * searchRequest.PageSize) + searchRequest.Skip,
@@ -63,25 +59,29 @@ namespace Kruso.Umbraco.Delivery.Search
                 pageSize = searchRequest.PageSize
             };
 
-            var pages = searchResults
-                .Where(x => searchRequest.CustomFilterFunc?.Invoke(x) ?? true)
-                .Select(x => _deliContent.PublishedContent(Convert.ToInt32(x.Id)));
+            var searchResults = ExecuteInternal(searchRequest);
+            if (searchResults?.Any() ?? false)
+            {
+                var pages = searchResults
+                    .Where(x => searchRequest.CustomFilterFunc?.Invoke(x) ?? true)
+                    .Select(x => _deliContent.PublishedContent(Convert.ToInt32(x.Id)));
 
-            var deliRequest = _deliRequestAccessor.Current;
+                var deliRequest = _deliRequestAccessor.Current;
 
-            var pageModels = _modelConverter.Convert(_modelFactory.CreatePages(pages, searchRequest.Culture), TemplateType.Search)
-                .Select(x => x.Clone(deliRequest?.ModelFactoryOptions?.IncludeFields, deliRequest?.ModelFactoryOptions?.ExcludeFields));
+                var pageModels = _modelConverter.Convert(_modelFactory.CreatePages(pages, searchRequest.Culture), TemplateType.Search)
+                    .Select(x => x.Clone(deliRequest?.ModelFactoryOptions?.IncludeFields, deliRequest?.ModelFactoryOptions?.ExcludeFields));
 
-            if (searchRequest.CustomSortOrderFunc != null)
-                pageModels = searchRequest.CustomSortOrderFunc.Invoke(pageModels);
+                if (searchRequest.CustomSortOrderFunc != null)
+                    pageModels = searchRequest.CustomSortOrderFunc.Invoke(pageModels);
 
-            pageModels = pageModels.Skip(res.skip);
-            if (searchRequest.PageSize > 0)
-                pageModels = pageModels.Take(searchRequest.PageSize);
+                pageModels = pageModels.Skip(res.skip);
+                if (searchRequest.PageSize > 0)
+                    pageModels = pageModels.Take(searchRequest.PageSize);
 
-            res.totalCount = pages.Count();
-            res.pageResults = pageModels.ToList();
-            res.success = true;
+                res.totalCount = pages.Count();
+                res.pageResults = pageModels.ToList();
+                res.success = true;
+            }
 
             return res;
         }

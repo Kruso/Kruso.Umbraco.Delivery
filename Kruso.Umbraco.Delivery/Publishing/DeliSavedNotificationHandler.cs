@@ -12,7 +12,6 @@ namespace Kruso.Umbraco.Delivery.Publishing
         {
         }
 
-        public void Handle(ContentSavedNotification notification) =>
-            base.Handle(notification.SavedEntities, EventType.Saved, notification.HasSavedCulture);
+        public void Handle(ContentSavedNotification notification) => Handle(notification.SavedEntities, EventType.Saved);
     }
 }

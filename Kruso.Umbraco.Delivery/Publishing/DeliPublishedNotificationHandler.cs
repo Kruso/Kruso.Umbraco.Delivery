@@ -1,9 +1,5 @@
-﻿using Kruso.Umbraco.Delivery.ModelGeneration;
-using Kruso.Umbraco.Delivery.Services;
-using System;
-using System.Linq;
+﻿using System;
 using Umbraco.Cms.Core.Events;
-using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Notifications;
 
 namespace Kruso.Umbraco.Delivery.Publishing
@@ -15,7 +11,6 @@ namespace Kruso.Umbraco.Delivery.Publishing
         {
         }
 
-        public void Handle(ContentPublishedNotification notification) =>
-            base.Handle(notification.PublishedEntities, EventType.Published, notification.HasPublishedCulture);
+        public void Handle(ContentPublishedNotification notification) => Handle(notification.PublishedEntities, EventType.Published);
     }
 }

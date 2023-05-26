@@ -34,7 +34,6 @@ namespace Kruso.Umbraco.Delivery.Extensions
                         }
                     }
                 }
-
             }
 
             return res;

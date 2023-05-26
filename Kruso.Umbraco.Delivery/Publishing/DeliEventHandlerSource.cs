@@ -17,14 +17,16 @@ namespace Kruso.Umbraco.Delivery.Publishing
             _eventHandlers = eventHandlers.ToFilteredDictionary<IDeliEventHandler, DeliEventAttribute>();
         }
 
-        public IDeliEventHandler Get(EventType eventType, string documentType)
+        public IDeliEventHandler Get(EventType eventType, string[] documentTypes)
         {
-
-            var key = eventType.MakeKey(documentType);
-
-            if (_eventHandlers.ContainsKey(key))
+            foreach (var documentType in documentTypes)
             {
-                return _eventHandlers[key];
+                var key = eventType.MakeKey(documentType);
+
+                if (_eventHandlers.ContainsKey(key))
+                {
+                    return _eventHandlers[key];
+                }
             }
 
             var defaultKey = eventType.MakeKey();

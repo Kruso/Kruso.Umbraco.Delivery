@@ -1,4 +1,6 @@
-﻿using Umbraco.Cms.Core.Models;
+﻿using J2N.Collections.Generic;
+using System.Linq;
+using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
 
 namespace Kruso.Umbraco.Delivery.Services.Implementation
@@ -32,6 +34,21 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             }
 
             return null;
+        }
+
+        public string[] ContentTypeAliases(string alias)
+        {
+            var types = new List<string>();
+
+            var contentType = ContentType(alias);
+            if (contentType != null)
+            {
+                types.Add(contentType.Alias);
+                if (contentType.CompositionAliases()?.Any() ?? false)
+                    types.AddRange(contentType.CompositionAliases());
+            }
+
+            return types.ToArray();
         }
     }
 }

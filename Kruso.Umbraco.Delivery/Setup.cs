@@ -36,6 +36,7 @@ namespace Kruso.Umbraco.Delivery
         internal Dictionary<string, Type> ModelNodeListConverters = new Dictionary<string, Type>();
         internal List<Type> SearchQueries = new List<Type>();
         internal List<Type> SearchIndexers = new List<Type>();
+        internal List<Type> EventHandlers = new List<Type>();
 
         public string ConfigSection = "UmbracoDelivery";
 
@@ -53,6 +54,7 @@ namespace Kruso.Umbraco.Delivery
 
             SearchQueries.AddRange(GetAllWithInterface<ISearchQuery>(assembly));
             SearchIndexers.AddRange(GetAllWithInterface<ISearchIndexer>(assembly));
+            EventHandlers.AddRange(GetAllWithInterface<IDeliEventHandler>(assembly));
         }
 
         private void GetAllWithInterface<T, TA>(Assembly assembly, Dictionary<string, Type> componentMap)
@@ -112,7 +114,9 @@ namespace Kruso.Umbraco.Delivery
 
             builder
                 .AddNotificationHandler<ContentPublishedNotification, DeliPublishedNotificationHandler>()
-                .AddNotificationHandler<ContentDeletingNotification, DeliDeletedNotificationHandler>()
+                .AddNotificationHandler<ContentDeletedNotification, DeliDeletedNotificationHandler>()
+                .AddNotificationHandler<ContentMovedNotification, DeliMovedNotificationHandler>()
+                .AddNotificationHandler<ContentMovedToRecycleBinNotification, DeliMovedToTrashNotificationHandler>()
                 .AddNotificationHandler<ContentSavedNotification, DeliSavedNotificationHandler>();
 
             return builder;
@@ -224,6 +228,9 @@ namespace Kruso.Umbraco.Delivery
 
             foreach (var searchIndexer in options.SearchIndexers)
                 services.AddSingleton(typeof(ISearchIndexer), searchIndexer);
+
+            foreach (var searchIndexer in options.EventHandlers)
+                services.AddSingleton(typeof(IDeliEventHandler), searchIndexer);
 
             VersionHelper.RegisterVersion(typeof(Setup).Assembly);
 

@@ -100,11 +100,9 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
 
         public IEnumerable<IPublishedContent> RootPublishedContent()
         {
-            if (_umbracoContextAccessor.TryGetUmbracoContext(out var context))
-            {
-                var res = context.Content.GetAtRoot();
-                return res;
-            }
+            var context = _umbracoContextAccessor.GetRequiredUmbracoContext();
+            var res = context.Content.GetAtRoot();
+            return res;
 
             return Enumerable.Empty<IPublishedContent>();
         }

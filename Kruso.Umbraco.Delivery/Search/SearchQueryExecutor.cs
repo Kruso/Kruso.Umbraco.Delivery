@@ -67,7 +67,7 @@ namespace Kruso.Umbraco.Delivery.Search
                     .Select(x => _deliContent.PublishedContent(Convert.ToInt32(x.Id)));
 
                 var deliRequest = _deliRequestAccessor.Current;
-
+                
                 var pageModels = _modelConverter.Convert(_modelFactory.CreatePages(pages, searchRequest.Culture), TemplateType.Search)
                     .Select(x => x.Clone(deliRequest?.ModelFactoryOptions?.IncludeFields, deliRequest?.ModelFactoryOptions?.ExcludeFields));
 

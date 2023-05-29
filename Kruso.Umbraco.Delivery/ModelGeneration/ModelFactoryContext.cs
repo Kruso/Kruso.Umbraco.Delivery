@@ -74,7 +74,11 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
                 {
                     if (createBlockFunc != null)
                     {
-                        var jsonNode = createBlockFunc();
+                        var stackItem = Peek();
+                        var jsonNode = stackItem != null && !string.IsNullOrEmpty(stackItem.Culture)
+                            ? _deliCulture.WithCultureContext(stackItem.Culture, createBlockFunc)
+                            : createBlockFunc();
+
                         return jsonNode?.AnyProps() ?? false
                             ? jsonNode
                             : null;
@@ -133,16 +137,16 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
             return true;
         }
 
-        private bool DetectedRecursion(Guid key)
-        {
-            return _stack.Count(x => x.Key == key) > 1;
-        }
-
-        private StackItem Peek()
+        private StackItem? Peek()
         {
             return _stack.Any()
                 ? _stack.Peek()
                 : null;
+        }
+
+        private bool DetectedRecursion(Guid key)
+        {
+            return _stack.Count(x => x.Key == key) > 1;
         }
 
         private StackItem Pop()

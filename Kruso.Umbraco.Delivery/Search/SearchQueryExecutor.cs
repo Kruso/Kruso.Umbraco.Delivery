@@ -8,6 +8,7 @@ using Kruso.Umbraco.Delivery.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace Kruso.Umbraco.Delivery.Search
 {
@@ -67,14 +68,24 @@ namespace Kruso.Umbraco.Delivery.Search
                     .Select(x => _deliContent.PublishedContent(Convert.ToInt32(x.Id)));
 
                 var deliRequest = _deliRequestAccessor.Current;
-                
-                var pageModels = _modelConverter.Convert(_modelFactory.CreatePages(pages, searchRequest.Culture), TemplateType.Search)
-                    .Select(x => x.Clone(deliRequest?.ModelFactoryOptions?.IncludeFields, deliRequest?.ModelFactoryOptions?.ExcludeFields));
+                List<JsonNode> models = new List<JsonNode>();
+                foreach (var page in pages)
+                {
+                    var model = _deliContent.IsPage(page)
+                        ? _modelFactory.CreatePage(page, searchRequest.Culture)
+                        : _modelFactory.CreateBlock(page, searchRequest.Culture);
+
+                    model = _modelConverter.Convert(model, TemplateType.Search)
+                        .Clone(deliRequest?.ModelFactoryOptions?.IncludeFields, deliRequest?.ModelFactoryOptions?.ExcludeFields);
+
+                    if (model != null)
+                        models.Add(model);
+                }
 
                 if (searchRequest.CustomSortOrderFunc != null)
-                    pageModels = searchRequest.CustomSortOrderFunc.Invoke(pageModels);
+                    models = searchRequest.CustomSortOrderFunc.Invoke(models);
 
-                pageModels = pageModels.Skip(res.skip);
+                var pageModels = models.Skip(res.skip);
                 if (searchRequest.PageSize > 0)
                     pageModels = pageModels.Take(searchRequest.PageSize);
 

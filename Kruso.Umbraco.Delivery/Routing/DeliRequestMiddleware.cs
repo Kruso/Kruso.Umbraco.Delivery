@@ -63,6 +63,11 @@ namespace Kruso.Umbraco.Delivery.Routing
             {
                 var originalUri = context.Request.AbsoluteUri();
                 var callingHost = DetermineCallingHost(context.Request);
+                if (callingHost == null)
+                {
+                    _logger.LogDebug($"Calling host was not identified. Using backend site host {originalUri} instead");
+                    callingHost = originalUri;
+                }
 
                 ModifyRequest(context, callingHost);
 
@@ -122,7 +127,7 @@ namespace Kruso.Umbraco.Delivery.Routing
 
             if (string.IsNullOrEmpty(callingHost))
             {
-                _logger.LogInformation($"Could not determine calling host from {request.AbsoluteUri()} header.");
+                _logger.LogDebug($"Could not determine calling host from {request.AbsoluteUri()} header.");
 
                 //If this is a request from the Umbraco backend then we don't need to determine the calling host
                 // even if it is a preview request. We will deal with it later.
@@ -142,7 +147,7 @@ namespace Kruso.Umbraco.Delivery.Routing
                     callingHost = config.FrontendHost;
                     if (string.IsNullOrEmpty(callingHost))
                     {
-                        _logger.LogWarning($"Could not determine calling host from {request.AbsoluteUri()} in single-site solution.");
+                        _logger.LogDebug($"Could not determine calling host from {request.AbsoluteUri()} in single-site solution.");
                         return null;
                     }
                 }
@@ -151,7 +156,7 @@ namespace Kruso.Umbraco.Delivery.Routing
             //We have determined the callingHost, let's hope it's a valid absolute url
             Uri.TryCreate(callingHost, UriKind.Absolute, out var baseUri);
             if (baseUri == null)
-                _logger.LogWarning($"Invalid host {callingHost} was found. Cannot use this.");
+                _logger.LogDebug($"Invalid host {callingHost} was found. Cannot use this.");
 
             return baseUri.HostUri();
         }

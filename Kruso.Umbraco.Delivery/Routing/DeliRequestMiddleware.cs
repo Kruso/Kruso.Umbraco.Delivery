@@ -63,13 +63,14 @@ namespace Kruso.Umbraco.Delivery.Routing
             {
                 var originalUri = context.Request.AbsoluteUri();
                 var callingHost = DetermineCallingHost(context.Request);
-                if (callingHost == null)
+                if (callingHost != null)
                 {
-                    _logger.LogDebug($"Calling host was not identified. Using backend site host {originalUri} instead");
-                    callingHost = originalUri;
+                    ModifyRequest(context, callingHost);
                 }
-
-                ModifyRequest(context, callingHost);
+                else
+                {
+                    _logger.LogDebug($"Calling host was not identified. Using backend site host {originalUri} instead. No update to the request Uri will be made.");
+                }
 
                 _deliRequestAccessor.Initialize(context.Request, originalUri);
 
@@ -111,10 +112,13 @@ namespace Kruso.Umbraco.Delivery.Routing
         {
             var config = _deliConfig.Get();
 
+            // Try to get the calling host from the header value specified in the Delivery appsettings...
             var callingHost = !string.IsNullOrEmpty(config.ForwardedHeader)
                 ? GetCallingHostFromHeader(request, config.ForwardedHeader)
                 : null;
 
+            //If no calling host is set there by the calling frontend then try getting them from the request header
+            // values X-Forwarded-Host, X-Forwarded-Prefix and X-Forwarded-Proto...
             if (string.IsNullOrEmpty(callingHost))
             {
                 if (request.Headers.TryGetValue(ProtoHeader, out var scheme)
@@ -125,6 +129,8 @@ namespace Kruso.Umbraco.Delivery.Routing
                 }
             }
 
+            //If a calling host is still not found then try to determine it from the incoming request Uri and the
+            // Delivery appsettings...
             if (string.IsNullOrEmpty(callingHost))
             {
                 _logger.LogDebug($"Could not determine calling host from {request.AbsoluteUri()} header.");
@@ -153,7 +159,7 @@ namespace Kruso.Umbraco.Delivery.Routing
                 }
             }
 
-            //We have determined the callingHost, let's hope it's a valid absolute url
+            //We have tried to determine the callingHost, let's hope it's a valid absolute url
             Uri.TryCreate(callingHost, UriKind.Absolute, out var baseUri);
             if (baseUri == null)
                 _logger.LogDebug($"Invalid host {callingHost} was found. Cannot use this.");

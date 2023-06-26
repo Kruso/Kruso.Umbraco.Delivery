@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Kruso.Umbraco.Delivery.Json
 {
-    internal struct Prop
+    public struct Prop
     {
         public string Name { get; set; }
         public string[] Path { get; set; } = new string[0];
@@ -47,12 +47,12 @@ namespace Kruso.Umbraco.Delivery.Json
         }
     }
 
-    internal class PropExpression
+    public class PropExpression
     {
         private string _expr;
 
-        private Prop Source { get; set; }
-        private Prop Target { get; set; }
+        public Prop Source { get; set; }
+        public Prop Target { get; set; }
 
         private bool SamePropExpressions = false;
 

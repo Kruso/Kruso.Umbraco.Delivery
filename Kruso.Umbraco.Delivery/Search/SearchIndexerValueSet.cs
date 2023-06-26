@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using Kruso.Umbraco.Delivery.Json;
+using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 using System.Linq;
 using Umbraco.Cms.Core.Models.PublishedContent;
 
@@ -16,10 +18,41 @@ namespace Kruso.Umbraco.Delivery.Search
             Content = content;
         }
 
-        public void Add<T>(string prop, T val)
+        public SearchIndexerValueSet Set<T>(string prop, T val, string culture = null)
         {
+            prop = string.IsNullOrEmpty(culture)
+                ? prop
+                : $"{prop}_{culture}";
+
             Remove(prop);
             _valueSet.Add(prop, new List<object> { val });
+
+            return this;
+        }
+
+        public SearchIndexerValueSet Copy<T>(JsonNode obj, string prop, string culture = null)
+        {
+            var val = obj.Val<T>(prop);
+            var propExpr = new PropExpression(prop);
+
+            var target = string.IsNullOrEmpty(culture)
+                ? propExpr.Target.Name
+                : $"{propExpr.Target.Name}_{culture}";
+
+            return Set(target, val);
+        }
+
+        public SearchIndexerValueSet SetList<T>(string prop, IEnumerable<T> vals, string culture = null)
+        {
+            prop = string.IsNullOrEmpty(culture)
+                ? prop
+                : $"{prop}_{culture}";
+
+            Remove(prop);
+            if (vals != null && vals.Any())
+               _valueSet.Add(prop, vals.Cast<object>().ToList());
+
+            return this;
         }
 
         public void Remove(string prop)

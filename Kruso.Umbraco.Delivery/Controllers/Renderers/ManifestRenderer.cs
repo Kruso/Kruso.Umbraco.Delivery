@@ -155,6 +155,7 @@ namespace Kruso.Umbraco.Delivery.Controllers.Renderers
                     res.Add(new JsonNode()
                         .AddProp("domain", new JsonNode()
                             .AddProp("rootPageId", startPage.Key)
+                            .AddProp("name", startPage.Name)
                             .AddProp("paths", domainPaths)
                             .AddProp("cultureInfo", _deliCulture.GetCultureInfo(domain.Culture))));
                 }

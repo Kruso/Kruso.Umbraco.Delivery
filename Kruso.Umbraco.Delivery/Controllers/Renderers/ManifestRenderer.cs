@@ -145,20 +145,23 @@ namespace Kruso.Umbraco.Delivery.Controllers.Renderers
             foreach (var cultureDomains in domainsByCulture)
             {
                 var domain = cultureDomains.domains.First();
-                var startPage = _deliPages.StartPage(domain);
-                if (startPage is not null)
+                _deliCulture.WithCultureContext(cultureDomains.culture, () =>
                 {
-                    var domainPaths = cultureDomains.domains
-                        .Select(x => x.Uri.ToString())
-                        .ToArray();
+                    var startPage = _deliPages.StartPage(domain);
+                    if (startPage is not null)
+                    {
+                        var domainPaths = cultureDomains.domains
+                            .Select(x => x.Uri.ToString())
+                            .ToArray();
 
-                    res.Add(new JsonNode()
-                        .AddProp("domain", new JsonNode()
-                            .AddProp("rootPageId", startPage.Key)
-                            .AddProp("name", startPage.Name)
-                            .AddProp("paths", domainPaths)
-                            .AddProp("cultureInfo", _deliCulture.GetCultureInfo(domain.Culture))));
-                }
+                        res.Add(new JsonNode()
+                            .AddProp("domain", new JsonNode()
+                                .AddProp("rootPageId", startPage.Key)
+                                .AddProp("name", startPage.Name)
+                                .AddProp("paths", domainPaths)
+                                .AddProp("cultureInfo", _deliCulture.GetCultureInfo(domain.Culture))));
+                    }
+                });
             }
 
             return res;

@@ -9,6 +9,7 @@ namespace Kruso.Umbraco.Delivery.Services
 {
     public interface IDeliDomain
     {
+        IEnumerable<DomainAndUri> GetDomains();
         DomainAndUri GetDomainByContent(IPublishedContent content, string culture);
         IEnumerable<DomainAndUri> GetDomainsByRequest(Uri uri = null);
         DomainAndUri GetDomainByRequest(string culture);

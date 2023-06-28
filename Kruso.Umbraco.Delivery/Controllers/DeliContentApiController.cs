@@ -90,14 +90,21 @@ namespace Kruso.Umbraco.Delivery.Controllers
         [Route("api/manifest/")]
         public IActionResult Manifest(string features = null) => Execute(() =>
         {
-            return _manifestRenderer.Get(GetFeatures(features)).ToJsonResult();
+            return _manifestRenderer.GetManifest(GetFeatures(features)).ToJsonResult();
         });
 
         [HttpGet]
-        [Route("api/{culture}/manifest/")]
-        public IActionResult Manifest(string culture, string features = null) => Execute(() =>
+        [Route("api/manifests/")]
+        public IActionResult Manifests(string features = null) => Execute(() =>
         {
-            return _manifestRenderer.Get(GetFeatures(features), culture).ToJsonResult();
+            return _manifestRenderer.GetManifests(GetFeatures(features)).ToJsonResult();
+        });
+
+        [HttpGet]
+        [Route("api/{culture}/manifests/")]
+        public IActionResult Manifests(string culture, string features = null) => Execute(() =>
+        {
+            return _manifestRenderer.GetManifests(GetFeatures(features), culture).ToJsonResult();
         });
 
         private string[] GetFeatures(string features)

@@ -2,6 +2,7 @@
 using Kruso.Umbraco.Delivery.Json;
 using Kruso.Umbraco.Delivery.ModelConversion;
 using Kruso.Umbraco.Delivery.ModelGeneration;
+using Kruso.Umbraco.Delivery.Routing;
 using Kruso.Umbraco.Delivery.Services;
 using System;
 using System.Collections.Generic;
@@ -20,6 +21,7 @@ namespace Kruso.Umbraco.Delivery.Controllers.Renderers
         private readonly IModelFactory _modelFactory;
         private readonly IModelConverter _modelConverter;
         private readonly ILocalizationService _localizationService;
+        private readonly IDeliRequestAccessor _deliRequestAccessor;
 
         private const string ManifestCacheKey = "deli-manifest";
 
@@ -35,7 +37,8 @@ namespace Kruso.Umbraco.Delivery.Controllers.Renderers
             IDeliCache deliCache,
             IModelFactory modelFactory, 
             IModelConverter modelConverter,
-            ILocalizationService localizationService)
+            ILocalizationService localizationService,
+            IDeliRequestAccessor deliRequestAccessor)
         {
             _deliPages = deliPages;
             _deliDomain = deliDomain;
@@ -45,9 +48,35 @@ namespace Kruso.Umbraco.Delivery.Controllers.Renderers
             _modelFactory = modelFactory;
             _modelConverter = modelConverter;
             _localizationService = localizationService;
+            _deliRequestAccessor = deliRequestAccessor;
         }
 
-        public JsonNode Get(string[] features, string culture = null)
+        public JsonNode GetManifest(string[] features, string culture = null)
+        {
+            var manifests = GetManifests(features, culture);
+            var callingUri = _deliRequestAccessor.Current.CallingUri;
+
+            var domains = _deliDomain.GetDomainsByRequest(callingUri);
+
+            var manifestDomains = new List<JsonNode>();
+            foreach (var domain in domains)
+            {
+                var manifestDomain = manifests
+                    .Nodes("domains")
+                    .FirstOrDefault(x => 
+                        x.Val<int>("domain.rootPageId") == domain.ContentId 
+                        && x.Node("domain.cultureInfo").Culture == domain.Culture);
+
+                if (manifestDomain != null) 
+                    manifestDomains.Add(manifestDomain);
+            }
+
+            manifests.AddProp("domains", manifestDomains);
+
+            return manifests;
+        }
+
+        public JsonNode GetManifests(string[] features, string culture = null)
         {
             var manifest = _deliCache.GetFromMemory<JsonNode>(ManifestCacheKey);
             if (manifest == null)
@@ -139,29 +168,22 @@ namespace Kruso.Umbraco.Delivery.Controllers.Renderers
         private IEnumerable<JsonNode> GetAllDomainInfo()
         {
             var res = new List<JsonNode>();
-            var domainsByCulture = _deliDomain.GetDomainsByRequest()
-                .GroupBy(x => x.Culture, (culture, domains) => new { culture, domains });
-
-            foreach (var cultureDomains in domainsByCulture)
+            foreach (var domain in _deliDomain.GetDomains())
             {
-                var domain = cultureDomains.domains.First();
-                _deliCulture.WithCultureContext(cultureDomains.culture, () =>
+                var startPage = _deliPages.StartPage(domain);
+                if (startPage != null)
                 {
-                    var startPage = _deliPages.StartPage(domain);
-                    if (startPage is not null)
+                    _deliCulture.WithCultureContext(domain.Culture, () =>
                     {
-                        var domainPaths = cultureDomains.domains
-                            .Select(x => x.Uri.ToString())
-                            .ToArray();
-
                         res.Add(new JsonNode()
                             .AddProp("domain", new JsonNode()
-                                .AddProp("rootPageId", startPage.Key)
+                                .AddProp("rootPageId", startPage.Id)
+                                .AddProp("rootPageGuid", startPage.Key)
                                 .AddProp("name", startPage.Name)
-                                .AddProp("paths", domainPaths)
+                                .AddProp("path", domain.Uri.ToString())
                                 .AddProp("cultureInfo", _deliCulture.GetCultureInfo(domain.Culture))));
-                    }
-                });
+                    });
+                }
             }
 
             return res;

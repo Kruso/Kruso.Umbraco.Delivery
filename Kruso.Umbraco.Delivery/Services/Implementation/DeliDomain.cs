@@ -34,6 +34,12 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             return domain;
         }
 
+        public IEnumerable<DomainAndUri> GetDomains()
+        {
+            var uri = _deliRequestAccessor.Current?.CallingUri;
+            return GetAllDomains(uri);
+        }
+
         public IEnumerable<DomainAndUri> GetDomainsByRequest(Uri uri = null)
         {
             uri ??= _deliRequestAccessor.Current?.CallingUri;

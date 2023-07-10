@@ -1,20 +1,23 @@
 ﻿using Examine;
+using Examine.Search;
 using Kruso.Umbraco.Delivery.Json;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
+using System.Drawing.Printing;
 using System.Linq;
 
 namespace Kruso.Umbraco.Delivery.Search
 {
     public class SearchRequest
     {
-        public string Culture { get; set; }
+        public string? Culture { get; set; }
         public string QueryName { get; set; }
         public int Skip { get; set; }
         public int Page { get; set; }
         public int PageSize { get; set; }
         public JsonNode Params { get; private set; } = new JsonNode();
+        public bool ManualPaging => CustomSortOrderFunc != null || CustomFilterFunc != null;
 
         public Func<IEnumerable<JsonNode>, List<JsonNode>> CustomSortOrderFunc;
         public Func<ISearchResult, bool> CustomFilterFunc;
@@ -45,6 +48,17 @@ namespace Kruso.Umbraco.Delivery.Search
         {
             return Params.Val<string[]>(parm)?.Where(x => !string.IsNullOrEmpty(x))?.ToArray() 
                 ?? new string[0];
+        }
+
+        public QueryOptions GetQueryOptions()
+        {
+            if (ManualPaging)
+                return new QueryOptions(0, int.MaxValue);
+
+            var skip = (Page * PageSize) + Skip;
+            var take = PageSize == 0 ? int.MaxValue : PageSize;
+
+            return new QueryOptions(skip, take);
         }
 
         public static SearchRequest Create(string culture, string queryName, IQueryCollection query)

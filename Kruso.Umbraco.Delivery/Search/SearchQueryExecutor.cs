@@ -9,6 +9,10 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using Umbraco.Cms.Core.Models.PublishedContent;
+using Microsoft.AspNetCore.Mvc.TagHelpers;
+using Microsoft.Extensions.Logging;
+using Examine.Search;
 
 namespace Kruso.Umbraco.Delivery.Search
 {
@@ -20,6 +24,7 @@ namespace Kruso.Umbraco.Delivery.Search
         private readonly IModelFactory _modelFactory;
         private readonly IModelConverter _modelConverter;
         private readonly IExamineManager _examineManager;
+        private readonly ILogger<SearchQueryExecutor> _logger;
 
         public SearchQueryExecutor(
             IServiceProvider serviceProvider,
@@ -27,7 +32,8 @@ namespace Kruso.Umbraco.Delivery.Search
             IDeliRequestAccessor deliRequestAccessor,
             IModelFactory modelFactory, 
             IModelConverter modelConverter, 
-            IExamineManager examineManager)
+            IExamineManager examineManager,
+            ILogger<SearchQueryExecutor> logger)
         {
             _serviceProvider = serviceProvider;
             _deliContent = deliContent;
@@ -35,6 +41,7 @@ namespace Kruso.Umbraco.Delivery.Search
             _modelFactory = modelFactory;
             _modelConverter = modelConverter;
             _examineManager = examineManager;
+            _logger = logger;
         }
 
         public ISearchResults? ExecuteInternal(SearchRequest searchRequest)
@@ -53,48 +60,98 @@ namespace Kruso.Umbraco.Delivery.Search
 
         public SearchResult Execute(SearchRequest searchRequest)
         {
-            var res = new SearchResult
-            {
-                skip = (searchRequest.Page * searchRequest.PageSize) + searchRequest.Skip,
-                pageNo = searchRequest.Page,
-                pageSize = searchRequest.PageSize
-            };
-
             var searchResults = ExecuteInternal(searchRequest);
-            if (searchResults?.Any() ?? false)
+            var pages = GetFilteredContent(searchRequest, searchResults);
+            var models = CreateResults(searchRequest, pages);
+
+            return CreateSearchResults(searchRequest, searchResults, models);
+        }
+
+        private List<JsonNode> CreateResults(SearchRequest searchRequest, List<IPublishedContent> pages)
+        {
+            var deliRequest = _deliRequestAccessor.Current;
+            List<JsonNode> models = new List<JsonNode>();
+            foreach (var page in pages)
             {
-                var pages = searchResults
-                    .Where(x => searchRequest.CustomFilterFunc?.Invoke(x) ?? true)
-                    .Select(x => _deliContent.PublishedContent(Convert.ToInt32(x.Id)));
+                var model = _deliContent.IsPage(page)
+                    ? _modelFactory.CreatePage(page, searchRequest.Culture)
+                    : _modelFactory.CreateBlock(page, searchRequest.Culture);
 
-                var deliRequest = _deliRequestAccessor.Current;
-                List<JsonNode> models = new List<JsonNode>();
-                foreach (var page in pages)
-                {
-                    var model = _deliContent.IsPage(page)
-                        ? _modelFactory.CreatePage(page, searchRequest.Culture)
-                        : _modelFactory.CreateBlock(page, searchRequest.Culture);
+                model = _modelConverter.Convert(model, TemplateType.Search)
+                    .Clone(deliRequest?.ModelFactoryOptions?.IncludeFields, deliRequest?.ModelFactoryOptions?.ExcludeFields);
 
-                    model = _modelConverter.Convert(model, TemplateType.Search)
-                        .Clone(deliRequest?.ModelFactoryOptions?.IncludeFields, deliRequest?.ModelFactoryOptions?.ExcludeFields);
+                if (model != null)
+                    models.Add(model);
+                else
+                    _logger.LogWarning($"Could not convert page {page.Id} to json");
+            }
 
-                    if (model != null)
-                        models.Add(model);
-                }
+            if (models.Any() && searchRequest.CustomSortOrderFunc != null)
+                models = searchRequest.CustomSortOrderFunc.Invoke(models);
 
-                if (searchRequest.CustomSortOrderFunc != null)
-                    models = searchRequest.CustomSortOrderFunc.Invoke(models);
+            return models;
+        }
 
-                var pageModels = models.Skip(res.skip);
+        private SearchResult CreateSearchResults(SearchRequest searchRequest, ISearchResults searchResults, List<JsonNode> models)
+        {
+            var res = new SearchResult();
+            IEnumerable<JsonNode> results;
+            if (searchRequest.ManualPaging)
+            {
+                res.skip = (searchRequest.Page * searchRequest.PageSize) + searchRequest.Skip;
+                res.pageNo = searchRequest.Page;
+                res.pageSize = searchRequest.PageSize == 0 ? int.MaxValue : searchRequest.PageSize;
+                results = models.Skip(res.skip);
                 if (searchRequest.PageSize > 0)
-                    pageModels = pageModels.Take(searchRequest.PageSize);
+                    results = results.Take(searchRequest.PageSize);
+            }
+            else
+            {
+                var queryOptions = searchRequest.GetQueryOptions();
+                res.skip = queryOptions.Skip;
+                res.pageNo = searchRequest.Page;
+                res.pageSize = queryOptions.Take;
+                results = models;
+            }
 
-                res.totalCount = pages.Count();
-                res.pageResults = pageModels.ToList();
-                res.success = true;
+            res.totalCount = searchResults.TotalItemCount;
+            res.pageResults = results.ToList();
+            if (res.pageSize == int.MaxValue)
+                res.pageSize = res.pageResults.Count();
+
+            res.success = results.Count() > 0;
+
+            return res;
+        }
+
+        private List<IPublishedContent> GetFilteredContent(SearchRequest searchRequest, ISearchResults? searchResults)
+        {
+            var res = new List<IPublishedContent>();
+            if (searchResults == null)
+                return res;
+
+            foreach (var item in searchResults)
+            {
+                if (ShouldRemove(searchRequest, item))
+                {
+                    _logger.LogInformation($"Custom filter removed item {item.Id} from search results");
+                }
+                else
+                {
+                    var content = _deliContent.PublishedContent(Convert.ToInt32(item.Id));
+                    if (content != null)
+                        res.Add(content);
+                    else
+                        _logger.LogWarning($"Item {item.Id} found in index but not in published content");
+                }
             }
 
             return res;
+        }
+
+        private static bool ShouldRemove(SearchRequest searchRequest, ISearchResult item)
+        {
+            return !(searchRequest.CustomFilterFunc?.Invoke(item) ?? true);
         }
 
         private ISearchQuery GetSearchQuery(string queryName)

@@ -34,5 +34,17 @@ namespace Kruso.Umbraco.Delivery.Controllers
                 return _searchQueryExecutor.Execute(searchRequest).ToJsonResult();
             });
         }
+
+        [HttpGet]
+        [Route("api/search/{queryName}")]
+        public IActionResult SearchNoCulture(string queryName)
+        {
+            _deliRequestAccessor.Finalize(null, null);
+            return Execute(() =>
+            {
+                var searchRequest = SearchRequest.Create(null, queryName, HttpContext.Request.Query);
+                return _searchQueryExecutor.Execute(searchRequest).ToJsonResult();
+            });
+        }
     }
 }

@@ -4,7 +4,7 @@ using Kruso.Umbraco.Delivery.Json;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
-using System.Drawing.Printing;
+using System.Globalization;
 using System.Linq;
 
 namespace Kruso.Umbraco.Delivery.Search
@@ -42,6 +42,15 @@ namespace Kruso.Umbraco.Delivery.Search
         public string StringParam(string parm)
         {
             return Params.Val<string[]>(parm)?.First();
+        }
+
+        public DateTime DateParam(string param, string format = "yyyyMMddHHmmssfff", DateTime? defaultDate = null)
+        {
+            var dateStr = StringParam(param)?.PadRight(format.Length, '0');
+            if (!DateTime.TryParseExact(dateStr, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
+                date = defaultDate != null ? defaultDate.Value : DateTime.MinValue;
+
+            return date;
         }
 
         public string[] StringParams(string parm)

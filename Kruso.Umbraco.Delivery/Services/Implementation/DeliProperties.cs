@@ -36,7 +36,7 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
                     ? property.GetValue(null, null)
                     : property.GetValue(culture, null);
 
-                if (value == null)
+                if (value == null || (value is string && string.IsNullOrEmpty(value?.ToString())))
                 {
                     var fallbackCulture = _deliCulture.GetFallbackCulture(culture);
                     if (!string.IsNullOrEmpty(fallbackCulture))

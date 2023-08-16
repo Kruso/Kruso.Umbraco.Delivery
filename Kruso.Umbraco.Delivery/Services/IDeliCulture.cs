@@ -14,7 +14,7 @@ namespace Kruso.Umbraco.Delivery.Services
 
         IEnumerable<string> GetCultures(IPublishedContent content);
         bool IsCultureSupported(string culture);
-        string GetFallbackCulture(string culture);
+        string? GetFallbackCulture(string culture);
         bool IsPublishedInCulture(IPublishedContent content, string culture);
         void WithCultureContext(string culture, Action action);
         T WithCultureContext<T>(string culture, Func<T> func) where T : class;

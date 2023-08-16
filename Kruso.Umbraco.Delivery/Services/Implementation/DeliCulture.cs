@@ -59,10 +59,16 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             return !string.IsNullOrEmpty(culture) && SupportedCultures.Any(sc => sc.Equals(culture, StringComparison.InvariantCultureIgnoreCase));
         }
 
-        public string GetFallbackCulture(string culture)
+        public string? GetFallbackCulture(string culture)
         {
-            var fallbackLanguage = _localizationService.GetLanguageByIsoCode(culture);
-            return fallbackLanguage?.CultureInfo?.Name;
+            var language = _localizationService.GetLanguageByIsoCode(culture);
+            if (language.FallbackLanguageId != null && language.FallbackLanguageId.HasValue)
+            {
+                var fallbackLanguage = _localizationService.GetLanguageById(language.FallbackLanguageId.Value);
+                return fallbackLanguage?.CultureInfo?.Name;
+            }
+
+            return null;
         }
 
         public bool IsPublishedInCulture(IPublishedContent content, string culture)

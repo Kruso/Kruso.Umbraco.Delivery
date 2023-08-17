@@ -32,25 +32,40 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
                 if (property == null)
                     return null;
 
-                var value = property.PropertyType.Variations == ContentVariation.Nothing
-                    ? property.GetValue(null, null)
-                    : property.GetValue(culture, null);
-
-                if (value == null || (value is string && string.IsNullOrEmpty(value?.ToString())))
+                var value = InternalValue(property, culture);
+                if (IsEmptyValue(value))
                 {
                     var fallbackCulture = _deliCulture.GetFallbackCulture(culture);
                     if (!string.IsNullOrEmpty(fallbackCulture))
-                    {
-                        value = property.PropertyType.Variations == ContentVariation.Nothing
-                            ? property.GetValue(null, null)
-                            : property.GetValue(fallbackCulture, null);
-                    }
+                        value = InternalValue(property, fallbackCulture);
                 }
+
+                if (IsEmptyValue(value))
+                    value = InternalValue(property);
+
                 return value;
             }
             catch (Exception ex)
             {
                 _log.LogError(ex, "An unexpected error occurred");
+                return null;
+            }
+        }
+
+        private bool IsEmptyValue(object? value) => value == null || (value is string && string.IsNullOrEmpty(value?.ToString()));
+
+        private object? InternalValue(IPublishedProperty property, string? culture = null)
+        {
+            try
+            {
+                if (property == null)
+                    return null;
+
+                return property.GetValue(culture, null);
+            }
+            catch (Exception ex)
+            {
+                _log.LogError(ex, $"An unexpected error occurred getting property value {property.Alias} with culture {culture}");
                 return null;
             }
         }

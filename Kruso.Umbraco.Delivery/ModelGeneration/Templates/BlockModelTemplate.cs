@@ -1,4 +1,5 @@
-﻿using Kruso.Umbraco.Delivery.Json;
+﻿using Kruso.Umbraco.Delivery.Extensions;
+using Kruso.Umbraco.Delivery.Json;
 using Kruso.Umbraco.Delivery.Services;
 using System.Linq;
 using Umbraco.Cms.Core.Models.PublishedContent;
@@ -31,7 +32,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.Templates
             };
 
             jsonNode
-                .AddPropIfNotNull("name", block.Name)
+                .AddPropIfNotNull("name", block.Name(context))
                 .AddPropIfNotNull("urls", CreateUrls(context, block))
                 .AddProp("sortOrder", block.SortOrder)
                 .CopyAllProps(props);

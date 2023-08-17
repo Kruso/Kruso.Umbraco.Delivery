@@ -43,6 +43,7 @@ namespace Kruso.Umbraco.Delivery.Search
 
         public SearchQuery And<T>(string field, params T[] vals)
         {
+            vals = Clean(vals);
             if (vals.Any())
                 And().Matches(field, vals);
 
@@ -51,6 +52,7 @@ namespace Kruso.Umbraco.Delivery.Search
 
         public SearchQuery Or<T>(string field, params T[] vals)
         {
+            vals = Clean(vals);
             if (vals.Any())
                 Or().Matches(field, vals);
             
@@ -59,6 +61,7 @@ namespace Kruso.Umbraco.Delivery.Search
 
         public SearchQuery Not<T>(string field, params T[] vals)
         {
+            vals = Clean(vals);
             if (vals.Any())
                 Not().Matches(field, vals);
 
@@ -175,7 +178,10 @@ namespace Kruso.Umbraco.Delivery.Search
 
         private bool HasOperator()
         {
-            var op = InternalQuery.LastOrDefault();
+            if (!InternalQuery.Any())
+                return false;
+
+            var op = InternalQuery.Peek();
             return !string.IsNullOrEmpty(op) && Operators.Contains(op);
         }
 

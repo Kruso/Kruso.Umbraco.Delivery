@@ -1,8 +1,10 @@
 ﻿using Kruso.Umbraco.Delivery.Json;
 using Kruso.Umbraco.Delivery.Services;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.PropertyEditors;
@@ -12,13 +14,15 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
     [ModelPropertyValueFactory("Umbraco.MultiUrlPicker")]
     public class MultiUrlPickerPropertyValueFactory : IModelPropertyValueFactory
     {
+        private readonly IDeliContent _deliContent;
         private readonly IDeliUrl _deliUrl;
         private readonly IDeliDataTypes _deliDataTypes;
         private readonly IDeliProperties _deliProperties;
         private readonly IModelFactory _modelFactory;
 
-        public MultiUrlPickerPropertyValueFactory(IDeliUrl deliUrl, IDeliDataTypes deliDataTypes, IDeliProperties deliProperties, IModelFactory modelFactory)
+        public MultiUrlPickerPropertyValueFactory(IDeliContent deliContent, IDeliUrl deliUrl, IDeliDataTypes deliDataTypes, IDeliProperties deliProperties, IModelFactory modelFactory)
         {
+            _deliContent = deliContent;
             _deliUrl = deliUrl;
             _deliDataTypes = deliDataTypes;
             _deliProperties = deliProperties;
@@ -42,9 +46,16 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
                 links.AddRange(val as IEnumerable<Link>);
             }
 
+            foreach (var link in links.Where(x => x.Type == LinkType.Content && x.Udi != null))
+            {
+                var publishedContent = _deliContent.PublishedContent(link.Udi);
+                if (publishedContent != null)
+                    link.Url = _deliUrl.GetDeliveryUrl(publishedContent, _modelFactory.Context.Culture);
+            }
+
             var res = links
                 .Select(x => new JsonNode()
-                    .AddProp("url", x.Type == LinkType.External ? x.Url : _deliUrl.GetDeliveryUrl(x.Url))
+                    .AddProp("url", x.Url)
                     .AddProp("label", x.Name)
                     .AddProp("target", x.Target)
                     .AddProp("linkType", x.Type.ToString()))

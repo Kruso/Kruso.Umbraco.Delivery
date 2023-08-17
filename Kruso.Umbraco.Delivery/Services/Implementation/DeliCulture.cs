@@ -61,11 +61,14 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
 
         public string? GetFallbackCulture(string culture)
         {
-            var language = _localizationService.GetLanguageByIsoCode(culture);
-            if (language.FallbackLanguageId != null && language.FallbackLanguageId.HasValue)
+            if (!string.IsNullOrEmpty(culture))
             {
-                var fallbackLanguage = _localizationService.GetLanguageById(language.FallbackLanguageId.Value);
-                return fallbackLanguage?.CultureInfo?.Name;
+                var language = _localizationService.GetLanguageByIsoCode(culture);
+                if (language?.FallbackLanguageId != null && language.FallbackLanguageId.HasValue)
+                {
+                    var fallbackLanguage = _localizationService.GetLanguageById(language.FallbackLanguageId.Value);
+                    return fallbackLanguage?.CultureInfo?.Name;
+                }
             }
 
             return null;

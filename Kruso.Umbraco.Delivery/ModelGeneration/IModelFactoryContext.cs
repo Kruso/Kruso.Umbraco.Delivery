@@ -8,6 +8,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
     public interface IModelFactoryContext
     {
         string Culture { get; }
+        string FallbackCulture { get; }
         int CurrentDepth { get; }
         bool Initialized { get; }
         ModelFactoryOptions Options { get; }

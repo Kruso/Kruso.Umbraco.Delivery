@@ -94,17 +94,24 @@ namespace Kruso.Umbraco.Delivery.Controllers
         });
 
         [HttpGet]
-        [Route("api/manifests/")]
-        public IActionResult Manifests(string features = null) => Execute(() =>
+        [Route("api/manifest/{rootPageId}")]
+        public IActionResult Manifest(Guid rootPageId, string features = null) => Execute(() =>
         {
-            return _manifestRenderer.GetManifests(GetFeatures(features)).ToJsonResult();
+            return _manifestRenderer.GetManifest(GetFeatures(features), null, rootPageId).ToJsonResult();
         });
 
         [HttpGet]
-        [Route("api/{culture}/manifests/")]
-        public IActionResult Manifests(string culture, string features = null) => Execute(() =>
+        [Route("api/{culture}/manifest/")]
+        public IActionResult Manifest(string culture, string features = null) => Execute(() =>
         {
-            return _manifestRenderer.GetManifests(GetFeatures(features), culture).ToJsonResult();
+            return _manifestRenderer.GetManifest(GetFeatures(features), culture).ToJsonResult();
+        });
+
+        [HttpGet]
+        [Route("api/{culture}/manifest/{rootPageId}")]
+        public IActionResult Manifest(string culture, Guid rootPageId, string features = null) => Execute(() =>
+        {
+            return _manifestRenderer.GetManifest(GetFeatures(features), culture, rootPageId).ToJsonResult();
         });
 
         private string[] GetFeatures(string features)

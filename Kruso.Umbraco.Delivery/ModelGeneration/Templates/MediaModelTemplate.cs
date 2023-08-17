@@ -1,4 +1,5 @@
-﻿using Kruso.Umbraco.Delivery.Json;
+﻿using Kruso.Umbraco.Delivery.Extensions;
+using Kruso.Umbraco.Delivery.Json;
 using Kruso.Umbraco.Delivery.Services;
 using Kruso.Umbraco.Delivery.Services.Implementation;
 using System;
@@ -29,14 +30,14 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.Templates
             };
 
             jsonNode
-                .AddPropIfNotNull("name", block.Name)
+                .AddPropIfNotNull("name", block.Name(context))
                 .CopyAllProps(props)
                 .RenameProp("umbracoHeight", "originalHeight")
                 .RenameProp("umbracoWidth", "originalWidth")
                 .RenameProp("umbracoExtension", "extension")
                 .RenameProp("umbracoBytes", "bytes")
                 .AddProp("src", Src(props))
-                .AddProp("alt", Alt(props, block.Name))
+                .AddProp("alt", Alt(props, block.Name(context)))
                 .AddPropIfNotNull("imageCropping", ImageCropping(props, jsonNode.Type))
                 .RemoveProp("umbracoFile")
                 .RemoveProp("umbracoBytes");

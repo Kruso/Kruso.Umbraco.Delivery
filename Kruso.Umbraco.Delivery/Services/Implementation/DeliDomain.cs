@@ -1,4 +1,5 @@
 ﻿using Kruso.Umbraco.Delivery.Extensions;
+using Kruso.Umbraco.Delivery.Models;
 using Kruso.Umbraco.Delivery.Routing;
 using System;
 using System.Collections.Generic;
@@ -26,7 +27,7 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             _umbracoContextAccessor = umbracoContextAccessor;
         }
 
-        public DomainAndUri GetDomainByContent(IPublishedContent content, string culture)
+        public DeliDomainAndUri GetDomainByContent(IPublishedContent content, string culture)
         {
             var domain = GetAllDomains(_deliRequestAccessor.Current?.CallingUri)
                 .FirstOrDefault(d => d.ContentId == content.Root().Id && d.Culture == culture);
@@ -34,13 +35,13 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             return domain;
         }
 
-        public IEnumerable<DomainAndUri> GetDomains()
+        public IEnumerable<DeliDomainAndUri> GetDomains()
         {
             var uri = _deliRequestAccessor.Current?.CallingUri;
             return GetAllDomains(uri);
         }
 
-        public IEnumerable<DomainAndUri> GetDomainsByRequest(Uri uri = null)
+        public IEnumerable<DeliDomainAndUri> GetDomainsByRequest(Uri uri = null)
         {
             uri ??= _deliRequestAccessor.Current?.CallingUri;
 
@@ -60,7 +61,7 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             return candidates.ToList();
         }
 
-        public DomainAndUri GetDefaultDomainByRequest(Uri uri = null)
+        public DeliDomainAndUri GetDefaultDomainByRequest(Uri uri = null)
         {
             uri ??= _deliRequestAccessor.Current.CallingUri;
 
@@ -70,7 +71,7 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             return res;
         }
 
-        public DomainAndUri GetDomainByRequest(string culture)
+        public DeliDomainAndUri GetDomainByRequest(string culture)
         {
             var candidates = GetDomainsByRequest();
 
@@ -78,7 +79,7 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             return res;
         }
 
-        public DomainAndUri GetDomainByRequest(Uri uri = null, bool allowDefault = false)
+        public DeliDomainAndUri GetDomainByRequest(Uri uri = null, bool allowDefault = false)
         {
             uri ??= _deliRequestAccessor.Current.CallingUri;
             var candidates = GetDomainsByRequest(uri);
@@ -106,15 +107,15 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             return culture ?? _deliCulture.DefaultCulture;
         }
 
-        private IEnumerable<DomainAndUri> GetAllDomains(Uri uri)
+        private IEnumerable<DeliDomainAndUri> GetAllDomains(Uri uri)
         {
-            IEnumerable<DomainAndUri> domains = null;
+            IEnumerable<DeliDomainAndUri> domains = null;
 
             if (uri != null && _umbracoContextAccessor.TryGetUmbracoContext(out var context))
             {
                 domains = context.PublishedSnapshot.Domains.GetAll(false)
                     .Where(d => d.IsWildcard == false)
-                    .Select(d => new DomainAndUri(d, uri))
+                    .Select(d => CreateDomain(d, uri))
                     .OrderByDescending(d => d.Uri.ToString());
             }
 
@@ -123,17 +124,17 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
                 var virtualDomainAndUri = CreateVirtualDomain(uri);
                 if (virtualDomainAndUri != null)
                 {
-                    domains = new List<DomainAndUri>
+                    domains = new List<DeliDomainAndUri>
                     {
                         virtualDomainAndUri
                     };
                 }
             }
 
-            return domains ?? Enumerable.Empty<DomainAndUri>();
+            return domains ?? Enumerable.Empty<DeliDomainAndUri>();
         }
 
-        private DomainAndUri CreateVirtualDomain(Uri requestUri)
+        private DeliDomainAndUri CreateVirtualDomain(Uri requestUri)
         {
             var startPages = _deliContent.RootPublishedContent()
                 .Where(x => _deliContent.IsPage(x) && _deliCulture.IsPublishedInCulture(x, _deliCulture.DefaultCulture));
@@ -143,10 +144,16 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
                 var host = new Uri($"{requestUri.Scheme}://{requestUri.Authority}/");
                 var startPage = startPages.First();
                 var virtualDomain = new Domain(-1, host.AbsoluteUri, startPage.Id, _deliCulture.DefaultCulture, false);
-                return new DomainAndUri(virtualDomain, host);
+                return CreateDomain(virtualDomain, host);
             }
 
             return null;
+        }
+
+        private DeliDomainAndUri CreateDomain(Domain domain, Uri currentUri)
+        {
+            var fallbackCulture = _deliCulture.GetFallbackCulture(domain.Culture);
+            return new DeliDomainAndUri(domain, currentUri, fallbackCulture);
         }
     }
 }

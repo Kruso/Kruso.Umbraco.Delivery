@@ -16,6 +16,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
             public Guid Key { get; set; }
             public IPublishedContent Page { get; set; }
             public string Culture { get; set; }
+            public string? FallbackCulture { get; set; }
             public ModelFactoryOptions Options { get; set; }
         }
 
@@ -25,7 +26,9 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
         private readonly IDeliCulture _deliCulture;
 
         public IPublishedContent Page => Peek()?.Page;
-        public string Culture => Peek()?.Culture;
+        public string Culture => Peek()?.Culture ?? _deliCulture.DefaultCulture;
+        public string? FallbackCulture => Peek()?.FallbackCulture;
+
         public ModelFactoryOptions Options => Peek()?.Options;
 
         public bool Initialized => CurrentDepth > 0;
@@ -164,11 +167,15 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
 
             var prev = Peek();
 
+            culture = culture ?? prev?.Culture ?? _deliRequestAccessor.Current?.Culture ?? _deliCulture.DefaultCulture;
+            var fallbackCulture = _deliCulture.GetFallbackCulture(culture);
+
             return new StackItem
             {
                 Key = stackItemKey.Value,
                 Page = page ?? prev?.Page,
-                Culture = culture ?? prev?.Culture ?? _deliRequestAccessor.Current?.Culture ?? _deliCulture.DefaultCulture,
+                Culture = culture,
+                FallbackCulture = fallbackCulture,
                 Options = options ?? prev?.Options ?? _deliRequestAccessor.Current?.ModelFactoryOptions ?? new ModelFactoryOptions()
             };
         }

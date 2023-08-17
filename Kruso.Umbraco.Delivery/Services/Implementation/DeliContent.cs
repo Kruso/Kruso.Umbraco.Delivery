@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.Services;
@@ -83,21 +84,6 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             return content != null && content.ContentType.Alias == config.SettingsType;
         }
 
-        public string NameByCulture(IPublishedContent content, string culture)
-        {
-            string res = null;
-
-            if (content != null && !string.IsNullOrEmpty(culture))
-            {
-                _deliCulture.WithCultureContext(culture, () =>
-                {
-                    res = content.Name;
-                });
-            }
-
-            return res ?? content.Name;
-        }
-
         public IEnumerable<IPublishedContent> RootPublishedContent()
         {
             var context = _umbracoContextAccessor.GetRequiredUmbracoContext();
@@ -120,6 +106,16 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
         }
 
         public IPublishedContent PublishedContent(Guid id)
+        {
+            if (_umbracoContextAccessor.TryGetUmbracoContext(out var context))
+            {
+                return context.Content.GetById(id);
+            }
+
+            return null;
+        }
+
+        public IPublishedContent PublishedContent(Udi id)
         {
             if (_umbracoContextAccessor.TryGetUmbracoContext(out var context))
             {

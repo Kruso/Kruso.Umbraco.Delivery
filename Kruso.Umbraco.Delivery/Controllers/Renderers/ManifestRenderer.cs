@@ -1,4 +1,5 @@
-﻿using Kruso.Umbraco.Delivery.Helper;
+﻿using Kruso.Umbraco.Delivery.Extensions;
+using Kruso.Umbraco.Delivery.Helper;
 using Kruso.Umbraco.Delivery.Json;
 using Kruso.Umbraco.Delivery.ModelConversion;
 using Kruso.Umbraco.Delivery.ModelGeneration;
@@ -21,7 +22,6 @@ namespace Kruso.Umbraco.Delivery.Controllers.Renderers
         private readonly IModelFactory _modelFactory;
         private readonly IModelConverter _modelConverter;
         private readonly ILocalizationService _localizationService;
-        private readonly IDeliRequestAccessor _deliRequestAccessor;
 
         private const string ManifestCacheKey = "deli-manifest";
 
@@ -37,8 +37,7 @@ namespace Kruso.Umbraco.Delivery.Controllers.Renderers
             IDeliCache deliCache,
             IModelFactory modelFactory, 
             IModelConverter modelConverter,
-            ILocalizationService localizationService,
-            IDeliRequestAccessor deliRequestAccessor)
+            ILocalizationService localizationService)
         {
             _deliPages = deliPages;
             _deliDomain = deliDomain;
@@ -48,79 +47,68 @@ namespace Kruso.Umbraco.Delivery.Controllers.Renderers
             _modelFactory = modelFactory;
             _modelConverter = modelConverter;
             _localizationService = localizationService;
-            _deliRequestAccessor = deliRequestAccessor;
         }
 
-        public JsonNode GetManifest(string[] features, string culture = null)
+        public JsonNode GetManifest(string[] features, string culture = null, Guid? rootPageId = null)
         {
-            var manifests = GetManifests(features, culture);
-            var callingUri = _deliRequestAccessor.Current.CallingUri;
+            JsonNode manifest = GetManifest();
 
-            var domains = _deliDomain.GetDomainsByRequest(callingUri);
+            var domains = manifest
+                .Nodes("domains")
+                .Where(x => IncludeDomainInManifest(x, culture, rootPageId))
+                .Select(x => DomainWithFeatures(x, features))
+                .ToList();
 
-            var manifestDomains = new List<JsonNode>();
-            foreach (var domain in domains)
-            {
-                var manifestDomain = manifests
-                    .Nodes("domains")
-                    .FirstOrDefault(x => 
-                        x.Val<int>("domain.rootPageId") == domain.ContentId 
-                        && x.Node("domain.cultureInfo").Culture == domain.Culture);
+            manifest.AddProp("domains", domains);
 
-                if (manifestDomain != null) 
-                    manifestDomains.Add(manifestDomain);
-            }
-
-            manifests.AddProp("domains", manifestDomains);
-
-            return manifests;
+            return manifest;
         }
 
-        public JsonNode GetManifests(string[] features, string culture = null)
+        private bool IncludeDomainInManifest(JsonNode domain, string? culture, Guid? rootPageId)
         {
-            var manifest = _deliCache.GetFromMemory<JsonNode>(ManifestCacheKey);
+            var domainCulture = domain.Val<string>("culture");
+            var domainRootPageId = domain.Val<Guid>("rootPageId");
+
+            return
+                (culture is null || culture.Equals(domainCulture, StringComparison.InvariantCultureIgnoreCase)) &&
+                (rootPageId is null || rootPageId.Value == domainRootPageId);
+        }
+
+        private JsonNode DomainWithFeatures(JsonNode domain, string[] features)
+        {
+            var domainWithFeatures = new JsonNode()
+                .CopyProps(domain, "rootPageId", "culture");
+
+            if (!features.Any() || features.Contains("domain"))
+                domainWithFeatures.CopyProp(domain, "domain");
+
+            if (!features.Any() || features.Contains("settings"))
+                domainWithFeatures.CopyProp(domain, "settings");
+
+            if (!features.Any() || features.Contains("routes"))
+                domainWithFeatures.CopyProp(domain, "routes");
+
+            if (!features.Any() || features.Contains("translations"))
+                domainWithFeatures.CopyProp(domain, "translations");
+
+            return domainWithFeatures;
+        }
+
+        private JsonNode GetManifest()
+        {
+            JsonNode manifest = null;
+#if !DEBUG
+            manifest = _deliCache.GetFromMemory<JsonNode>(ManifestCacheKey);
+#endif
             if (manifest == null)
             {
                 manifest = CreateManifest();
+#if !DEBUG
                 _deliCache.AddToMemory(ManifestCacheKey, manifest);
+#endif
             }
 
-            manifest = manifest.Clone();
-            var domains = new List<JsonNode>();
-            foreach (var domain in manifest.Nodes("domains"))
-            {
-                var clonedDomain = domain.Clone();
-
-                if (!string.IsNullOrEmpty(culture))
-                {
-                    var domainCulture = clonedDomain
-                        .Node("domain")
-                            .Node("cultureInfo").Culture;
-
-                    if (!domainCulture.Equals(culture, StringComparison.InvariantCultureIgnoreCase))
-                        continue;
-                }
-
-                if (features.Any())
-                {
-                    if (!features.Contains("domain"))
-                        clonedDomain.RemoveProp("domain");
-
-                    if (!features.Contains("settings"))
-                        clonedDomain.RemoveProp("settings");
-
-                    if (!features.Contains("routes"))
-                        clonedDomain.RemoveProp("routes");
-
-                    if (!features.Contains("translations"))
-                        clonedDomain.RemoveProp("translations");
-                }
-
-                domains.Add(clonedDomain);
-            }
-
-            manifest.AddProp("domains", domains);
-            return manifest;
+            return manifest?.Clone();
         }
 
         private JsonNode CreateManifest()
@@ -128,29 +116,30 @@ namespace Kruso.Umbraco.Delivery.Controllers.Renderers
             var versions = VersionHelper.GetVersions();
             var domainInfos = GetAllDomainInfo();
 
-            var domains = new List<JsonNode>();
+            var manifestEntries = new List<JsonNode>();
             foreach (var domain in domainInfos)
             {
-                var domainCulture = domain
-                    .Node("domain")
-                        .Node("cultureInfo").Culture;
-
-                domain
-                    .AddProp("settings", GetSettings(domainCulture))
-                    .AddProp("routes", GetRouteInfo(domainCulture))
-                    .AddProp("translations", GetTranslationInfo(domainCulture));
-
-                domains.Add(domain);
+                var domainCulture = domain.Val<string>("cultureInfo.culture");
+                _deliCulture.WithCultureContext(domainCulture, () =>
+                {
+                    manifestEntries.Add(new JsonNode()
+                        .CopyProp(domain, "rootPageId:rootPageGuid")
+                        .AddProp("culture", domainCulture)
+                        .AddProp("domain", domain)
+                        .AddProp("settings", CreateSettings(domainCulture))
+                        .AddProp("routes", CreateRouteInfo(domainCulture))
+                        .AddProp("translations", CreateTranslationInfo(domainCulture)));
+                });
             }
 
             var manifest = new JsonNode()
                 .AddProp("versions", versions)
-                .AddProp("domains", domains);
+                .AddProp("domains", manifestEntries);
 
             return manifest;
         }
 
-        private JsonNode GetSettings(string domainCulture)
+        private JsonNode CreateSettings(string domainCulture)
         {
             var settingsContent = _deliPages.SettingsPage(domainCulture);
             if (settingsContent != null)
@@ -176,12 +165,11 @@ namespace Kruso.Umbraco.Delivery.Controllers.Renderers
                     _deliCulture.WithCultureContext(domain.Culture, () =>
                     {
                         res.Add(new JsonNode()
-                            .AddProp("domain", new JsonNode()
-                                .AddProp("rootPageId", startPage.Id)
-                                .AddProp("rootPageGuid", startPage.Key)
-                                .AddProp("name", startPage.Name)
-                                .AddProp("path", domain.Uri.ToString())
-                                .AddProp("cultureInfo", _deliCulture.GetCultureInfo(domain.Culture))));
+                            .AddProp("rootPageId", startPage.Id)
+                            .AddProp("rootPageGuid", startPage.Key)
+                            .AddProp("name", startPage.Name(domain))
+                            .AddProp("path", domain.Uri.ToString())
+                            .AddProp("cultureInfo", _deliCulture.GetCultureInfo(domain.Culture)));
                     });
                 }
             }
@@ -189,7 +177,7 @@ namespace Kruso.Umbraco.Delivery.Controllers.Renderers
             return res;
         }
 
-        private List<JsonNode> GetRouteInfo(string culture = null)
+        private List<JsonNode> CreateRouteInfo(string culture = null)
         {
             var res = new List<JsonNode>();
 
@@ -212,7 +200,7 @@ namespace Kruso.Umbraco.Delivery.Controllers.Renderers
             return res;
         }
 
-        public List<JsonNode> GetTranslationInfo(string culture = null, string filter = null)
+        public List<JsonNode> CreateTranslationInfo(string culture = null, string filter = null)
         {
             var res = new List<JsonNode>();
 

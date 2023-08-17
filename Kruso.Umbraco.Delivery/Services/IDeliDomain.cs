@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Kruso.Umbraco.Delivery.Models;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using Umbraco.Cms.Core.Models;
@@ -9,12 +10,12 @@ namespace Kruso.Umbraco.Delivery.Services
 {
     public interface IDeliDomain
     {
-        IEnumerable<DomainAndUri> GetDomains();
-        DomainAndUri GetDomainByContent(IPublishedContent content, string culture);
-        IEnumerable<DomainAndUri> GetDomainsByRequest(Uri uri = null);
-        DomainAndUri GetDomainByRequest(string culture);
-        DomainAndUri GetDomainByRequest(Uri uri = null, bool allowDefault = false);
-        DomainAndUri GetDefaultDomainByRequest(Uri uri = null);
+        IEnumerable<DeliDomainAndUri> GetDomains();
+        DeliDomainAndUri GetDomainByContent(IPublishedContent content, string culture);
+        IEnumerable<DeliDomainAndUri> GetDomainsByRequest(Uri uri = null);
+        DeliDomainAndUri GetDomainByRequest(string culture);
+        DeliDomainAndUri GetDomainByRequest(Uri uri = null, bool allowDefault = false);
+        DeliDomainAndUri GetDefaultDomainByRequest(Uri uri = null);
         string GetDomainCulture(string path);
     }
 }

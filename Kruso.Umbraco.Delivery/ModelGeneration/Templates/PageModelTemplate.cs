@@ -1,4 +1,5 @@
-﻿using Kruso.Umbraco.Delivery.Json;
+﻿using Kruso.Umbraco.Delivery.Extensions;
+using Kruso.Umbraco.Delivery.Json;
 using Kruso.Umbraco.Delivery.Services;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,7 +35,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.Templates
             };
 
             page
-                .AddProp("name", content.Name)
+                .AddProp("name", content.Name(context))
                 .AddProp("urls", CreateUrls(context, content))
                 .AddProp("sortOrder", content.SortOrder)
                 .CopyAllProps(props);

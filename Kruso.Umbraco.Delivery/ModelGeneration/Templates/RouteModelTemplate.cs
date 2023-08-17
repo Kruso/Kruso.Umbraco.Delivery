@@ -35,7 +35,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.Templates
             };
 
             route
-                .AddProp("name", content.Name)
+                .AddProp("name", content.Name(context))
                 .AddProp("isRoot", content.Root().Key == content.Key)
                 .AddProp("route", _deliUrl.GetDeliveryUrl(content, context.Culture))
                 .AddProp("mimeType", _deliTemplates.IsJsonTemplate(content) ? "application/json" : "text/html")

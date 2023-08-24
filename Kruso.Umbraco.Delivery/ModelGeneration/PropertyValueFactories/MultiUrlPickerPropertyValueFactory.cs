@@ -1,17 +1,14 @@
 ﻿using Kruso.Umbraco.Delivery.Json;
 using Kruso.Umbraco.Delivery.Services;
-using Newtonsoft.Json.Linq;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.PropertyEditors;
 
 namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
 {
-    [ModelPropertyValueFactory("Umbraco.MultiUrlPicker")]
+	[ModelPropertyValueFactory("Umbraco.MultiUrlPicker")]
     public class MultiUrlPickerPropertyValueFactory : IModelPropertyValueFactory
     {
         private readonly IDeliContent _deliContent;
@@ -34,12 +31,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
             var links = GetLinks(_modelFactory.Context, property);
             foreach (var link in links.Where(x => x.Type == LinkType.Content && x.Udi != null))
             {
-                var publishedContent = _deliContent.PublishedContent(link.Udi);
-                if (publishedContent != null)
-                {
-                    var queryString = GetQueryString(link.Url);
-					link.Url = _deliUrl.GetDeliveryUrl(publishedContent, _modelFactory.Context.Culture) + queryString;
-				}   
+                link.Url = GetUrl(link, _modelFactory.Context.Culture, _modelFactory.Context.FallbackCulture); 
             }
 
             var res = links
@@ -90,5 +82,23 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
 
             return null;
         }
+
+        private string GetUrl(Link link, string culture, string fallbackCulture)
+        {
+			var publishedContent = _deliContent.PublishedContent(link.Udi);
+			if (publishedContent != null)
+			{
+				var queryString = GetQueryString(link.Url);
+                var url = _deliUrl.GetDeliveryUrl(publishedContent, culture);
+                if (string.IsNullOrEmpty(url))
+                    url = _deliUrl.GetDeliveryUrl(publishedContent, fallbackCulture); 
+                
+                url += queryString;
+
+                return url;
+			}
+
+            return link.Url;
+		}
     }
 }

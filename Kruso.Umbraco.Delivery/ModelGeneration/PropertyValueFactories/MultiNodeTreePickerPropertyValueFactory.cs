@@ -1,11 +1,12 @@
 ﻿using Kruso.Umbraco.Delivery.Services;
+using System.Collections.Generic;
 using System.Linq;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.PropertyEditors;
 
 namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
 {
-    [ModelPropertyValueFactory("Umbraco.MultiNodeTreePicker")]
+	[ModelPropertyValueFactory("Umbraco.MultiNodeTreePicker")]
     public class MultiNodeTreePickerPropertyValueFactory : IModelPropertyValueFactory
     {
         private readonly IDeliDataTypes _deliDataTypes;
@@ -22,12 +23,21 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
         public virtual object Create(IPublishedProperty property)
         {
             var culture = _modelFactory.Context.Culture;
-            var contentItems = _modelFactory.CreateBlocks(_deliProperties.PublishedContentValue<IPublishedContent>(property, culture));
+            var contentItems = _modelFactory.CreateBlocks(GetPublishedContent(_modelFactory.Context, property));
 
             var configuration = _deliDataTypes.EditorConfiguration<MultiNodePickerConfiguration>(property.PropertyType.DataType.Id);
             return configuration?.MaxNumber == 1
                 ? contentItems.FirstOrDefault()
                 : contentItems;
         }
+
+        private IEnumerable<IPublishedContent> GetPublishedContent(IModelFactoryContext context, IPublishedProperty property)
+		{
+            var content = _deliProperties.PublishedContentValue<IPublishedContent>(property, context.Culture);
+            if (!content?.Any() ?? false)
+                content = _deliProperties.PublishedContentValue<IPublishedContent>(property, context.FallbackCulture);
+
+            return content;
+		}
     }
 }

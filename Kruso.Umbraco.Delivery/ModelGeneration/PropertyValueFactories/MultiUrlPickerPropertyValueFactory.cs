@@ -31,29 +31,19 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
 
         public virtual object Create(IPublishedProperty property)
         {
-            var links = new List<Link>();
-
-            var val = _deliProperties.Value(property, _modelFactory.Context.Culture);
-            if (val == null)
-                return null;
-
-            if (val is Link)
-            {
-                links.Add(val as Link);
-            }
-            else if (val is IEnumerable<Link>)
-            {
-                links.AddRange(val as IEnumerable<Link>);
-            }
-
+            var links = GetLinks(_modelFactory.Context, property);
             foreach (var link in links.Where(x => x.Type == LinkType.Content && x.Udi != null))
             {
                 var publishedContent = _deliContent.PublishedContent(link.Udi);
                 if (publishedContent != null)
-                    link.Url = _deliUrl.GetDeliveryUrl(publishedContent, _modelFactory.Context.Culture);
+                {
+                    var queryString = GetQueryString(link.Url);
+					link.Url = _deliUrl.GetDeliveryUrl(publishedContent, _modelFactory.Context.Culture) + queryString;
+				}   
             }
 
             var res = links
+                .Where(x => !string.IsNullOrEmpty(x.Url))
                 .Select(x => new JsonNode()
                     .AddProp("url", x.Url)
                     .AddProp("label", x.Name)
@@ -65,6 +55,40 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
             return configuration?.MaxNumber == 1
                 ? (object)res.FirstOrDefault()
                 : res;
+        }
+
+        private List<Link> GetLinks(IModelFactoryContext context, IPublishedProperty property)
+        {
+			var links = new List<Link>();
+
+			var val = _deliProperties.Value(property, context.Culture);
+			if (val == null)
+                val = _deliProperties.Value(property, context.FallbackCulture);
+
+            if (val == null)
+                return links;
+
+			if (val is Link)
+				links.Add(val as Link);
+
+			else if (val is IEnumerable<Link>)
+				links.AddRange(val as IEnumerable<Link>);
+
+            return links;
+		}
+
+        private string GetQueryString(string url)
+        {
+            if (!string.IsNullOrEmpty(url))
+            {
+                var idx = url.IndexOf("?");
+                if (idx == -1)
+                    idx = url.IndexOf("#");
+                if (idx > -1)
+                    return url.Substring(idx);
+			}
+
+            return null;
         }
     }
 }

@@ -45,7 +45,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
 
         public JsonNode PageWithDepth(IPublishedContent page, string culture, ModelFactoryOptions options, Func<JsonNode> createPageFunc)
         {
-            if (!CanRender(page, options))
+            if (!CanRender(page, options, Culture))
                 return null;
 
             var didIncrement = IncrementDepth(page, culture, options);
@@ -54,11 +54,21 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
 
         public JsonNode BlockWithDepth(IPublishedContent block, string culture, ModelFactoryOptions options, Func<JsonNode> createBlockFunc)
         {
-            if (!CanRender(block, options))
-                return null;
+            culture ??= Culture;
+            var fallbackCulture = _deliCulture.GetFallbackCulture(culture);
 
-            var didIncrement = IncrementDepth(block.Key, culture, options);
-            return WithDepth(block, didIncrement, createBlockFunc);
+            if (CanRender(block, options, culture))
+            {
+				var didIncrement = IncrementDepth(block.Key, culture, options);
+				return WithDepth(block, didIncrement, createBlockFunc);
+			}
+            else if (fallbackCulture != null && CanRender(block, options, fallbackCulture))
+			{
+				var didIncrement = IncrementDepth(block.Key, culture, options);
+				return WithDepth(block, didIncrement, createBlockFunc);
+			}
+
+			return null;
         }
 
         public JsonNode CustomBlockWithDepth(Guid key, string type, string culture, Func<JsonNode> createBlockFunc)
@@ -180,7 +190,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
             };
         }
 
-        private bool CanRender(IPublishedContent content, ModelFactoryOptions options)
+        private bool CanRender(IPublishedContent content, ModelFactoryOptions options, string culture)
         {
             if (content == null)
                 return false;
@@ -191,7 +201,7 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration
             if (options == null || !options.ApplyPublicAccessRights)
                 return true;
 
-            return content.IsPublished(Culture) && _deliRequestAccessor.Identity.HasAccess(content);
+            return content.IsPublished(culture) && _deliRequestAccessor.Identity.HasAccess(content);
         }
     }
 }

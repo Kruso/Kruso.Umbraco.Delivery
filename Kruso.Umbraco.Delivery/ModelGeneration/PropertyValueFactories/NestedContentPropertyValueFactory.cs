@@ -25,11 +25,11 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
             return contentItems;
         }
 
-		private IEnumerable<IPublishedContent> GetPublishedContent(IModelFactoryContext context, IPublishedProperty property)
+		private IEnumerable<IPublishedElement> GetPublishedContent(IModelFactoryContext context, IPublishedProperty property)
 		{
-			var content = _deliProperties.PublishedContentValue<IPublishedContent>(property, context.Culture);
+			var content = _deliProperties.PublishedContentValue<IPublishedElement>(property, context.Culture);
 			if (!content?.Any() ?? false)
-				content = _deliProperties.PublishedContentValue<IPublishedContent>(property, context.FallbackCulture);
+				content = _deliProperties.PublishedContentValue<IPublishedElement>(property, context.FallbackCulture);
 
 			return content;
 		}

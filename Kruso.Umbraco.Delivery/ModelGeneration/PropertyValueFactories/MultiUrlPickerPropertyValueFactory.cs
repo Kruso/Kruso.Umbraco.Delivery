@@ -1,10 +1,13 @@
 ﻿using Kruso.Umbraco.Delivery.Json;
 using Kruso.Umbraco.Delivery.Services;
+using StackExchange.Profiling.Data;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.PropertyEditors;
+using Umbraco.Extensions;
 
 namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
 {
@@ -29,10 +32,6 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
         public virtual object Create(IPublishedProperty property)
         {
             var links = GetLinks(_modelFactory.Context, property);
-            foreach (var link in links.Where(x => x.Type == LinkType.Content && x.Udi != null))
-            {
-                link.Url = GetUrl(link, _modelFactory.Context.Culture, _modelFactory.Context.FallbackCulture); 
-            }
 
             var res = links
                 .Where(x => !string.IsNullOrEmpty(x.Url))
@@ -51,11 +50,15 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
 
         private List<Link> GetLinks(IModelFactoryContext context, IPublishedProperty property)
         {
+            var usedFallback = false;
 			var links = new List<Link>();
 
 			var val = _deliProperties.Value(property, context.Culture);
-			if (val == null)
+            if (val == null || (!(val as IEnumerable<Link>)?.Any() ?? false))
+            {
                 val = _deliProperties.Value(property, context.FallbackCulture);
+                usedFallback = true;
+            }
 
             if (val == null)
                 return links;
@@ -66,7 +69,32 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
 			else if (val is IEnumerable<Link>)
 				links.AddRange(val as IEnumerable<Link>);
 
-            return links;
+            var res = new List<Link>();
+            foreach (var link in links)
+            {
+                if (link.Type != LinkType.Content)
+                {
+                    res.Add(link);
+                    continue;
+                }
+
+				var publishedContent = _deliContent.PublishedContent(link.Udi);
+				if (publishedContent != null)
+                {
+					var url = _deliUrl.GetDeliveryUrl(publishedContent, context.Culture);
+					if (!string.IsNullOrEmpty(url))
+					{
+						var queryString = GetQueryString(link.Url);
+						link.Url = url += queryString;
+                        if (usedFallback)
+                            link.Name = publishedContent.Name(context.FallbackCulture);
+
+						res.Add(link);
+					}
+                }
+			}
+
+            return res;
 		}
 
         private string GetQueryString(string url)
@@ -82,23 +110,5 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
 
             return null;
         }
-
-        private string GetUrl(Link link, string culture, string fallbackCulture)
-        {
-			var publishedContent = _deliContent.PublishedContent(link.Udi);
-			if (publishedContent != null)
-			{
-				var queryString = GetQueryString(link.Url);
-                var url = _deliUrl.GetDeliveryUrl(publishedContent, culture);
-                if (string.IsNullOrEmpty(url))
-                    url = _deliUrl.GetDeliveryUrl(publishedContent, fallbackCulture); 
-                
-                url += queryString;
-
-                return url;
-			}
-
-            return link.Url;
-		}
     }
 }

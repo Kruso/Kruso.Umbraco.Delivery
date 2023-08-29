@@ -8,8 +8,8 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
     [ModelPropertyValueFactory("Umbraco.NestedContent")]
     public class NestedContentPropertyValueFactory : IModelPropertyValueFactory
     {
-        private readonly IDeliProperties _deliProperties;
-        private readonly IModelFactory _modelFactory;
+        protected readonly IDeliProperties _deliProperties;
+		protected readonly IModelFactory _modelFactory;
 
         public NestedContentPropertyValueFactory(IDeliProperties deliProperties, IModelFactory modelFactory)
         {
@@ -25,13 +25,13 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
             return contentItems;
         }
 
-		private IEnumerable<IPublishedElement> GetPublishedContent(IModelFactoryContext context, IPublishedProperty property)
+		protected virtual IEnumerable<IPublishedElement> GetPublishedContent(IModelFactoryContext context, IPublishedProperty property)
 		{
-			var content = _deliProperties.PublishedContentValue<IPublishedElement>(property, context.Culture);
-			if (!content?.Any() ?? false)
-				content = _deliProperties.PublishedContentValue<IPublishedElement>(property, context.FallbackCulture);
+			var items = _deliProperties.PublishedContentValue<IPublishedElement>(property, context.Culture);
+			if (!items?.Any() ?? false)
+				items = _deliProperties.PublishedContentValue<IPublishedElement>(property, context.FallbackCulture);
 
-			return content;
+			return items;
 		}
 	}
 }

@@ -1,4 +1,6 @@
 ﻿using Kruso.Umbraco.Delivery.Services;
+using System.Collections.Generic;
+using System.Linq;
 using Umbraco.Cms.Core.Models.PublishedContent;
 
 namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
@@ -18,9 +20,18 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
         public virtual object Create(IPublishedProperty property)
         {
             var culture = _modelFactory.Context.Culture;
-            var contentItems = _modelFactory.CreateBlocks(_deliProperties.PublishedContentValue<IPublishedElement>(property, culture));
+            var contentItems = _modelFactory.CreateBlocks(GetPublishedContent(_modelFactory.Context, property));
 
             return contentItems;
         }
-    }
+
+		private IEnumerable<IPublishedElement> GetPublishedContent(IModelFactoryContext context, IPublishedProperty property)
+		{
+			var content = _deliProperties.PublishedContentValue<IPublishedElement>(property, context.Culture);
+			if (!content?.Any() ?? false)
+				content = _deliProperties.PublishedContentValue<IPublishedElement>(property, context.FallbackCulture);
+
+			return content;
+		}
+	}
 }

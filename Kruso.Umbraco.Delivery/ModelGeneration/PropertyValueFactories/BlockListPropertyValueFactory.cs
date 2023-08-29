@@ -22,10 +22,11 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
 
         public virtual object Create(IPublishedProperty property)
         {
-            var value = _deliProperties.Value(property, _modelFactory.Context.Culture);
-            if (value is BlockListModel blockListModel)
+            var value = GetValueWithFallback(_modelFactory.Context, property, out bool isFallback);
+
+			if (value is BlockListModel blockListModel)
             {
-                var res = _modelFactory.CreateBlocks(blockListModel?.Select(x => x.Content));
+				var res = _modelFactory.CreateBlocks(blockListModel.Select(x => x.Content));
                 return IsMaxOneBlock(property)
                     ? res.FirstOrDefault()
                     : res;
@@ -43,5 +44,25 @@ namespace Kruso.Umbraco.Delivery.ModelGeneration.PropertyValueFactories
             var configuration = _deliDataTypes.EditorConfiguration<BlockListConfiguration>(property.PropertyType.DataType.Id);
             return configuration?.ValidationLimit?.Max == 1;
         }
+
+        
+        private object GetValueWithFallback(IModelFactoryContext context, IPublishedProperty property, out bool isFallback)
+        {
+            isFallback = false;
+			var value = _deliProperties.Value(property, context.Culture);
+			if (value == null)
+			{
+				value = _deliProperties.Value(property, context.FallbackCulture);
+				isFallback = true;
+			}
+
+            if (value is BlockListModel blockListModel && !blockListModel.Any() && !isFallback)
+            {
+                value = _deliProperties.Value(property, context.FallbackCulture);
+                isFallback = true;
+            }
+
+            return value;
+		}
     }
 }

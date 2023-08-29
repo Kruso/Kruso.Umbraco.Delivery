@@ -52,6 +52,21 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             }
         }
 
+        public bool AllEmptyProperties(IPublishedElement publishedContent, string? culture = null)
+        {
+            if (publishedContent == null)
+                return true;
+
+            foreach (var property in publishedContent.Properties)
+            {
+                var val = Value(property, culture);
+                if (!IsEmptyValue(val))
+                    return false;
+            }
+
+            return true;
+        }
+
         private bool IsEmptyValue(object? value) => value == null || (value is string && string.IsNullOrEmpty(value?.ToString()));
 
         private object? InternalValue(IPublishedProperty property, string? culture = null)
@@ -61,8 +76,10 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
                 if (property == null)
                     return null;
 
-                return property.GetValue(culture, null);
-            }
+                return property.PropertyType.Variations == ContentVariation.Nothing || string.IsNullOrEmpty(culture)
+                    ? property.GetValue()
+                    : property.GetValue(culture, null);
+			}
             catch (Exception ex)
             {
                 _log.LogError(ex, $"An unexpected error occurred getting property value {property.Alias} with culture {culture}");

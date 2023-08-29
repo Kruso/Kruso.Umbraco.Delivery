@@ -11,5 +11,6 @@ namespace Kruso.Umbraco.Delivery.Services
         object Value(IPublishedProperty property, string culture);
         string Value(JObject jObject, string prop);
         IEnumerable<T> PublishedContentValue<T>(IPublishedProperty property, string culture) where T : IPublishedElement;
-    }
+        bool AllEmptyProperties(IPublishedElement publishedContent, string? culture = null);
+	}
 }

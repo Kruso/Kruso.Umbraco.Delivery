@@ -1,6 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Kruso.Umbraco.Delivery.Extensions;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Umbraco.Cms.Core.Models;
@@ -67,7 +69,10 @@ namespace Kruso.Umbraco.Delivery.Services.Implementation
             return true;
         }
 
-        private bool IsEmptyValue(object? value) => value == null || (value is string && string.IsNullOrEmpty(value?.ToString()));
+        private bool IsEmptyValue(object? value) =>
+            value == null
+            || (value is string && string.IsNullOrEmpty(value?.ToString()))
+            || (value is IEnumerable && (value as IEnumerable).Count() == 0);
 
         private object? InternalValue(IPublishedProperty property, string? culture = null)
         {

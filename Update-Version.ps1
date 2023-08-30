@@ -31,7 +31,8 @@ foreach($propGroup in $projFile.Project.PropertyGroup) {
     }
     $fileVerPreview = $fileVerPreview + 1
 
-    $newVersion = "$fileVerMajor.$fileVerMinor.$fileVerPatch-preview$fileVerPreview"
+    $fileVerPreviewStr = ([string]$fileVerPreview).PadLeft(2,'0')
+    $newVersion = "$fileVerMajor.$fileVerMinor.$fileVerPatch-preview$fileVerPreviewStr"
     Write-Host "New Version: " $newVersion
     $propGroup.Version = $newVersion
 

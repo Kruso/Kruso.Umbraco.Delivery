@@ -28,7 +28,7 @@ jobs:
         uses: actions/setup-dotnet@v2
         with:
           ref: main
-          dotnet-version: 7.0.x
+          dotnet-version: 8.0.x
           source-url: https://nuget.pkg.github.com/kruso/index.json
         env:
           NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}

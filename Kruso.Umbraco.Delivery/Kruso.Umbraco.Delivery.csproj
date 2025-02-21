@@ -1,13 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Company>Kruso</Company>
     <RepositoryUrl>https://github.com/Kruso/Kruso.Umbraco.Delivery/</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Version>11.0.5</Version>
+    <Version>13.3.2</Version>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <PackageId>Kruso.Umbraco.Delivery</PackageId>
     <Authors>Kruso</Authors>
@@ -34,10 +34,10 @@
     <PackageReference Include="IdentityModel" Version="6.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="1.0.0" />
-    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.8.0" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.8.0" />
-    <PackageReference Include="Umbraco.Cms.Web.BackOffice" Version="[11,12)" />
-    <PackageReference Include="Umbraco.Cms.Web.Website" Version="[11,12)" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.5.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.5.0" />
+    <PackageReference Include="Umbraco.Cms.Web.BackOffice" Version="[13.3.2,14)" />
+    <PackageReference Include="Umbraco.Cms.Web.Website" Version="[13.3.2,14)" />
   </ItemGroup>
   <ItemGroup>
     <None Update="nuget-logo.png">

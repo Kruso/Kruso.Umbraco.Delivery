@@ -24,6 +24,15 @@ namespace Kruso.Umbraco.Delivery.Models
             _value = value;
         }
 
+        public object GetDeliveryApiValue(bool expanding, string culture = null, string segment = null)
+        {
+            if (_value != null)
+                return _value;
+
+            var val = _property.GetValue(culture, segment)?.ToString() ?? string.Empty;
+            return val;
+        }
+
         public IPublishedPropertyType PropertyType => new DeliPropertyType(_propertyType);
 
         public string Alias => _alias ?? _property.Alias;

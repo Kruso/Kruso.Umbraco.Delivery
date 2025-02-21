@@ -35,6 +35,7 @@ namespace Kruso.Umbraco.Delivery.Models
         public ContentVariation Variations => _propertyType.Variations;
 
         public PropertyCacheLevel CacheLevel => throw new NotImplementedException();
+        public PropertyCacheLevel DeliveryApiCacheLevel { get; }
 
         public Type ModelClrType => throw new NotImplementedException();
 
@@ -46,6 +47,12 @@ namespace Kruso.Umbraco.Delivery.Models
         }
 
         public object ConvertInterToXPath(IPublishedElement owner, PropertyCacheLevel referenceCacheLevel, object inter, bool preview)
+        {
+            throw new NotImplementedException();
+        }
+
+        public object ConvertInterToDeliveryApiObject(IPublishedElement owner, PropertyCacheLevel referenceCacheLevel, object inter,
+            bool preview, bool expanding)
         {
             throw new NotImplementedException();
         }

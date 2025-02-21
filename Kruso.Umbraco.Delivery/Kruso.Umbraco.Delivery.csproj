@@ -7,7 +7,7 @@
     <Company>Kruso</Company>
     <RepositoryUrl>https://github.com/Kruso/Kruso.Umbraco.Delivery/</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Version>13.3.3-preview01</Version>
+    <Version>13.3.3</Version>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <PackageId>Kruso.Umbraco.Delivery</PackageId>
     <Authors>Kruso</Authors>
